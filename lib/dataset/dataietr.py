@@ -157,6 +157,9 @@ class MutiScaleBatcher(BatchData):
 
             image = image.astype(np.uint8)
 
+
+            boxes_=self.make_safe_box(image,boxes_)
+
             if cfg.TRAIN.vis:
                 for __box in boxes_:
                     cv2.rectangle(image, (int(__box[0]), int(__box[1])),
@@ -213,6 +216,16 @@ class MutiScaleBatcher(BatchData):
     def produce_for_centernet(self,image,boxes,klass,num_klass=81):
         hm,reg_hm=produce_heatmaps_with_bbox(image,boxes,klass,num_klass)
         return hm,reg_hm
+
+
+    def make_safe_box(self,image,boxes):
+        h,w,c=image.shape
+
+        boxes[boxes[:,0]<0]=0
+        boxes[boxes[:, 1] < 0] = 0
+        boxes[boxes[:, 2] >w] = w-1
+        boxes[boxes[:, 3] >h] = h-1
+        return boxes
 class DsfdDataIter():
 
     def __init__(self, img_root_path='', ann_file=None, training_flag=True, shuffle=True):

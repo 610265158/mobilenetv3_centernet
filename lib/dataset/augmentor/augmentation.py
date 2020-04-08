@@ -358,10 +358,14 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
                 ####box center (x,y)
                 center = [round((single_box[0] + single_box[2]) / 2) , round((single_box[1] + single_box[3]) / 2) ]  ###0-1
                 center= [ int(x) for x in center]
+
+
                 object_width=single_box[2]-single_box[0]
                 object_height=single_box[3]-single_box[1]
+                if center[0]>w_out or center[1]>h_out:
+                    continue
+                cur_hm=produce_heat_map(center.copy(),map_size=(h_out,w_out),stride=1,objects_size=(int(object_height),int(object_width)),sigma=3)
 
-                cur_hm=produce_heat_map(center,map_size=(h_out,w_out),stride=1,objects_size=(int(object_height),int(object_width)),sigma=3)
                 regression_map[center[1], center[0], 0] = object_width
                 regression_map[center[1], center[0], 1] = object_height
 
@@ -376,8 +380,6 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
         heatmap[:,:,int(one_klass)]=hm_for_cur_klass
 
     return heatmap,regression_map
-
-
 
 
 

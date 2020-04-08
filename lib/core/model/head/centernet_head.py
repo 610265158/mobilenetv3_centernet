@@ -30,7 +30,8 @@ class CenternetHead():
                 feature_reg=current_feature
 
                 for j in range(3):
-                    feature_reg = slim.conv2d_transpose(feature_reg, 256, [3, 3], stride=2, scope='upsample_brach_%d'%(j))
+                    feature_reg=tf.keras.layers.UpSampling2D(data_format='channels_last')(feature_reg)
+                    feature_reg = slim.sep(feature_reg, 256, [1, 1], stride=1, scope='upsample_conv1x1_%d'%(j))
 
 
                 print(feature_reg)
