@@ -362,8 +362,10 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
 
                 object_width=single_box[2]-single_box[0]
                 object_height=single_box[3]-single_box[1]
-                if center[0]>w_out or center[1]>h_out:
-                    continue
+                if center[0]>=w_out:
+                    center[0]-=1
+                if  center[1]>=h_out:
+                    center[1]-=1
                 cur_hm=produce_heat_map(center.copy(),map_size=(h_out,w_out),stride=1,objects_size=(int(object_height),int(object_width)),sigma=3)
 
                 regression_map[center[1], center[0], 0] = object_width
@@ -371,13 +373,12 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
 
                 cur_hm_set.append(cur_hm)
 
-        cur_hm_for_klass=np.array(cur_hm_set)
-        cur_hm_for_klass=np.transpose(cur_hm_for_klass,axes=[1,2,0])
+        if len(cur_hm_set)>0:
+            cur_hm_for_klass=np.array(cur_hm_set)
+            cur_hm_for_klass=np.transpose(cur_hm_for_klass,axes=[1,2,0])
 
-
-        hm_for_cur_klass=np.max(cur_hm_for_klass,axis=2)
-
-        heatmap[:,:,int(one_klass)]=hm_for_cur_klass
+            hm_for_cur_klass=np.max(cur_hm_for_klass,axis=2)
+            heatmap[:,:,int(one_klass)]=hm_for_cur_klass
 
     return heatmap,regression_map
 

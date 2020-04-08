@@ -9,11 +9,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"          ##if u use muti gpu set them v
 config.TRAIN = edict()
 
 #### below are params for dataiter
-config.TRAIN.process_num = 3                      ### process_num for data provider
+config.TRAIN.process_num = 5                      ### process_num for data provider
 config.TRAIN.prefetch_size = 20                  ### prefect Q size for data provider
 
 config.TRAIN.num_gpu = 1                         ##match with   os.environ["CUDA_VISIBLE_DEVICES"]
-config.TRAIN.batch_size = 4                    ###A big batch size may achieve a better result, but the memory is a problem
+config.TRAIN.batch_size = 16                    ###A big batch size may achieve a better result, but the memory is a problem
 config.TRAIN.log_interval = 10
 config.TRAIN.epoch = 300                      ###just keep training , evaluation shoule be take care by yourself,
                                                ### generally 10,0000 iters is enough
@@ -29,7 +29,7 @@ config.TRAIN.lr_decay_every_step = [500,1000,200000,300000,400000]
 
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
-config.TRAIN.vis=True                                    ##check data flag
+config.TRAIN.vis=False                                    ##check data flag
 config.TRAIN.mix_precision=True
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
@@ -41,7 +41,7 @@ config.DATA.root_path=''
 config.DATA.train_txt_path='train.txt'
 config.DATA.val_txt_path='val.txt'
 config.DATA.num_category=80                                  ###face 1  voc 20 coco 80
-config.DATA.num_class = config.DATA.num_category + 1        # +1 background
+config.DATA.num_class = config.DATA.num_category       # +1 background
 
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
@@ -72,7 +72,7 @@ config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
-config.MODEL.pretrained_model=None
+config.MODEL.pretrained_model='./v3-large_224_1.0_float/ema/model-540000'
 config.MODEL.fpn_dims=[256,256,256,256,256]
 
 

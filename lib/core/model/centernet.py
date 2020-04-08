@@ -1,7 +1,7 @@
 #-*-coding:utf-8-*-
 import tensorflow as tf
 import numpy as np
-
+import tensorflow.contrib.slim as slim
 from lib.core.anchor.box_utils import batch_decode,batch_decode_fix
 
 from lib.core.model.net.shufflenet.backbone import shufflenetv2_ssd
@@ -67,7 +67,7 @@ class Centernet():
             image=image/255.
         return image
 
-    def postprocess(self, box_encodings, cls, anchors, anchors_decode):
+    def postprocess(self, reg,cls):
         """Postprocess outputs of the network.
 
         Returns:
@@ -81,67 +81,9 @@ class Centernet():
 
         with tf.name_scope('postprocessing'):
 
-            if anchors_decode is None:
-                boxes = batch_decode(box_encodings, anchors)
-            else:
-                boxes = batch_decode_fix(box_encodings, anchors, anchors_decode)
-            # if the images were padded we need to rescale predicted boxes:
+            cls=slim.max_pool2d(cls,kernel_size=(3,3),stride=1,padding='SAME')
 
-            # it has shape [batch_size, num_anchors, 4]
-            # scores = tf.nn.softmax(cls, axis=2)  ##ignore the bg
-            scores = cls[:, :, 1:]
-            scores = tf.nn.sigmoid(scores)
 
-        if "coreml" == cfg.MODEL.deployee:
-            ###this branch is for coreml
-
-            boxes = tf.identity(boxes, name='boxes')
-            scores = tf.identity(scores, name='scores')
-
-            labels = tf.identity(scores, name='labels')  ## no use
-        elif "mnn" == cfg.MODEL.deployee:
-
-            label_with_max_score = tf.argmax(scores, axis=2)
-
-            scores = tf.reduce_max(scores, axis=2, keep_dims=True)
-
-            ##this branch is for mnn
-            boxes = tf.squeeze(boxes, axis=[0])
-            scores = tf.squeeze(scores, axis=[0, 2])
-            labels = tf.squeeze(label_with_max_score, axis=[0])
-            selected_indices = tf.image.non_max_suppression(
-                boxes, scores, cfg.MODEL.max_box, cfg.MODEL.iou_thres, cfg.MODEL.score_thres)
-
-            boxes = tf.gather(boxes, selected_indices)
-            scores = tf.gather(scores, selected_indices)
-            labels = tf.gather(labels, selected_indices)
-
-            num_boxes = tf.cast(tf.shape(boxes)[0], dtype=tf.int32)
-            zero_padding = cfg.MODEL.max_box - num_boxes
-
-            boxes = tf.pad(boxes, [[0, zero_padding], [0, 0]])
-
-            scores = tf.expand_dims(scores, axis=-1)
-            scores = tf.pad(scores, [[0, zero_padding], [0, 0]])
-
-            labels = tf.expand_dims(labels, axis=-1)
-            labels = tf.pad(labels, [[0, zero_padding], [0, 0]])
-
-            boxes = tf.identity(boxes, name='boxes')
-            scores = tf.identity(scores, name='scores')
-            labels = tf.identity(labels, name='labels')
-        else:
-            ###this branch is for tf
-
-            label_with_max_score = tf.argmax(scores, axis=2)
-
-            scores = tf.reduce_max(scores, axis=2, keep_dims=True)
-
-            boxes = tf.identity(boxes, name='boxes')
-            scores = tf.identity(scores, name='scores')
-            labels = tf.identity(label_with_max_score, name='labels')
-
-        return tf.concat([boxes, scores], axis=-1)
 
 
 

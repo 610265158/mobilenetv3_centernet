@@ -31,10 +31,10 @@ class CenternetHead():
 
                 for j in range(3):
                     feature_reg=tf.keras.layers.UpSampling2D(data_format='channels_last')(feature_reg)
-                    feature_reg = slim.sep(feature_reg, 256, [1, 1], stride=1, scope='upsample_conv1x1_%d'%(j))
+                    feature_reg = slim.conv2d(feature_reg, 256, [1, 1], stride=1, scope='upsample_conv1x1_%d'%(j))
 
 
-                print(feature_reg)
+
                 reg = slim.separable_conv2d(feature_reg,
                                       2,
                                       [3, 3],
@@ -44,7 +44,7 @@ class CenternetHead():
                                       scope='centernet_reg_output')
 
                 cls = slim.separable_conv2d(feature_reg,
-                                                81,
+                                                cfg.DATA.num_class,
                                                 [3, 3],
                                                 stride=1,
                                                 activation_fn=None,

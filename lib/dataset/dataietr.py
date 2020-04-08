@@ -213,7 +213,7 @@ class MutiScaleBatcher(BatchData):
         return image, boxes
 
 
-    def produce_for_centernet(self,image,boxes,klass,num_klass=81):
+    def produce_for_centernet(self,image,boxes,klass,num_klass=cfg.DATA.num_class):
         hm,reg_hm=produce_heatmaps_with_bbox(image,boxes,klass,num_klass)
         return hm,reg_hm
 

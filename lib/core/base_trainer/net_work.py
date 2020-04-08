@@ -222,11 +222,11 @@ class trainner():
                                 if cfg.MODEL.deployee:
                                     images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.float32, [None, None, None, cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.float32, [None, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
                                 reg_hm_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size, None,None, 2], name="input_boxes")
-                                cls_hm_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size, None,None, 81], name="input_labels")
+                                cls_hm_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size, None,None, cfg.DATA.num_class], name="input_labels")
                                 ###total anchor
 
                                 images_place_holder_list.append(images_)

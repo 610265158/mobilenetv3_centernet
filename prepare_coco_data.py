@@ -4,7 +4,7 @@ import os
 from lib.dataset.coco_data import BoxInfo
 
 
-coco_dir='/media/lz/73abf007-eec4-4097-9344-48d64dc62346/mscoco'
+coco_dir='../pubdata/mscoco'
 
 train_im_path = os.path.join(coco_dir,'train2017')
 train_ann_path =  os.path.join(coco_dir,'annotations/instances_train2017.json')
@@ -26,7 +26,7 @@ for meta in train_data.metas:
     tmp_str =tmp_str+ fname+'|'
 
     for box in boxes:
-        data = ' %d,%d,%d,%d,%d'%(box[0], box[1], box[2],  box[3],box[4]+1)
+        data = ' %d,%d,%d,%d,%d'%(box[0], box[1], box[2],  box[3],box[4])
         tmp_str=tmp_str+data
     if len(boxes) == 0:
         print(tmp_str)
@@ -53,7 +53,7 @@ for meta in val_data.metas:
     tmp_str = tmp_str + fname + '|'
 
     for box in boxes:
-        data = ' %d,%d,%d,%d,%d' % (box[0], box[1], box[2], box[3], box[4]+1)
+        data = ' %d,%d,%d,%d,%d' % (box[0], box[1], box[2], box[3], box[4])
         tmp_str = tmp_str + data
     if len(boxes) == 0:
         print(tmp_str)
