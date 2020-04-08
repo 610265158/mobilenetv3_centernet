@@ -38,14 +38,14 @@ class Centernet():
         ### extract feature maps
         origin_fms=self.ssd_backbone(inputs,training_flag)
 
-        reg, cls = self.head(origin_fms, l2_regulation, training_flag)
-
+        reg, kps = self.head(origin_fms, l2_regulation, training_flag)
+        kps = tf.sigmoid(kps)
         ### calculate loss
-        reg_loss, cls_loss = loss(reg, cls, reg_hm,cls_hm,num_gt)
+        reg_loss, cls_loss = loss(reg, kps, reg_hm,cls_hm,num_gt)
 
 
-        cls=tf.sigmoid(cls)
-        boxes = tf.identity(cls, name='keypoints')
+
+        kps = tf.identity(kps, name='keypoints')
 
         #self.postprocess(reg,cls)
         ###### adjust the anchors to the image shape, but it trains with a fixed h,w

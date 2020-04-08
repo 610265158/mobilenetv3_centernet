@@ -7,7 +7,7 @@ from tensorflow.python.ops import array_ops
 
 from train_config import config as cfg
 
-def loss(reg_predict,cls_predict,reg_label,cls_label_,num_gt):
+def loss(reg_predict,kps_predict,reg_label,cls_label_,num_gt):
 
     with tf.name_scope('losses'):
         # whether anchor is matched
@@ -16,7 +16,7 @@ def loss(reg_predict,cls_predict,reg_label,cls_label_,num_gt):
         with tf.name_scope('classification_loss'):
 
             cls_losses = focal_loss(
-                cls_predict,
+                kps_predict,
                 cls_label_
             )
 
