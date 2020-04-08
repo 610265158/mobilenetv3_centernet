@@ -22,14 +22,14 @@ class FaceDetector:
 
             self.input_image = tf.get_default_graph().get_tensor_by_name('tower_0/images:0')
             self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
-            # self.output_ops = [
-            #     tf.get_default_graph().get_tensor_by_name('tower_0/boxes:0'),
-            #     tf.get_default_graph().get_tensor_by_name('tower_0/scores:0'),
-            #     tf.expand_dims(tf.cast(tf.get_default_graph().get_tensor_by_name('tower_0/labels:0'),dtype=tf.float32),-1)
-            # ]
-            # self.output_op=tf.concat(self.output_ops,axis=2)
+            self.output_ops = [
+                tf.get_default_graph().get_tensor_by_name('tower_0/boxes:0'),
+                tf.get_default_graph().get_tensor_by_name('tower_0/scores:0'),
+                tf.expand_dims(tf.cast(tf.get_default_graph().get_tensor_by_name('tower_0/labels:0'),dtype=tf.float32),-1)
+            ]
+            self.output_op=tf.concat(self.output_ops,axis=2)
 
-            self.output_op=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0'),
+
 
 
     def __call__(self, image, score_threshold=0.5,input_shape=(cfg.DATA.hin,cfg.DATA.win),max_boxes=1000):
@@ -64,30 +64,30 @@ class FaceDetector:
 
         image_fornet = np.expand_dims(image, 0)
 
-        kps = self._sess.run(
+
+        bboxes = self._sess.run(
             self.output_op, feed_dict={self.input_image: image_fornet,self.training:False}
         )
 
-        print(kps.shape)
-        # bboxes = self.py_nms(np.array(bboxes[0]), iou_thres=0.3, score_thres=score_threshold,max_boxes=max_boxes)
-        #
-        # ###recorver to raw image
-        # boxes_scaler = np.array([(input_shape[1]) / scale_x,
-        #                          (input_shape[0]) / scale_y,
-        #                          (input_shape[1]) / scale_x,
-        #                          (input_shape[0]) / scale_y,
-        #                          1.,1.], dtype='float32')
-        #
-        # boxes_bias = np.array([dx / scale_x,
-        #                        dy / scale_y,
-        #                        dx / scale_x,
-        #                        dy / scale_y, 0.,0.], dtype='float32')
-        # bboxes = bboxes * boxes_scaler - boxes_bias
+        bboxes = self.py_nms(np.array(bboxes[0]), iou_thres=0.3, score_thres=score_threshold,max_boxes=max_boxes)
+
+        ###recorver to raw image
+        boxes_scaler = np.array([(input_shape[1]) / scale_x,
+                                 (input_shape[0]) / scale_y,
+                                 (input_shape[1]) / scale_x,
+                                 (input_shape[0]) / scale_y,
+                                 1.,1.], dtype='float32')
+
+        boxes_bias = np.array([dx / scale_x,
+                               dy / scale_y,
+                               dx / scale_x,
+                               dy / scale_y, 0.,0.], dtype='float32')
+        bboxes = bboxes * boxes_scaler - boxes_bias
 
 
 
         # self.stats_graph(self._sess.graph)
-        return []
+        return bboxes
 
 
     def preprocess(self, image, target_height, target_width, label=None):

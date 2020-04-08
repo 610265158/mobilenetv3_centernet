@@ -7,7 +7,7 @@ from tensorflow.python.ops import array_ops
 
 from train_config import config as cfg
 
-def loss(reg_predict,cls_predict,reg_label,cls_label_,which_loss='focal_loss'):
+def loss(reg_predict,cls_predict,reg_label,cls_label_,num_gt):
 
     with tf.name_scope('losses'):
         # whether anchor is matched
@@ -37,7 +37,7 @@ def loss(reg_predict,cls_predict,reg_label,cls_label_,which_loss='focal_loss'):
     # reg_loss = tf.reduce_sum(location_losses) / normalizer
     # cla_loss = tf.reduce_sum(cls_losses)/normalizer
 
-    return location_losses,cls_losses
+    return location_losses,cls_losses/tf.reduce_sum(num_gt)
 
 
 
@@ -121,12 +121,12 @@ def focal_loss(prediction_tensor, target_tensor, weights=None, alpha=0.25, gamma
 
 
     # compute the normalizer: the number of positive anchors
-    normalizer = tf.where(tf.greater(target_tensor, 0))
-    normalizer = tf.cast(tf.shape(normalizer)[0], tf.float32)
-    normalizer = tf.maximum(1., normalizer)
+    # normalizer = tf.where(tf.greater(target_tensor, 0))
+    # normalizer = tf.cast(tf.shape(normalizer)[0], tf.float32)
+    # normalizer = tf.maximum(1., normalizer)
 
 
-    return tf.reduce_sum(per_entry_cross_ent)/normalizer
+    return tf.reduce_sum(per_entry_cross_ent)
 
 
 def ohem_loss(logits, targets, weights):

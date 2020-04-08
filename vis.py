@@ -5,7 +5,7 @@ import numpy as np
 import shutil
 import tensorflow as tf
 
-from lib.core.api.face_detector import FaceDetector
+from lib.core.api.face_detector_bk import FaceDetector
 from train_config import config as cfg
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"

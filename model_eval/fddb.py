@@ -7,7 +7,7 @@ import cv2
 from tqdm import tqdm
 import argparse
 
-from lib.core.api.face_detector import FaceDetector
+from lib.core.api.face_detector_bk import FaceDetector
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 

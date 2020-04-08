@@ -121,7 +121,7 @@ class trainner():
     def add_summary(self,event):
         self.summaries.append(event)
 
-    def tower_loss(self,scope, images, cls_hm,reg_hm,L2_reg, training):
+    def tower_loss(self,scope, images, cls_hm,reg_hm,num_gt,L2_reg, training):
         """Calculate the total loss on a single tower running the model.
 
         Args:
@@ -141,9 +141,9 @@ class trainner():
 
 
         if cfg.TRAIN.lock_basenet_bn:
-            reg_loss,cla_loss=centernet.forward(images,cls_hm,reg_hm, L2_reg, False)
+            reg_loss,cla_loss=centernet.forward(images,cls_hm,reg_hm,num_gt, L2_reg, False)
         else:
-            reg_loss, cla_loss = centernet.forward(images, cls_hm,reg_hm, L2_reg, training)
+            reg_loss, cla_loss = centernet.forward(images, cls_hm,reg_hm, num_gt,L2_reg, training)
 
         #reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
         regularization_losses = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES), name='l2_loss')
@@ -204,8 +204,9 @@ class trainner():
 
             total_loss_to_show = 0.
             images_place_holder_list = []
-            cls_hm_gt_place_holder_list = []
+            kps_hm_gt_place_holder_list = []
             reg_hm_gt_place_holder_list = []
+            num_gt_place_holder_list = []
 
             weights_initializer = slim.xavier_initializer()
             biases_initializer = tf.constant_initializer(0.)
@@ -226,13 +227,15 @@ class trainner():
                                                              name="images")
 
                                 reg_hm_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size, None,None, 2], name="input_boxes")
-                                cls_hm_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size, None,None, cfg.DATA.num_class], name="input_labels")
+                                kps_hm_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size, None,None, cfg.DATA.num_class], name="input_labels")
+                                num_gt_ = tf.placeholder(tf.float32,[cfg.TRAIN.batch_size], name="num_target")
+
                                 ###total anchor
 
                                 images_place_holder_list.append(images_)
-                                cls_hm_gt_place_holder_list.append(cls_hm_)
+                                kps_hm_gt_place_holder_list.append(kps_hm_)
                                 reg_hm_gt_place_holder_list.append(reg_hm_)
-
+                                num_gt_place_holder_list.append(num_gt_)
                                 with slim.arg_scope([slim.conv2d, slim.conv2d_in_plane, \
                                                      slim.conv2d_transpose, slim.separable_conv2d,
                                                      slim.fully_connected],
@@ -241,7 +244,7 @@ class trainner():
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
                                     reg_loss, cla_loss, l2_loss = self.tower_loss(
-                                        scope, images_, cls_hm_, reg_hm_, L2_reg, training)
+                                        scope, images_, kps_hm_, reg_hm_,num_gt_, L2_reg, training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
@@ -305,8 +308,9 @@ class trainner():
 
             ###set inputs and ouputs
             self.inputs = [images_place_holder_list,
-                           cls_hm_gt_place_holder_list,
+                           kps_hm_gt_place_holder_list,
                            reg_hm_gt_place_holder_list,
+                           num_gt_place_holder_list,
                            L2_reg,
                            training]
             self.outputs = [train_op,
@@ -391,17 +395,17 @@ class trainner():
 
             ########show_flag check the data
             if cfg.TRAIN.vis:
-                example_image,example_cls_hm,example_reg_hm = next(self.train_ds)
+                example_image,example_cls_hm,example_reg_hm,example_num_target = next(self.train_ds)
 
                 print(example_cls_hm.shape)
                 for i in range(example_cls_hm.shape[0]):
 
-
+                    print(example_num_target[i])
                     img=example_image[i]
                     hm=example_cls_hm[i]
                     label=example_reg_hm[i]
 
-                    print(np.sum(label[label>0]))
+
                     # for i in range(hm.shape[2]):
                     #     cv2.namedWindow('tmp2', 0)
                     #     cv2.imshow('tmp2', hm[:, :, i])
@@ -427,9 +431,9 @@ class trainner():
                     feed_dict[self.inputs[0][n]] = examples[0][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                     feed_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                     feed_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
-
-                feed_dict[self.inputs[3]] = cfg.TRAIN.weight_decay_factor
-                feed_dict[self.inputs[4]] = True
+                    feed_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                feed_dict[self.inputs[4]] = cfg.TRAIN.weight_decay_factor
+                feed_dict[self.inputs[5]] = True
 
                 fetch_duration = time.time() - start_time
 
@@ -485,9 +489,9 @@ class trainner():
                 feed_dict[self.inputs[0][n]] = examples[0][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
-
-            feed_dict[self.inputs[3]] = 0
-            feed_dict[self.inputs[4]] = False
+                feed_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+            feed_dict[self.inputs[4]] = 0
+            feed_dict[self.inputs[5]] = False
 
             total_loss_value, reg_loss_value,cla_loss_value, l2_loss_value, lr_value = \
                 self.sess.run([*self.val_outputs],

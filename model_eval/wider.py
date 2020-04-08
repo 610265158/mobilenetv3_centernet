@@ -9,7 +9,7 @@ import tensorflow as tf
 
 import time
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-from lib.core.api.face_detector import FaceDetector
+from lib.core.api.face_detector_bk import FaceDetector
 
 ap = argparse.ArgumentParser()
 ap.add_argument( "--model", required=False, default='./model/detector.pb', help="model to eval:")

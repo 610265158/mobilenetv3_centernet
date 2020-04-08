@@ -172,8 +172,8 @@ class MutiScaleBatcher(BatchData):
                 image=np.expand_dims(image,-1)
 
 
-
-            alig_data.append([image, cls_hm, reg_hm])
+            num_gt=len(boxes_)
+            alig_data.append([image, cls_hm, reg_hm,num_gt])
 
         return alig_data
 
