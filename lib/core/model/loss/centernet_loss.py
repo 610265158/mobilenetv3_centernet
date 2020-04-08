@@ -37,7 +37,7 @@ def loss(reg_predict,kps_predict,reg_label,cls_label_,num_gt):
     # reg_loss = tf.reduce_sum(location_losses) / normalizer
     # cla_loss = tf.reduce_sum(cls_losses)/normalizer
 
-    return location_losses,cls_losses
+    return 0.1*location_losses,cls_losses
 
 
 def classification_loss(predictions, targets):
