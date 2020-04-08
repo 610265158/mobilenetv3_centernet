@@ -24,18 +24,15 @@ class CenternetHead():
         with slim.arg_scope(arg_scope):
             with tf.variable_scope('CenternetHead'):
 
-
                 current_feature = fms[-1]
 
                 feature_reg=current_feature
 
                 for j in range(3):
-                    feature_reg=tf.keras.layers.UpSampling2D(data_format='channels_last')(feature_reg)
-                    feature_reg = slim.conv2d(feature_reg, 256, [1, 1], stride=1, scope='upsample_conv1x1_%d'%(j))
+                    feature_reg = slim.conv2d_transpose(feature_reg, 256, [3, 3], stride=2, scope='upsample__%d'%(j))
 
 
-
-                reg = slim.separable_conv2d(feature_reg,
+                size = slim.separable_conv2d(feature_reg,
                                       2,
                                       [3, 3],
                                       stride=1,
@@ -43,7 +40,7 @@ class CenternetHead():
                                       normalizer_fn=None,
                                       scope='centernet_reg_output')
 
-                cls = slim.separable_conv2d(feature_reg,
+                kps = slim.separable_conv2d(feature_reg,
                                                 cfg.DATA.num_class,
                                                 [3, 3],
                                                 stride=1,
@@ -51,7 +48,7 @@ class CenternetHead():
                                                 normalizer_fn=None,
                                                 scope='centernet_cls_output')
 
-        return reg,cls
+        return size,kps
 
 
 

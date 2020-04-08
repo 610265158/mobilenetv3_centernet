@@ -43,6 +43,8 @@ class Centernet():
         ### calculate loss
         reg_loss, cls_loss = loss(reg, cls, reg_hm,cls_hm,num_gt)
 
+
+        cls=tf.sigmoid(cls)
         boxes = tf.identity(cls, name='keypoints')
 
         #self.postprocess(reg,cls)

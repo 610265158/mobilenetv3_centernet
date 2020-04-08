@@ -57,7 +57,7 @@ class FaceDetector:
                                                                  target_height=cfg.DATA.hin,
                                                                  target_width=cfg.DATA.win)
 
-
+        image_show=image.copy()
         if cfg.DATA.channel==1:
             image=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
             image= np.expand_dims(image, -1)
@@ -68,7 +68,17 @@ class FaceDetector:
             self.output_op, feed_dict={self.input_image: image_fornet,self.training:False}
         )
 
-        print(kps.shape)
+
+        hm=kps[0][0]
+        print(hm.shape)
+        label = np.sum(hm, axis=2)
+        #label = (label / np.max(label) * 255).astype(np.uint8)
+        cv2.namedWindow('label', 0)
+        cv2.imshow('label', label)
+        cv2.namedWindow('img', 0)
+        cv2.imshow('img', image_show)
+        cv2.waitKey(0)
+
         # bboxes = self.py_nms(np.array(bboxes[0]), iou_thres=0.3, score_thres=score_threshold,max_boxes=max_boxes)
         #
         # ###recorver to raw image
@@ -87,7 +97,7 @@ class FaceDetector:
 
 
         # self.stats_graph(self._sess.graph)
-        return []
+        return np.array([])
 
 
     def preprocess(self, image, target_height, target_width, label=None):
