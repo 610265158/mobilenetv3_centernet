@@ -13,7 +13,7 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
 from train_config import config as cfg
-from lib.core.api.face_detector_bk import FaceDetector
+from lib.core.api.face_detector import FaceDetector
 
 
 
