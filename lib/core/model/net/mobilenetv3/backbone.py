@@ -21,20 +21,20 @@ def mobilenetv3_ssd(image,is_training=True):
                                         finegrain_classification_mode=False)
 
 
-        end_feature=slim.separable_conv2d(endpoints['layer_16/output'],
-                                          512,
-                                          [3, 3],
-                                          stride=1,
-                                          scope='mbntev3_extra_conv')
+        # end_feature=slim.separable_conv2d(endpoints['layer_16/output'],
+        #                                   512,
+        #                                   [3, 3],
+        #                                   stride=1,
+        #                                   scope='mbntev3_extra_conv')
 
         # for k,v in endpoints.items():
         #     print('mobile backbone output:',k,v)
         #
-        # mobilebet_fms=[endpoints['layer_8/expansion_output'],
-        #                endpoints['layer_14/expansion_output'],
-        #                end_feature]
-        #
+        mobilebet_fms=[endpoints['layer_8/expansion_output'],
+                       endpoints['layer_14/expansion_output'],
+                       _]
+
         # if cfg.MODEL.fpn:
         #     mobilebet_fms=create_fpn_net(mobilebet_fms,dims_list=cfg.MODEL.fpn_dims)
 
-    return [end_feature]
+    return mobilebet_fms
