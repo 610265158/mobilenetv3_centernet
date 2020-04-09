@@ -22,14 +22,14 @@ class FaceDetector:
 
             self.input_image = tf.get_default_graph().get_tensor_by_name('tower_0/images:0')
             self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
-            # self.output_ops = [
-            #     tf.get_default_graph().get_tensor_by_name('tower_0/boxes:0'),
-            #     tf.get_default_graph().get_tensor_by_name('tower_0/scores:0'),
-            #     tf.expand_dims(tf.cast(tf.get_default_graph().get_tensor_by_name('tower_0/labels:0'),dtype=tf.float32),-1)
-            # ]
-            # self.output_op=tf.concat(self.output_ops,axis=2)
+            self.output_ops = [
+                tf.get_default_graph().get_tensor_by_name('tower_0/boxes:0'),
+                tf.get_default_graph().get_tensor_by_name('tower_0/scores:0'),
+                tf.cast(tf.get_default_graph().get_tensor_by_name('tower_0/labels:0'),dtype=tf.float32)
+            ]
+            self.output_op=tf.concat(self.output_ops,axis=2)
 
-            self.output_op=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0'),
+            #self.output_op=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0'),
 
 
     def __call__(self, image, score_threshold=0.5,input_shape=(cfg.DATA.hin,cfg.DATA.win),max_boxes=1000):
@@ -64,28 +64,31 @@ class FaceDetector:
 
         image_fornet = np.expand_dims(image, 0)
 
-        kps = self._sess.run(
+        outputs = self._sess.run(
             self.output_op, feed_dict={self.input_image: image_fornet,self.training:False}
         )
 
+        bboxes=outputs[0]
 
-        hm=kps[0][0]
-        print(hm.shape)
-        label = np.sum(hm, axis=2)
-        #label = (label / np.max(label) * 255).astype(np.uint8)
-        cv2.namedWindow('label', 0)
-        cv2.imshow('label', label)
-        cv2.namedWindow('img', 0)
-        cv2.imshow('img', image_show)
+        print(bboxes)
+        for box_index in range(bboxes.shape[0]):
+            bbox = bboxes[box_index]
+            if bbox[4]>0.3:
+
+                cv2.rectangle(image, (int(bbox[0]*4), int(bbox[1]*4)),
+                              (int(bbox[2]*4), int(bbox[3]*4)), (255, 0, 0), 4)
+
+
+        cv2.namedWindow('s',0)
+        cv2.imshow('s',image)
         cv2.waitKey(0)
-
         # bboxes = self.py_nms(np.array(bboxes[0]), iou_thres=0.3, score_thres=score_threshold,max_boxes=max_boxes)
         #
         # ###recorver to raw image
         # boxes_scaler = np.array([(input_shape[1]) / scale_x,
-        #                          (input_shape[0]) / scale_y,
-        #                          (input_shape[1]) / scale_x,
-        #                          (input_shape[0]) / scale_y,
+        #                          (input_shape[0])  / scale_y,
+        #                          (input_shape[1])  / scale_x,
+        #                          (input_shape[0])  / scale_y,
         #                          1.,1.], dtype='float32')
         #
         # boxes_bias = np.array([dx / scale_x,

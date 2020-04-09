@@ -38,16 +38,14 @@ class Centernet():
         ### extract feature maps
         origin_fms=self.ssd_backbone(inputs,training_flag)
 
-        reg, kps = self.head(origin_fms, l2_regulation, training_flag)
+        size, kps = self.head(origin_fms, l2_regulation, training_flag)
         kps = tf.sigmoid(kps)
         ### calculate loss
-        reg_loss, cls_loss = loss(reg, kps, reg_hm,cls_hm,num_gt)
-
-
+        reg_loss, cls_loss = loss(size, kps, reg_hm,cls_hm,num_gt)
 
         kps = tf.identity(kps, name='keypoints')
 
-        #self.postprocess(reg,cls)
+        self.postprocess(size,kps)
         ###### adjust the anchors to the image shape, but it trains with a fixed h,w
 
         # if not cfg.MODEL.deployee:
@@ -73,6 +71,9 @@ class Centernet():
             image=image/255.
         return image
 
+
+
+
     def postprocess(self, size,keypoints):
         """Postprocess outputs of the network.
 
@@ -85,44 +86,72 @@ class Centernet():
             where N = max_boxes.
         """
 
-        with tf.name_scope('postprocessing'):
-            pshape = [tf.shape(keypoints)[1], tf.shape(keypoints)[2]]
-            h = tf.range(0., tf.cast(pshape[0], tf.float32), dtype=tf.float32)
-            w = tf.range(0., tf.cast(pshape[1], tf.float32), dtype=tf.float32)
-            [meshgrid_x, meshgrid_y] = tf.meshgrid(w, h)
-            keypoints = tf.sigmoid(keypoints)
+        def nms(heat, kernel=3):
+            hmax = tf.layers.max_pooling2d(heat, kernel, 1, padding='same')
+            keep = tf.cast(tf.equal(heat, hmax), tf.float32)
+            return heat * keep
 
-            meshgrid_y = tf.expand_dims(meshgrid_y, axis=-1)
-            meshgrid_x = tf.expand_dims(meshgrid_x, axis=-1)
-            center = tf.concat([meshgrid_y, meshgrid_x], axis=-1)
-            category = tf.expand_dims(tf.squeeze(tf.argmax(keypoints, axis=-1, output_type=tf.int32)), axis=-1)
-            meshgrid_xyz = tf.concat([tf.zeros_like(category), tf.cast(center, tf.int32), category], axis=-1)
-            keypoints = tf.gather_nd(keypoints, meshgrid_xyz)
-            keypoints = tf.expand_dims(keypoints, axis=0)
-            keypoints = tf.expand_dims(keypoints, axis=-1)
-            keypoints_peak = self._max_pooling(keypoints, 3, 1)
-            keypoints_mask = tf.cast(tf.equal(keypoints, keypoints_peak), tf.float32)
-            keypoints = keypoints * keypoints_mask
-            scores = tf.reshape(keypoints, [-1])
-            class_id = tf.reshape(category, [-1])
-            bbox_yx = tf.reshape(center, [-1, 2])
-            bbox_hw = tf.reshape(size, [-1, 2])
-            score_mask = scores > self.score_threshold
-            scores = tf.boolean_mask(scores, score_mask)
-            class_id = tf.boolean_mask(class_id, score_mask)
-            bbox_yx = tf.boolean_mask(bbox_yx, score_mask)
-            bbox_hw = tf.boolean_mask(bbox_hw, score_mask)
-            bbox = tf.concat([bbox_yx-bbox_hw/2., bbox_yx+bbox_hw/2.], axis=-1) * 4
-            num_select = tf.cond(tf.shape(scores)[0] > self.top_k_results_output, lambda: self.top_k_results_output, lambda: tf.shape(scores)[0])
-            select_scores, select_indices = tf.nn.top_k(scores, num_select)
-            select_class_id = tf.gather(class_id, select_indices)
-            select_bbox = tf.gather(bbox, select_indices)
+        def topk(hm, K=100):
+            batch, height, width, cat = tf.shape(hm)[0], tf.shape(hm)[1], tf.shape(hm)[2], tf.shape(hm)[3]
+            # [b,h*w*c]
+            scores = tf.reshape(hm, (batch, -1))
+            # [b,k]
+            topk_scores, topk_inds = tf.nn.top_k(scores, k=K)
+            # [b,k]
+            topk_clses = topk_inds % cat
+            topk_xs = tf.cast(topk_inds // cat % width, tf.float32)
+            topk_ys = tf.cast(topk_inds // cat // width, tf.float32)
+            topk_inds = tf.cast(topk_ys * tf.cast(width, tf.float32) + topk_xs, tf.int32)
 
-            boxes = tf.identity(select_bbox, name='boxes')
-            scores = tf.identity(select_scores, name='scores')
-            labels = tf.identity(select_class_id, name='labels')
+            return topk_scores, topk_inds, topk_clses, topk_ys, topk_xs
 
-            return select_scores,select_bbox,select_class_id
+        def decode(heat, wh, reg=None, K=100):
+            batch, height, width, cat = tf.shape(heat)[0], tf.shape(heat)[1], tf.shape(heat)[2], tf.shape(heat)[3]
+            heat = nms(heat)
+            scores, inds, clses, ys, xs = topk(heat, K=K)
+
+            if reg is not None:
+                reg = tf.reshape(reg, (batch, -1, tf.shape(reg)[-1]))
+                # [b,k,2]
+                reg = tf.batch_gather(reg, inds)
+                xs = tf.expand_dims(xs, axis=-1) + reg[..., 0:1]
+                ys = tf.expand_dims(ys, axis=-1) + reg[..., 1:2]
+            else:
+                xs = tf.expand_dims(xs, axis=-1) + 0.5
+                ys = tf.expand_dims(ys, axis=-1) + 0.5
+
+            # [b,h*w,2]
+            wh = tf.reshape(wh, (batch, -1, tf.shape(wh)[-1]))
+            # [b,k,2]
+            wh = tf.batch_gather(wh, inds)
+
+            clses = tf.cast(tf.expand_dims(clses, axis=-1), tf.float32)
+            scores = tf.expand_dims(scores, axis=-1)
+
+            xmin = xs - wh[..., 0:1] / 2
+            ymin = ys - wh[..., 1:2] / 2
+            xmax = xs + wh[..., 0:1] / 2
+            ymax = ys + wh[..., 1:2] / 2
+
+            bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)
+
+
+
+            # [b,k,6]
+            detections = tf.concat([bboxes, scores, clses], axis=-1)
+
+            bboxes = tf.identity(bboxes, name='boxes')
+            scores = tf.identity(scores, name='scores')
+            labels = tf.identity(clses, name='labels')  ## no use
+            return detections
+
+
+        #with tf.name_scope('postprocessing'):
+
+        decode(keypoints,size)
+
+
+
 
 
 

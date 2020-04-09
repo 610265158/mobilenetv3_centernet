@@ -65,7 +65,7 @@ def facedetect():
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         star=time.time()
-        boxes=detector(img,0.3,input_shape=(cfg.DATA.hin,cfg.DATA.win))
+        boxes=detector(img,0.5,input_shape=(cfg.DATA.hin,cfg.DATA.win))
 
         print(boxes.shape[0])
         if boxes.shape[0]==0:

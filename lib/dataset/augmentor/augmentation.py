@@ -340,11 +340,13 @@ def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=1
     return heatmap
 def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
 
+
+
     h_out,w_out,_=image.shape
     ## stride equal to 4
     h_out//=4
     w_out//=4
-    boxes[:,:4]//=4
+    boxes[:,:4]/=4.
 
     heatmap=np.zeros(shape=[h_out,w_out,num_klass])
     regression_map=np.zeros(shape=[h_out,w_out,2])
@@ -366,10 +368,10 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
                     center[0]-=1
                 if  center[1]>=h_out:
                     center[1]-=1
-                cur_hm=produce_heat_map(center.copy(),map_size=(h_out,w_out),stride=1,objects_size=(int(object_height),int(object_width)),sigma=3)
+                cur_hm=produce_heat_map(center.copy(),map_size=(h_out,w_out),stride=1,objects_size=(object_height,object_width),sigma=3)
 
-                regression_map[center[1], center[0], 0] = object_width
-                regression_map[center[1], center[0], 1] = object_height
+                regression_map[center[1], center[0], 0] = object_width*4.
+                regression_map[center[1], center[0], 1] = object_height*4.
 
                 cur_hm_set.append(cur_hm)
 
