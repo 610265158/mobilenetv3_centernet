@@ -327,7 +327,7 @@ def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=1
 
     sigma_x = sigma / ( map_size[1]/(objects_size[1]+0.000005)) / magic_divide
     sigma_y = sigma / ( map_size[0]/(objects_size[0]+0.000005)) / magic_divide
-    d2 = (xx - center[0]) ** 2 / 2. / sigma_x / sigma_x + (yy - center[1]) ** 2 / 2. / sigma_y / sigma_y
+    d2 = (yy - center[0]) ** 2 / 2. / sigma_y / sigma_y + (xx - center[1]) ** 2 / 2. / sigma_x / sigma_x
     #d2 = (xx - center[0]) ** 2 + (yy - center[1]) ** 2
     exponent = d2 / 2.0 / sigma / sigma
     heatmap = np.exp(-exponent)
@@ -353,22 +353,22 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
         cur_hm_set = []
         for single_box, single_klass in zip(boxes, klass):
             if single_klass == one_klass:
-                ####box center (x,y)
-                center = [round((single_box[0] + single_box[2]) / 2),
-                          round((single_box[1] + single_box[3]) / 2)]  ###0-1
+                ####box center (y,x)
+                center = [round((single_box[1] + single_box[3]) / 2),
+                          round((single_box[0] + single_box[2]) / 2)]  ###0-1
                 center = [int(x) for x in center]
 
                 object_width = single_box[2] - single_box[0]
                 object_height = single_box[3] - single_box[1]
-                if center[0] >= w_out:
+                if center[0] >= h_out:
                     center[0] -= 1
-                if center[1] >= h_out:
+                if center[1] >= w_out:
                     center[1] -= 1
                 cur_hm = produce_heat_map(center.copy(), map_size=(h_out, w_out), stride=1,
                                           objects_size=(int(object_height), int(object_width)), sigma=3)
 
-                regression_map[center[1], center[0], 0] = object_width
-                regression_map[center[1], center[0], 1] = object_height
+                regression_map[center[0], center[1], 0] = object_width
+                regression_map[center[0], center[1], 1] = object_height
 
                 cur_hm_set.append(cur_hm)
 
