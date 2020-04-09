@@ -26,12 +26,12 @@ class CenternetHead():
 
                 p5 = slim.conv2d(c5, 256, [1, 1], padding='SAME', scope='C5_reduced')
                 p5_upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last')(p5)
-                p5_upsampled = slim.separable_conv2d(p5_upsampled, 256, [3, 3], padding='SAME', scope='P5_after')
+                p5_upsampled = slim.conv2d(p5_upsampled, 256, [3, 3], padding='SAME', scope='P5_after')
 
                 p4 = slim.conv2d(c4, 256, [1, 1], padding='SAME', scope='C4_reduced')
                 p4 = p4 + p5_upsampled
                 p4_upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last')(p4)
-                p4_upsampled = slim.separable_conv2d(p4_upsampled, 256, [3, 3], padding='SAME', scope='P4_after')
+                p4_upsampled = slim.conv2d(p4_upsampled, 256, [3, 3], padding='SAME', scope='P4_after')
 
                 p3 = slim.conv2d(c3, 256, [1, 1], padding='SAME', scope='C3_reduced')
                 p3 = p3 + p4_upsampled
