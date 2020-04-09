@@ -315,7 +315,6 @@ def Random_flip(im, boxes):
     return im_lr, boxes
 
 
-
 def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=1.5):
     grid_y = map_size[0] // stride
     grid_x = map_size[1] // stride
@@ -339,50 +338,48 @@ def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=1
 
     return heatmap
 def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
-
-
-
-    h_out,w_out,_=image.shape
+    h_out, w_out, _ = image.shape
     ## stride equal to 4
-    h_out//=4
-    w_out//=4
-    boxes[:,:4]/=4.
+    h_out //= 4
+    w_out //= 4
+    boxes[:, :4] //= 4
 
-    heatmap=np.zeros(shape=[h_out,w_out,num_klass])
-    regression_map=np.zeros(shape=[h_out,w_out,2])
+    heatmap = np.zeros(shape=[h_out, w_out, num_klass])
+    regression_map = np.zeros(shape=[h_out, w_out, 2])
 
-    each_klass=set(klass)
+    each_klass = set(klass)
     for one_klass in each_klass:
 
-        cur_hm_set=[]
-        for single_box,single_klass in zip(boxes,klass):
-            if single_klass==one_klass :
+        cur_hm_set = []
+        for single_box, single_klass in zip(boxes, klass):
+            if single_klass == one_klass:
                 ####box center (x,y)
-                center = [round((single_box[0] + single_box[2]) / 2) , round((single_box[1] + single_box[3]) / 2) ]  ###0-1
-                center= [ int(x) for x in center]
+                center = [round((single_box[0] + single_box[2]) / 2),
+                          round((single_box[1] + single_box[3]) / 2)]  ###0-1
+                center = [int(x) for x in center]
 
+                object_width = single_box[2] - single_box[0]
+                object_height = single_box[3] - single_box[1]
+                if center[0] >= w_out:
+                    center[0] -= 1
+                if center[1] >= h_out:
+                    center[1] -= 1
+                cur_hm = produce_heat_map(center.copy(), map_size=(h_out, w_out), stride=1,
+                                          objects_size=(int(object_height), int(object_width)), sigma=3)
 
-                object_width=single_box[2]-single_box[0]
-                object_height=single_box[3]-single_box[1]
-                if center[0]>=w_out:
-                    center[0]-=1
-                if  center[1]>=h_out:
-                    center[1]-=1
-                cur_hm=produce_heat_map(center.copy(),map_size=(h_out,w_out),stride=1,objects_size=(object_height,object_width),sigma=3)
-
-                regression_map[center[1], center[0], 0] = object_width*4.
-                regression_map[center[1], center[0], 1] = object_height*4.
+                regression_map[center[1], center[0], 0] = object_width
+                regression_map[center[1], center[0], 1] = object_height
 
                 cur_hm_set.append(cur_hm)
 
-        if len(cur_hm_set)>0:
-            cur_hm_for_klass=np.array(cur_hm_set)
-            cur_hm_for_klass=np.transpose(cur_hm_for_klass,axes=[1,2,0])
+        if len(cur_hm_set) > 0:
+            cur_hm_for_klass = np.array(cur_hm_set)
+            cur_hm_for_klass = np.transpose(cur_hm_for_klass, axes=[1, 2, 0])
 
-            hm_for_cur_klass=np.max(cur_hm_for_klass,axis=2)
-            heatmap[:,:,int(one_klass)]=hm_for_cur_klass
+            hm_for_cur_klass = np.max(cur_hm_for_klass, axis=2)
+            heatmap[:, :, int(one_klass)] = hm_for_cur_klass
 
-    return heatmap,regression_map
+    return heatmap, regression_map
 
 
 
