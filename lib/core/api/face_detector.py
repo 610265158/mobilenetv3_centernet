@@ -45,19 +45,19 @@ class FaceDetector:
         """
 
 
-        # if input_shape is None:
-        #     h, w, c = image.shape
-        #     input_shape = (math.ceil(h / 32) * 32, math.ceil(w / 32) * 32)
-        #
-        # else:
-        #     h, w = input_shape
-        #     input_shape = (math.ceil(h / 32) * 32, math.ceil(w / 32) * 32)
+        if input_shape is None:
+            h, w, c = image.shape
+            input_shape = (math.ceil(h / 32) * 32, math.ceil(w / 32) * 32)
+
+        else:
+            h, w = input_shape
+            input_shape = (math.ceil(h / 32) * 32, math.ceil(w / 32) * 32)
 
         image, scale_x, scale_y, dx, dy = self.preprocess(image,
-                                                                 target_height=cfg.DATA.hin,
-                                                                 target_width=cfg.DATA.win)
+                                                                 target_height=input_shape[0],
+                                                                 target_width=input_shape[1])
 
-        image_show=image.copy()
+
         if cfg.DATA.channel==1:
             image=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
             image= np.expand_dims(image, -1)
@@ -70,37 +70,37 @@ class FaceDetector:
 
         bboxes=outputs[0]
 
-        print(bboxes)
-        for box_index in range(bboxes.shape[0]):
-            bbox = bboxes[box_index]
-            if bbox[4]>0.3:
 
-                cv2.rectangle(image, (int(bbox[0]*4), int(bbox[1]*4)),
-                              (int(bbox[2]*4), int(bbox[3]*4)), (255, 0, 0), 4)
-
-
-        cv2.namedWindow('s',0)
-        cv2.imshow('s',image)
-        cv2.waitKey(0)
-        # bboxes = self.py_nms(np.array(bboxes[0]), iou_thres=0.3, score_thres=score_threshold,max_boxes=max_boxes)
+        # for box_index in range(bboxes.shape[0]):
+        #     bbox = bboxes[box_index]
+        #     if bbox[4]>0.1:
         #
-        # ###recorver to raw image
-        # boxes_scaler = np.array([(input_shape[1]) / scale_x,
-        #                          (input_shape[0])  / scale_y,
-        #                          (input_shape[1])  / scale_x,
-        #                          (input_shape[0])  / scale_y,
-        #                          1.,1.], dtype='float32')
+        #         cv2.rectangle(image, (int(bbox[0]), int(bbox[1])),
+        #                       (int(bbox[2]), int(bbox[3])), (255, 0, 0), 4)
         #
-        # boxes_bias = np.array([dx / scale_x,
-        #                        dy / scale_y,
-        #                        dx / scale_x,
-        #                        dy / scale_y, 0.,0.], dtype='float32')
-        # bboxes = bboxes * boxes_scaler - boxes_bias
+        #
+        # cv2.namedWindow('s',0)
+        # cv2.imshow('s',image)
+        # cv2.waitKey(0)
+        bboxes = self.py_nms(np.array(bboxes), iou_thres=None, score_thres=score_threshold,max_boxes=max_boxes)
+
+        ###recorver to raw image
+        boxes_scaler = np.array([1 / scale_x,
+                                 1  / scale_y,
+                                 1 / scale_x,
+                                 1  / scale_y,
+                                 1.,1.], dtype='float32')
+
+        boxes_bias = np.array([dx ,
+                               dy ,
+                               dx ,
+                               dy , 0.,0.], dtype='float32')
+        bboxes = (bboxes - boxes_bias)*boxes_scaler
 
 
 
         # self.stats_graph(self._sess.graph)
-        return np.array([])
+        return bboxes
 
 
     def preprocess(self, image, target_height, target_width, label=None):
@@ -130,6 +130,8 @@ class FaceDetector:
         upper_thres = np.where(bboxes[:, 4] > score_thres)[0]
 
         bboxes = bboxes[upper_thres]
+        if iou_thres is None:
+            return bboxes
 
         x1 = bboxes[:, 0]
         y1 = bboxes[:, 1]

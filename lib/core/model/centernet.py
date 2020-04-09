@@ -133,7 +133,9 @@ class Centernet():
             xmax = xs + wh[..., 0:1] / 2
             ymax = ys + wh[..., 1:2] / 2
 
-            bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)
+
+            ##mul by stride 4
+            bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)*4
 
 
 
