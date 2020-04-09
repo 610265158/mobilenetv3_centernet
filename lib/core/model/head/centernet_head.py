@@ -24,21 +24,19 @@ class CenternetHead():
                 c3, c4, c5 = fms
 
 
-                p5 = slim.conv2d(c5, 256, [1, 1], padding='SAME', scope='C5_reduced')
-                p5_upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last')(p5)
-                p5_upsampled = slim.conv2d(p5_upsampled, 256, [3, 3], padding='SAME', scope='P5_after')
+                p5_upsampled = self._upsample(c5,scope='upsample_p5')
 
-                p4 = slim.conv2d(c4, 256, [1, 1], padding='SAME', scope='C4_reduced')
-                p4 = p4 + p5_upsampled
-                p4_upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last')(p4)
-                p4_upsampled = slim.conv2d(p4_upsampled, 256, [3, 3], padding='SAME', scope='P4_after')
+                p4 = tf.concat([c4,p5_upsampled],axis=3)
+                p4 = slim.conv2d(p4, 256, [3, 3], padding='SAME', scope='P4_after')
 
-                p3 = slim.conv2d(c3, 256, [1, 1], padding='SAME', scope='C3_reduced')
-                p3 = p3 + p4_upsampled
-                p3_upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear')(p3)
+                p3_upsampled = self._upsample(p4,scope='upsample_p4')
 
+                p3 = tf.concat([c3,p3_upsampled],axis=3)
+                p3 = slim.conv2d(p3, 128, [3, 3], padding='SAME', scope='P3_after')
 
-                p2_feature = slim.conv2d(p3_upsampled, 256, [3, 3], padding='SAME', scope='p2_feature')
+                p2_upsampled = self._upsample(p3,scope='upsample_p3')
+
+                p2_feature = slim.conv2d(p2_upsampled, 128, [3, 3], padding='SAME', scope='p2_feature')
 
 
             size = slim.conv2d(p2_feature,
@@ -60,6 +58,8 @@ class CenternetHead():
         return size,kps
 
 
-
-
+    def _upsample(self,fm,scope='upsample'):
+        upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear')(fm)
+        upsampled_conv = slim.conv2d(upsampled, 256, [1, 1], padding='SAME', scope=scope)
+        return upsampled_conv
 

@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="afedb1a5-4952-4d00-9f27-974395260b3b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/mobilnet_v3.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/mobilnet_v3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/mbv3_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/mbv3_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
