@@ -30,7 +30,7 @@ class CenternetHead():
                                    128,
                                    [3, 3],
                                    stride=1,
-                                   scope='centernet_reg_output')
+                                   scope='centernet_pre_reg')
                 size = slim.conv2d(size,
                                   2,
                                   [3, 3],
@@ -42,7 +42,7 @@ class CenternetHead():
                                   128,
                                   [3, 3],
                                   stride=1,
-                                  scope='centernet_cls_output')
+                                  scope='centernet_pre_cls')
                 kps = slim.conv2d(kps,
                                     cfg.DATA.num_class,
                                     [3, 3],
