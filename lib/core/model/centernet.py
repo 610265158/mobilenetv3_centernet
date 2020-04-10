@@ -39,7 +39,7 @@ class Centernet():
         origin_fms=self.ssd_backbone(inputs,training_flag)
 
         size, kps = self.head(origin_fms, l2_regulation, training_flag)
-
+        kps= tf.nn.sigmoid(kps)
         ### calculate loss
         reg_loss, cls_loss = loss(size, kps, reg_hm,cls_hm,num_gt)
 

@@ -24,10 +24,10 @@ class CenternetHead():
                 c3, c4, c5 = fms
                 deconv_feature=c5
                 for i in range(3):
-                    deconv_feature=slim.conv2d_transpose(deconv_feature,num_outputs=256,kernel_size=(4,4),stride=2,padding='SAME')
-
+                    deconv_feature=self._upsample(deconv_feature)
+                    
                 size = slim.conv2d(deconv_feature,
-                                   128,
+                                   64,
                                    [3, 3],
                                    stride=1,
                                    scope='centernet_pre_reg')
@@ -35,11 +35,11 @@ class CenternetHead():
                                   2,
                                   [3, 3],
                                   stride=1,
-                                  activation_fn=tf.nn.relu,
+                                  activation_fn=None,
                                   normalizer_fn=None,
                                   scope='centernet_reg_output')
                 kps = slim.conv2d(deconv_feature,
-                                  128,
+                                  64,
                                   [3, 3],
                                   stride=1,
                                   scope='centernet_pre_cls')
@@ -47,7 +47,7 @@ class CenternetHead():
                                     cfg.DATA.num_class,
                                     [3, 3],
                                     stride=1,
-                                    activation_fn=tf.nn.sigmoid,
+                                    activation_fn=None,
                                     normalizer_fn=None,
                                     scope='centernet_cls_output')
 
@@ -55,7 +55,7 @@ class CenternetHead():
 
 
     def _upsample(self,fm,scope='upsample'):
-        upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last')(fm)
-        upsampled_conv = slim.conv2d(upsampled, 256, [1, 1], padding='SAME', scope=scope)
+        upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear')(fm)
+        upsampled_conv = slim.conv2d(upsampled, 256, [3, 3], padding='SAME', scope=scope)
         return upsampled_conv
 
