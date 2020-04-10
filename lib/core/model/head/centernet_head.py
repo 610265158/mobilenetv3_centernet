@@ -24,8 +24,8 @@ class CenternetHead():
                 c3, c4, c5 = fms
                 deconv_feature=c5
                 for i in range(3):
-                    deconv_feature=self._upsample(deconv_feature)
-                    
+                    deconv_feature=self._upsample(deconv_feature,scope='upsample_%d'%i)
+
                 size = slim.conv2d(deconv_feature,
                                    64,
                                    [3, 3],
