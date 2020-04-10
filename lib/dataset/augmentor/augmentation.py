@@ -379,8 +379,16 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
 
             hm_for_cur_klass = np.max(cur_hm_for_klass, axis=2)
             heatmap[:, :, int(one_klass)] = hm_for_cur_klass
+    if cfg.DATA.use_int8_data:
+        h_am = np.amax(heatmap)
 
-    return heatmap.astype(np.float16), regression_map.astype(np.float16)
+        heatmap = (heatmap/h_am*cfg.DATA.use_int8_enlarge).astype(np.uint8)
+
+        regression_map=regression_map.astype(np.uint8)
+        return heatmap, regression_map
+    else:
+
+        return heatmap.astype(np.float16), regression_map.astype(np.float16)
 
 
 

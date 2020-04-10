@@ -32,6 +32,10 @@ class Centernet():
         self.top_k_results_output=100
     def forward(self,inputs,cls_hm,reg_hm,num_gt,l2_regulation,training_flag):
 
+
+
+        if cfg.DATA.use_int8_data:
+            cls_hm,reg_h=self.process_label(cls_hm,reg_hm)
         ###preprocess
         inputs=self.preprocess(inputs)
 
@@ -70,9 +74,12 @@ class Centernet():
 
             image=image/255.
         return image
+    def process_label(self,cls_hm,reg_hm):
 
 
-
+        cls_hm = tf.cast(cls_hm, tf.float32)/cfg.DATA.use_int8_enlarge
+        reg_hm =tf.cast(reg_hm, tf.float32)
+        return cls_hm,reg_hm
 
     def postprocess(self, size,keypoints):
         """Postprocess outputs of the network.

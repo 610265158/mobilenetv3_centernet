@@ -405,16 +405,15 @@ class trainner():
                     hm=example_cls_hm[i]
                     label=example_reg_hm[i]
 
+                    if cfg.DATA.use_int8_data:
+                        hm = hm[:,:,0].astype(np.uint8)
+                        hm = (hm / np.max(hm) * 255).astype(np.uint8)
+                    else:
+                        hm = hm[:, :, 0].astype(np.float32)
 
-                    # for i in range(hm.shape[2]):
-                    #     cv2.namedWindow('tmp2', 0)
-                    #     cv2.imshow('tmp2', hm[:, :, i])
-                    #     cv2.waitKey(0)
 
-                    label=np.sum(hm,axis=2)
-                    label=(label/np.max(label)*255).astype(np.uint8)
-                    cv2.namedWindow('label', 0)
-                    cv2.imshow('label', label)
+                    cv2.namedWindow('hm', 0)
+                    cv2.imshow('hm', hm)
                     cv2.namedWindow('img', 0)
                     cv2.imshow('img', img)
                     cv2.waitKey(0)

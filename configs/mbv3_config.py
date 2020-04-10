@@ -54,7 +54,8 @@ config.DATA.cover_small_face=0                          ###cover the small faces
 
 config.DATA.mutiscale=False                #if muti scale set False  then config.DATA.MAX_SIZE will be the inputsize
 config.DATA.scales=(320,640)
-
+config.DATA.use_int8_data=True
+config.DATA.use_int8_enlarge=255.
 # anchors -------------------------
 config.ANCHOR = edict()
 config.ANCHOR.rect=False
