@@ -29,7 +29,7 @@ config.TRAIN.lr_decay_every_step = [500,1000,150000,200000,250000]
 
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
-config.TRAIN.vis=False                                    ##check data flag
+config.TRAIN.vis=True                                    ##check data flag
 config.TRAIN.mix_precision=True
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
@@ -41,7 +41,7 @@ config.DATA.root_path=''
 config.DATA.train_txt_path='train.txt'
 config.DATA.val_txt_path='val.txt'
 config.DATA.num_category=80                                  ###face 1  voc 20 coco 80
-config.DATA.num_class = config.DATA.num_category + 1        # +1 background
+config.DATA.num_class = config.DATA.num_category         # +1 background
 
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
@@ -50,7 +50,7 @@ config.DATA.hin = 320  # input size
 config.DATA.win = 320
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
-config.DATA.cover_small_face=20                          ###cover the small faces
+config.DATA.cover_small_face=0                          ###cover the small faces
 
 config.DATA.mutiscale=False                #if muti scale set False  then config.DATA.MAX_SIZE will be the inputsize
 config.DATA.scales=(320,640)
@@ -72,7 +72,7 @@ config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='resnet_v2_50' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
-config.MODEL.pretrained_model='resnet_v2_50.ckpt'
+config.MODEL.pretrained_model=None#'resnet_v2_50.ckpt'
 config.MODEL.fpn_dims=[256,256,256,256,256]
 
 

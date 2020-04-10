@@ -23,8 +23,7 @@ def resnet_ssd(image,is_training=True):
                         endpoints['resnet_v2_50/block3'],
                         endpoints['resnet_v2_50/block4']]
 
-            if cfg.MODEL.fpn:
-                resnet_fms = create_fpn_net(resnet_fms, dims_list=cfg.MODEL.fpn_dims)
+
 
 
     return resnet_fms

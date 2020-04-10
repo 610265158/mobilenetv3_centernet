@@ -48,7 +48,7 @@ we make face detection as an example:
 
 2. download pretrained model from 
 [mbv3-large](https://storage.googleapis.com/mobilenet_v3/checkpoints/v3-large_224_1.0_float.tgz)
-
+[resnetv250](http://download.tensorflow.org/models/resnet_v2_50_2017_04_14.tar.gz)
 
 3. then, run:
 
