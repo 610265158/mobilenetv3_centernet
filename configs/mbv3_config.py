@@ -9,7 +9,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"          ##if u use muti gpu set them v
 config.TRAIN = edict()
 
 #### below are params for dataiter
-config.TRAIN.process_num = 5                      ### process_num for data provider
+config.TRAIN.process_num = 4                      ### process_num for data provider
 config.TRAIN.prefetch_size = 20                  ### prefect Q size for data provider
 
 config.TRAIN.num_gpu = 1                         ##match with   os.environ["CUDA_VISIBLE_DEVICES"]
@@ -24,7 +24,7 @@ config.TRAIN.val_set_size=5000             ###widerface val size
 config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.num_gpu // config.TRAIN.batch_size
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
-config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.001,0.0001,0.00001,0.000001]        ##warm up is used
+config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00025,0.0001,0.00001,0.000001]        ##warm up is used
 config.TRAIN.lr_decay_every_step = [500,1000,200000,300000,400000]
 
 config.TRAIN.opt='adam'

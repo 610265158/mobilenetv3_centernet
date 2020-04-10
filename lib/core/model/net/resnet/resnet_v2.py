@@ -220,11 +220,11 @@ def resnet_v2_block(scope, base_depth, num_units, stride):
   return resnet_utils.Block(scope, bottleneck, [{
       'depth': base_depth * 4,
       'depth_bottleneck': base_depth,
-      'stride': 1
+      'stride': stride
   }] * (num_units - 1) + [{
       'depth': base_depth * 4,
       'depth_bottleneck': base_depth,
-      'stride': stride
+      'stride': 1
   }])
 resnet_v2.default_image_size = 224
 
