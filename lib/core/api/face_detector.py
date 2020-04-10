@@ -29,7 +29,7 @@ class FaceDetector:
             ]
             self.output_op=tf.concat(self.output_ops,axis=2)
 
-            #self.output_op=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0'),
+            self.output_kps=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0'),
 
 
     def __call__(self, image, score_threshold=0.5,input_shape=(cfg.DATA.hin,cfg.DATA.win),max_boxes=1000):
@@ -64,24 +64,21 @@ class FaceDetector:
 
         image_fornet = np.expand_dims(image, 0)
 
-        outputs = self._sess.run(
-            self.output_op, feed_dict={self.input_image: image_fornet,self.training:False}
+        outputs,kps = self._sess.run(
+            [self.output_op,self.output_kps], feed_dict={self.input_image: image_fornet,self.training:False}
         )
 
         bboxes=outputs[0]
 
 
-        # for box_index in range(bboxes.shape[0]):
-        #     bbox = bboxes[box_index]
-        #     if bbox[4]>0.1:
-        #
-        #         cv2.rectangle(image, (int(bbox[0]), int(bbox[1])),
-        #                       (int(bbox[2]), int(bbox[3])), (255, 0, 0), 4)
-        #
-        #
-        # cv2.namedWindow('s',0)
-        # cv2.imshow('s',image)
-        # cv2.waitKey(0)
+
+        kps=kps[0][0][:,:,0]
+        label =kps
+        label = (label / np.max(label) * 255).astype(np.uint8)
+        cv2.namedWindow('label', 0)
+        cv2.imshow('label', label)
+
+
         bboxes = self.py_nms(np.array(bboxes), iou_thres=None, score_thres=score_threshold,max_boxes=max_boxes)
 
         ###recorver to raw image

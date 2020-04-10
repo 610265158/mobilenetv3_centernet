@@ -344,8 +344,9 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
     w_out //= 4
     boxes[:, :4] //= 4
 
-    heatmap = np.zeros(shape=[h_out, w_out, num_klass])
-    regression_map = np.zeros(shape=[h_out, w_out, 2])
+    heatmap = np.zeros(shape=[h_out, w_out, num_klass],dtype=np.float32)
+
+    regression_map = np.zeros(shape=[h_out, w_out, 2],dtype=np.float32)
 
     each_klass = set(klass)
     for one_klass in each_klass:
@@ -379,7 +380,7 @@ def produce_heatmaps_with_bbox(image,boxes,klass,num_klass):
             hm_for_cur_klass = np.max(cur_hm_for_klass, axis=2)
             heatmap[:, :, int(one_klass)] = hm_for_cur_klass
 
-    return heatmap, regression_map
+    return heatmap.astype(np.float32), regression_map.astype(np.float32)
 
 
 
