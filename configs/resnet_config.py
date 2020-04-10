@@ -29,7 +29,7 @@ config.TRAIN.lr_decay_every_step = [500,1000,150000,200000,250000]
 
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
-config.TRAIN.vis=True                                    ##check data flag
+config.TRAIN.vis=False                                    ##check data flag
 config.TRAIN.mix_precision=True
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
@@ -72,7 +72,7 @@ config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='resnet_v2_50' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
-config.MODEL.pretrained_model=None#'resnet_v2_50.ckpt'
+config.MODEL.pretrained_model='resnet_v2_50.ckpt'
 config.MODEL.fpn_dims=[256,256,256,256,256]
 
 

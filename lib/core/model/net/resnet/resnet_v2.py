@@ -229,6 +229,26 @@ def resnet_v2_block(scope, base_depth, num_units, stride):
 resnet_v2.default_image_size = 224
 
 
+def resnet_v2_18(inputs,
+                 num_classes=None,
+                 is_training=True,
+                 global_pool=True,
+                 output_stride=None,
+                 spatial_squeeze=True,
+                 reuse=None,
+                 scope='resnet_v2_50'):
+  """ResNet-50 model of [1]. See resnet_v2() for arg and return description."""
+  blocks = [
+      resnet_v2_block('block1', base_depth=64, num_units=2, stride=1),
+      resnet_v2_block('block2', base_depth=128, num_units=2, stride=2),
+      resnet_v2_block('block3', base_depth=256, num_units=2, stride=2),
+      resnet_v2_block('block4', base_depth=512, num_units=2, stride=2),
+  ]
+  return resnet_v2(inputs, blocks, num_classes, is_training=is_training,
+                   global_pool=global_pool, output_stride=output_stride,
+                   include_root_block=True, spatial_squeeze=spatial_squeeze,
+                   reuse=reuse, scope=scope)
+
 def resnet_v2_50(inputs,
                  num_classes=None,
                  is_training=True,

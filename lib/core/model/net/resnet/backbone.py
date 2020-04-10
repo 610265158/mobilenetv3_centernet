@@ -3,7 +3,7 @@ import tensorflow.contrib.slim as slim
 
 from train_config import config as cfg
 
-from lib.core.model.net.resnet.resnet_v2 import resnet_v2_50
+from lib.core.model.net.resnet.resnet_v2 import resnet_v2_50,resnet_v2_18
 from lib.core.model.net.resnet.resnet_utils import resnet_arg_scope
 
 from lib.core.model.fpn.plain_fpn import create_fpn_net
@@ -14,7 +14,7 @@ def resnet_ssd(image,is_training=True):
 
     with tf.contrib.slim.arg_scope(arg_scope):
         with slim.arg_scope([slim.batch_norm], is_training=is_training):
-            _,endpoints = resnet_v2_50(image, is_training=is_training,global_pool=False,num_classes=None)
+            _,endpoints = resnet_v2_18(image, is_training=is_training,global_pool=False,num_classes=None)
 
             for k, v in endpoints.items():
                 print('resnet backbone output:', k, v)
