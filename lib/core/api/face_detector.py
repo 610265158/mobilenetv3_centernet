@@ -74,7 +74,7 @@ class FaceDetector:
 
         kps=kps[0][0][:,:,0]
         label =kps
-        label = (label / np.max(label) * 255).astype(np.uint8)
+        #label = (label / np.max(label) * 255).astype(np.uint8)
         cv2.namedWindow('label', 0)
         cv2.imshow('label', label)
 

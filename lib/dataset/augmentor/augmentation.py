@@ -315,7 +315,7 @@ def Random_flip(im, boxes):
     return im_lr, boxes
 
 
-def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=1.5):
+def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=100):
     grid_y = map_size[0] // stride
     grid_x = map_size[1] // stride
     start = stride / 2.0 - 0.5
@@ -324,12 +324,11 @@ def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=1
     xx, yy = np.meshgrid(x_range, y_range)
     xx = xx * stride + start
     yy = yy * stride + start
+    ratio=((objects_size[0]*objects_size[1]+0.000005)/(map_size[1]*map_size[0]))*magic_divide
 
-    sigma_x = sigma / ( map_size[1]/(objects_size[1]+0.000005)) / magic_divide
-    sigma_y = sigma / ( map_size[0]/(objects_size[0]+0.000005)) / magic_divide
-    d2 = (yy - center[0]) ** 2 / 2. / sigma_y / sigma_y + (xx - center[1]) ** 2 / 2. / sigma_x / sigma_x
-    #d2 = (xx - center[0]) ** 2 + (yy - center[1]) ** 2
-    exponent = d2 / 2.0 / sigma / sigma
+    #d2 = (yy - center[0]) ** 2 / 2. / sigma_y / sigma_y + (xx - center[1]) ** 2 / 2. / sigma_x / sigma_x
+    d2 = (yy - center[0]) ** 2 + (xx - center[1]) ** 2
+    exponent = d2 / 2.0 / sigma / sigma/ratio
     heatmap = np.exp(-exponent)
 
     am = np.amax(heatmap)

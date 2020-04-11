@@ -5,7 +5,7 @@ import tensorflow.contrib.slim as slim
 from lib.core.anchor.box_utils import batch_decode,batch_decode_fix
 
 from lib.core.model.net.shufflenet.backbone import shufflenetv2_ssd
-from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_large
+from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_large,mobilenetv3_small
 from lib.core.model.net.mobilenet.backbone import mobilenet_ssd
 from lib.core.model.net.resnet.backbone import resnet_ssd
 from lib.core.model.loss.centernet_loss import loss
@@ -14,9 +14,9 @@ from train_config import config as cfg
 
 from lib.helper.logger import logger
 
-from lib.core.model.head.centernet_head import CenternetHead
+from lib.core.model.head.centernet_head import CenternetHeadLight
 
-class Centernet():
+class CenternetFace():
 
     def __init__(self,):
         if "ShufflenetV2"  in cfg.MODEL.net_structure:
@@ -24,10 +24,10 @@ class Centernet():
         elif "MobilenetV2" in cfg.MODEL.net_structure:
             self.ssd_backbone = mobilenet_ssd
         elif "MobilenetV3" in cfg.MODEL.net_structure:
-            self.ssd_backbone = mobilenetv3_large
+            self.ssd_backbone = mobilenetv3_small
         elif "resnet_v2_50" in cfg.MODEL.net_structure:
             self.ssd_backbone = resnet_ssd
-        self.head=CenternetHead()                         ### it is a class
+        self.head=CenternetHeadLight()                         ### it is a class
 
         self.top_k_results_output=100
     def forward(self,inputs,cls_hm,reg_hm,num_gt,l2_regulation,training_flag):

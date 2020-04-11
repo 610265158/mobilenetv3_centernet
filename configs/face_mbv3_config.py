@@ -18,18 +18,18 @@ config.TRAIN.log_interval = 10
 config.TRAIN.epoch = 300                      ###just keep training , evaluation shoule be take care by yourself,
                                                ### generally 10,0000 iters is enough
 
-config.TRAIN.train_set_size=117266            ###widerface train size
-config.TRAIN.val_set_size=5000             ###widerface val size
+config.TRAIN.train_set_size=13000            ###widerface train size
+config.TRAIN.val_set_size=3000             ###widerface val size
 
 config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.num_gpu // config.TRAIN.batch_size
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
 config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00025,0.0001,0.00001,0.000001]        ##warm up is used
-config.TRAIN.lr_decay_every_step = [500,1000,200000,300000,400000]
+config.TRAIN.lr_decay_every_step = [500,1000,60000,80000,100000]
 
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
-config.TRAIN.vis=False                                    ##check data flag
+config.TRAIN.vis=True                                    ##check data flag
 config.TRAIN.mix_precision=True
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
@@ -40,17 +40,17 @@ config.DATA = edict()
 config.DATA.root_path=''
 config.DATA.train_txt_path='train.txt'
 config.DATA.val_txt_path='val.txt'
-config.DATA.num_category=80                                  ###face 1  voc 20 coco 80
+config.DATA.num_category=1                                  ###face 1  voc 20 coco 80
 config.DATA.num_class = config.DATA.num_category       # +1 background
 
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
 
-config.DATA.hin = 320  # input size
-config.DATA.win = 320
+config.DATA.hin = 512  # input size
+config.DATA.win = 512
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
-config.DATA.cover_small_face=0                          ###cover the small faces
+config.DATA.cover_small_face=8                          ###cover the small faces
 
 config.DATA.mutiscale=False                #if muti scale set False  then config.DATA.MAX_SIZE will be the inputsize
 config.DATA.scales=(320,640)
@@ -73,9 +73,9 @@ config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
-config.MODEL.pretrained_model='./v3-large_224_1.0_float/ema/model-540000'
-config.MODEL.face=False
-
+config.MODEL.pretrained_model='./v3-small_224_0.75_float/ema/model-497500'
+config.MODEL.fpn_dims=[256,256,256,256,256]
+config.MODEL.face=True
 
 config.MODEL.focal_loss=True
 config.MODEL.fpn=True

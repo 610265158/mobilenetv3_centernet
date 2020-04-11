@@ -42,7 +42,7 @@ def GetFileList(dir, fileList):
     return fileList
 
 
-def facedetect():
+def cocodetect():
     success_cnt=0
     count = 0
     data_dir = '../pubdata/mscoco/val2017'
@@ -124,6 +124,53 @@ def camdetect():
         cv2.namedWindow('res',0)
         cv2.imshow('res',img_show)
         cv2.waitKey(0)
+    print(count)
+
+def facedetect():
+    success_cnt=0
+    count = 0
+    data_dir = '/media/lz/73abf007-eec4-4097-9344-48d64dc62346/facedetection/fddb_facetrain/images'
+    fail_dir = './xx'
+    pics = []
+    GetFileList(data_dir,pics)
+
+    pics = [x for x in pics if 'jpg' in x or 'png' in x or 'jpeg' in x]
+    #pics.sort()
+
+    for pic in pics:
+        print(pic)
+        try:
+            img=cv2.imread(pic)
+            #cv2.imwrite('tmp.png',img)
+            img_show = img.copy()
+        except:
+            continue
+
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        star=time.time()
+        boxes=detector(img,0.3,input_shape=(cfg.DATA.hin,cfg.DATA.win))
+
+        print(boxes.shape[0])
+        if boxes.shape[0]==0:
+            print(pic)
+
+        for box_index in range(boxes.shape[0]):
+
+            bbox = boxes[box_index]
+
+            cv2.rectangle(img_show, (int(bbox[0]), int(bbox[1])),
+                          (int(bbox[2]), int(bbox[3])), (255, 0, 0), 4)
+            str_draw = '%s:%.2f' %(coco_map[int(bbox[5])][1],bbox[4])
+            cv2.putText(img_show, str_draw, (int(bbox[0]), int(bbox[1])), cv2.FONT_HERSHEY_SIMPLEX, 2,
+                        (255, 0, 255), 2)
+
+
+        cv2.namedWindow('res',0)
+        cv2.imshow('res',img_show)
+        cv2.waitKey(0)
+
+    print(success_cnt,'decoded')
     print(count)
 if __name__=='__main__':
     #hybriddetect()

@@ -12,6 +12,7 @@ import cv2
 from  lib.dataset.dataietr import DataIter
 
 from lib.core.model.centernet import Centernet
+from lib.core.model.centernet_face import CenternetFace
 from train_config import config as cfg
 
 from lib.helper.logger import logger
@@ -136,8 +137,10 @@ class trainner():
         # Build the portion of the Graph calculating the losses. Note that we will
         # assemble the total_loss using a custom function below.
 
-
-        centernet=Centernet()
+        if cfg.MODEL.face:
+            centernet = CenternetFace()
+        else:
+            centernet=Centernet()
 
 
         if cfg.TRAIN.lock_basenet_bn:

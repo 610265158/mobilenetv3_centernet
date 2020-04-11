@@ -62,7 +62,7 @@ def wider_data_file():
         boxes = bbox[index]
 
         for box in boxes:
-            data = ' %d,%d,%d,%d,1'%(box[0], box[1], box[0]+box[2],  box[1]+box[3])
+            data = ' %d,%d,%d,%d,0'%(box[0], box[1], box[0]+box[2],  box[1]+box[3])
             tmp_str=tmp_str+data
         if len(boxes) == 0:
             print(tmp_str)
@@ -83,7 +83,7 @@ def wider_data_file():
         boxes = bbox[index]
 
         for box in boxes:
-            data = ' %d,%d,%d,%d,1'%(box[0], box[1], box[0]+box[2],  box[1]+box[3])
+            data = ' %d,%d,%d,%d,0'%(box[0], box[1], box[0]+box[2],  box[1]+box[3])
             tmp_str=tmp_str+data
 
 

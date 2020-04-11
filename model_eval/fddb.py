@@ -7,16 +7,16 @@ import cv2
 from tqdm import tqdm
 import argparse
 
-from lib.core.api.face_detector_bk import FaceDetector
+from lib.core.api.face_detector import FaceDetector
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 ap = argparse.ArgumentParser()
 ap.add_argument( "--model", required=False, default='./model/detector.pb', help="model to eval:")
 ap.add_argument( "--is_show", required=False, default=False, help="show result or not?")
-ap.add_argument( "--data_dir", required=True, default="./FDDB/img", help="dir to img")
-ap.add_argument( "--split_dir", required=True,default='./FDDB/FDDB-folds',help="dir to FDDB-folds")
-ap.add_argument( "--result", required=True,default='./result',help="dir to write result")
+ap.add_argument( "--data_dir", required=False, default="./FDDB/img", help="dir to img")
+ap.add_argument( "--split_dir", required=False,default='./FDDB/FDDB-folds',help="dir to FDDB-folds")
+ap.add_argument( "--result", required=False,default='./result',help="dir to write result")
 args = ap.parse_args()
 
 
@@ -106,10 +106,13 @@ for n in tqdm(images_to_use):
 
     boxes = face_detector(image_array, score_threshold=0.05)
 
+    boxes=boxes[:,0:5]
     ##flip det
     flip_img=np.flip(image_array,1)
 
     boxes_flip_ = face_detector(flip_img, score_threshold=0.05)
+    boxes_flip_ = boxes_flip_[:, 0:5]
+
     boxes_flip = np.zeros(boxes_flip_.shape)
     boxes_flip[:, 0] = flip_img.shape[1] - boxes_flip_[:, 2]
     boxes_flip[:, 1] = boxes_flip_[:, 1]

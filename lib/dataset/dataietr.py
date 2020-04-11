@@ -23,10 +23,11 @@ from lib.dataset.augmentor.data_aug.bbox_util import *
 from lib.dataset.augmentor.data_aug.data_aug import *
 from lib.dataset.augmentor.visual_augmentation import ColorDistort,pixel_jitter
 
+from lib.dataset.centernet_data_sampler import produce_heatmaps_with_bbox_official
 from train_config import config as cfg
 
 from lib.core.anchor.anchor import anchor_tools
-
+import math
 class data_info():
     def __init__(self,img_root,txt):
         self.txt_file=txt
@@ -214,7 +215,8 @@ class MutiScaleBatcher(BatchData):
 
 
     def produce_for_centernet(self,image,boxes,klass,num_klass=cfg.DATA.num_class):
-        hm,reg_hm=produce_heatmaps_with_bbox(image,boxes,klass,num_klass)
+        # hm,reg_hm=produce_heatmaps_with_bbox(image,boxes,klass,num_klass)
+        hm, reg_hm = produce_heatmaps_with_bbox_official(image, boxes, klass, num_klass)
         return hm,reg_hm
 
 
@@ -226,6 +228,11 @@ class MutiScaleBatcher(BatchData):
         boxes[boxes[:, 2] >w] = w-1
         boxes[boxes[:, 3] >h] = h-1
         return boxes
+
+
+
+
+
 class DsfdDataIter():
 
     def __init__(self, img_root_path='', ann_file=None, training_flag=True, shuffle=True):
