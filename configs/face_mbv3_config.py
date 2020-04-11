@@ -76,6 +76,7 @@ config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,Mobil
 config.MODEL.pretrained_model='./v3-small_224_0.75_float/ema/model-497500'
 config.MODEL.fpn_dims=[256,256,256,256,256]
 config.MODEL.face=True
+config.MODEL.min_overlap=0.5
 
 config.MODEL.focal_loss=True
 config.MODEL.fpn=True

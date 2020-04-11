@@ -75,6 +75,7 @@ config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
 config.MODEL.pretrained_model='./v3-large_224_1.0_float/ema/model-540000'
 config.MODEL.face=False
+config.MODEL.min_overlap=0.7
 
 
 config.MODEL.focal_loss=True

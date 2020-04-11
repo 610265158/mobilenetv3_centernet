@@ -2,25 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d6a1f3b0-c923-41b8-973a-5cbdf176ff3c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/mobile_centernet.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/face_mbv3_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/face_mbv3_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/mbv3_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/mbv3_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/api/face_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/api/face_detector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/base_trainer/net_work.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/base_trainer/net_work.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/model/centernet.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/centernet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/backbone.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/backbone.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/model/net/resnet/resnet_v2.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/net/resnet/resnet_v2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/dataset/augmentor/augmentation.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dataset/augmentor/augmentation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/dataset/dataietr.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dataset/dataietr.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_eval/fddb.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_eval/fddb.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prepare_wider_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/prepare_wider_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/resnet_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/resnet_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vis.py" beforeDir="false" afterPath="$PROJECT_DIR$/vis.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -30,14 +16,41 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/train_config.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="190">
-              <caret line="10" column="20" selection-start-line="10" selection-start-column="20" selection-end-line="10" selection-end-column="20" />
+              <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
               <folding>
                 <element signature="e#21#30#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/configs/face_mbv3_config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="589">
+              <caret line="78" column="28" lean-forward="true" selection-start-line="78" selection-start-column="28" selection-end-line="78" selection-end-column="28" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/configs/resnet_config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="559">
+              <caret line="79" column="28" selection-start-line="79" selection-start-column="28" selection-end-line="79" selection-end-column="28" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/configs/mbv3_config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="684">
+              <caret line="77" column="28" selection-start-line="77" selection-start-column="28" selection-end-line="77" selection-end-column="28" />
             </state>
           </provider>
         </entry>
@@ -67,7 +80,6 @@
         <option value="$PROJECT_DIR$/lib/core/model/centernet.py" />
         <option value="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" />
         <option value="$PROJECT_DIR$/lib/core/model/centernet_face.py" />
-        <option value="$PROJECT_DIR$/configs/mbv3_config.py" />
         <option value="$PROJECT_DIR$/lib/core/base_trainer/net_work.py" />
         <option value="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/backbone.py" />
         <option value="$PROJECT_DIR$/lib/dataset/augmentor/augmentation.py" />
@@ -75,11 +87,13 @@
         <option value="$PROJECT_DIR$/model_eval/fddb.py" />
         <option value="$PROJECT_DIR$/vis.py" />
         <option value="$PROJECT_DIR$/lib/dataset/centernet_data_sample.py" />
-        <option value="$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py" />
         <option value="$PROJECT_DIR$/lib/dataset/dataietr.py" />
         <option value="$PROJECT_DIR$/lib/core/model/net/resnet/resnet_v2.py" />
-        <option value="$PROJECT_DIR$/configs/face_mbv3_config.py" />
         <option value="$PROJECT_DIR$/train_config.py" />
+        <option value="$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py" />
+        <option value="$PROJECT_DIR$/configs/face_mbv3_config.py" />
+        <option value="$PROJECT_DIR$/configs/resnet_config.py" />
+        <option value="$PROJECT_DIR$/configs/mbv3_config.py" />
       </list>
     </option>
   </component>
@@ -101,6 +115,22 @@
             <path>
               <item name="mobile_centernet" type="b2602c69:ProjectViewProjectNode" />
               <item name="mobile_centernet" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="mobile_centernet" type="b2602c69:ProjectViewProjectNode" />
+              <item name="mobile_centernet" type="462c0819:PsiDirectoryNode" />
+              <item name="configs" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="mobile_centernet" type="b2602c69:ProjectViewProjectNode" />
+              <item name="mobile_centernet" type="462c0819:PsiDirectoryNode" />
+              <item name="lib" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="mobile_centernet" type="b2602c69:ProjectViewProjectNode" />
+              <item name="mobile_centernet" type="462c0819:PsiDirectoryNode" />
+              <item name="lib" type="462c0819:PsiDirectoryNode" />
+              <item name="dataset" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -200,13 +230,6 @@
     <entry file="file://$PROJECT_DIR$/configs/shufflenetv2_config.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-855" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/configs/mbv3_config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="665">
-          <caret line="76" selection-start-line="76" selection-end-line="76" selection-end-column="23" />
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/core/model/loss/centernet_loss.py">
@@ -319,20 +342,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/configs/resnet_config.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="84" column="9" selection-start-line="84" selection-start-column="4" selection-end-line="84" selection-end-column="9" />
-          <folding>
-            <element signature="e#20#38#0" expanded="true" />
-            <element signature="e#1733#2471#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/dataset/dataietr.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="399">
@@ -343,20 +352,45 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/configs/face_mbv3_config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="551">
-          <caret line="52" column="30" selection-start-line="52" selection-start-column="30" selection-end-line="52" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/train_config.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="190">
-          <caret line="10" column="20" selection-start-line="10" selection-start-column="20" selection-end-line="10" selection-end-column="20" />
+          <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
           <folding>
             <element signature="e#21#30#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="76">
+          <caret line="4" lean-forward="true" selection-start-line="4" selection-end-line="4" />
+          <folding>
+            <element signature="e#20#38#0" expanded="true" />
+            <element signature="e#1733#2471#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/configs/resnet_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="559">
+          <caret line="79" column="28" selection-start-line="79" selection-start-column="28" selection-end-line="79" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/configs/mbv3_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="684">
+          <caret line="77" column="28" selection-start-line="77" selection-start-column="28" selection-end-line="77" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/configs/face_mbv3_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="589">
+          <caret line="78" column="28" lean-forward="true" selection-start-line="78" selection-start-column="28" selection-end-line="78" selection-end-column="28" />
         </state>
       </provider>
     </entry>

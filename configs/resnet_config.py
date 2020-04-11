@@ -76,7 +76,8 @@ config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='resnet_v2_50' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
 config.MODEL.pretrained_model='resnet_v2_50.ckpt'
 config.MODEL.fpn_dims=[256,256,256,256,256]
-
+config.MODEL.face=False
+config.MODEL.min_overlap=0.7
 
 config.MODEL.focal_loss=True
 config.MODEL.fpn=True
