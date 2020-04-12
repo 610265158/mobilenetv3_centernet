@@ -408,9 +408,12 @@ class trainner():
                     hm=example_cls_hm[i]
                     label=example_reg_hm[i]
 
+
+
+                    print(label[label>0])
                     if cfg.DATA.use_int8_data:
                         hm = hm[:,:,0].astype(np.uint8)
-                        hm = (hm / np.max(hm) * 255).astype(np.uint8)
+                        #hm = (hm / np.max(hm) * 255).astype(np.uint8)
                     else:
                         hm = hm[:, :, 0].astype(np.float32)
 

@@ -65,7 +65,7 @@ def cocodetect():
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         star=time.time()
-        boxes=detector(img,0.1,input_shape=(cfg.DATA.hin,cfg.DATA.win))
+        boxes=detector(img,0.2,input_shape=(cfg.DATA.hin,cfg.DATA.win))
 
         print(boxes.shape[0])
         if boxes.shape[0]==0:
@@ -174,5 +174,5 @@ def facedetect():
     print(count)
 if __name__=='__main__':
     #hybriddetect()
-    facedetect()
-    #camdetect()
+    # facedetect()
+    cocodetect()
