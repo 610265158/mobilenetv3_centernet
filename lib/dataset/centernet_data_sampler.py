@@ -173,7 +173,6 @@ def fuck(image,boxes,klass,num_classes=cfg.DATA.num_class,max_objs=128):
     output_w=w_out / 4
     boxes[:, :4] /= 4
 
-
     hm = np.zeros((num_classes, math.ceil(output_h), math.ceil(output_w)), dtype=np.float32)
     wh = np.zeros((max_objs, 2), dtype=np.float32)
 

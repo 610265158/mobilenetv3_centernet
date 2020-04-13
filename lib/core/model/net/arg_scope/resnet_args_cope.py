@@ -37,7 +37,7 @@ def resnet_arg_scope(bn_is_training,
         norm_params = None
 
     with arg_scope(
-            [slim.conv2d,slim.separable_conv2d],
+            [slim.conv2d,slim.separable_conv2d,slim.conv2d_transpose],
             weights_regularizer=regularizers.l2_regularizer(weight_decay),
             weights_initializer=slim.xavier_initializer(),
             trainable=trainable,
