@@ -143,7 +143,6 @@ class MutiScaleBatcher(BatchData):
             max_shape[0] = int(np.ceil(max_shape[0] / self.divide_size) * self.divide_size)
             max_shape[1] = int(np.ceil(max_shape[1] / self.divide_size) * self.divide_size)
 
-            anchor_tools.reset_anchors((max_shape[0], max_shape[1]))
         else:
             max_shape=self.input_size
 
@@ -293,7 +292,7 @@ class DsfdDataIter():
                     ###随机crop
                     image, boxes = Random_scale_withbbox(image, boxes, target_shape=[cfg.DATA.hin, cfg.DATA.win],
                                                          jitter=0.5)
-                    image, boxes =self.space_augmentor(image.copy(),boxes.copy())
+                    #image, boxes =self.space_augmentor(image.copy(),boxes.copy())
 
                 else:
                     ### 不crop
