@@ -7,37 +7,37 @@ from tensorflow.python.ops import array_ops
 
 from train_config import config as cfg
 
-def loss(reg_predict,kps_predict,reg_label,cls_label_,num_gt):
+def loss(predicts,targets):
+    kps, reg, wh=predicts
+    hm_target, wh_target, reg_target, ind_, regmask_=targets
 
     with tf.name_scope('losses'):
         # whether anchor is matched
         # shape [batch_size, num_anchors]
 
         with tf.name_scope('classification_loss'):
-
             cls_losses = focal_loss(
-                kps_predict,
-                cls_label_
+                kps,
+                hm_target
+            )
+
+        with tf.name_scope('reg_loss'):
+            reg_loss = reg_l1_loss(
+                reg,
+                reg_target,
+                ind_,
+                regmask_
+            )
+        with tf.name_scope('wh_loss'):
+            wh_loss = reg_l1_loss(
+                wh,
+                wh_target,
+                ind_,
+                regmask_
             )
 
 
-        with tf.name_scope('localization_loss'):
-            location_losses = localization_loss(
-                reg_predict,
-                reg_label
-            )
-
-
-    # with tf.name_scope('normalization'):
-    #     matches = tf.reduce_sum(reg_weights)  # shape [batch_size]
-    #     normalizer = tf.maximum(matches, 1.0)
-    #
-    #
-    #
-    # reg_loss = tf.reduce_sum(location_losses) / normalizer
-    # cla_loss = tf.reduce_sum(cls_losses)/normalizer
-
-    return 0.1*location_losses,cls_losses
+    return cls_losses,reg_loss,wh_loss*0.1
 
 
 def classification_loss(predictions, targets):
@@ -84,6 +84,17 @@ def localization_loss(predictions, targets,sigma=9):
 
     return  tf.reduce_sum(tf.where(abs_diff_lt_1, 0.5 * tf.square(abs_diff), abs_diff - 0.5/sigma))/normalizer
 
+def reg_l1_loss(y_pred, y_true, indices, mask):
+    b = tf.shape(y_pred)[0]
+    k = tf.shape(indices)[1]
+    c = tf.shape(y_pred)[-1]
+    y_pred = tf.reshape(y_pred, (b, -1, c))
+    indices = tf.cast(indices, tf.int32)
+    y_pred = tf.gather(y_pred, indices, batch_dims=1)
+    mask = tf.tile(tf.expand_dims(mask, axis=-1), (1, 1, 2))
+    total_loss = tf.reduce_sum(tf.abs(y_true * mask - y_pred * mask))
+    reg_loss = total_loss / (tf.reduce_sum(mask) + 1e-4)
+    return reg_loss
 
 # def focal_loss(prediction_tensor, target_tensor, weights=None, alpha=0.25, gamma=2):
 #     r"""Compute focal loss for predictions.

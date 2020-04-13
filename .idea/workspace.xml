@@ -2,12 +2,20 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d6a1f3b0-c923-41b8-973a-5cbdf176ff3c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/mobile_centernet.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/mbv3_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/mbv3_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/resnet_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/resnet_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/core/base_trainer/net_work.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/base_trainer/net_work.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/centernet.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/centernet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/loss/centernet_loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/loss/centernet_loss.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vis.py" beforeDir="false" afterPath="$PROJECT_DIR$/vis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/dataset/dataietr.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dataset/dataietr.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_config.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -22,18 +30,13 @@
       </list>
     </option>
   </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>ssd</find>
-      <find>face</find>
-    </findStrings>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1aQ40YeyiLHEpHlHYyxBeLVVppP" />
   <component name="PropertiesComponent">
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../CenterNet" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -65,7 +68,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>

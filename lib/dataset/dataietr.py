@@ -26,7 +26,7 @@ from lib.dataset.augmentor.visual_augmentation import ColorDistort,pixel_jitter
 from lib.dataset.centernet_data_sampler import produce_heatmaps_with_bbox_official
 from train_config import config as cfg
 
-from lib.core.anchor.anchor import anchor_tools
+
 import math
 class data_info():
     def __init__(self,img_root,txt):
@@ -166,15 +166,13 @@ class MutiScaleBatcher(BatchData):
                     cv2.rectangle(image, (int(__box[0]), int(__box[1])),
                                   (int(__box[2]), int(__box[3])), (255, 0, 0), 4)
 
-            cls_hm, reg_hm = self.produce_for_centernet(image,boxes_, klass_)
+            heatmap, wh,reg,ind,reg_mask = self.produce_for_centernet(image,boxes_, klass_)
 
             if cfg.DATA.channel==1:
                 image=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
                 image=np.expand_dims(image,-1)
 
-
-            num_gt=len(boxes_)
-            alig_data.append([image, cls_hm, reg_hm,num_gt])
+            alig_data.append([image,heatmap, wh,reg,ind,reg_mask])
 
         return alig_data
 
@@ -216,8 +214,8 @@ class MutiScaleBatcher(BatchData):
 
     def produce_for_centernet(self,image,boxes,klass,num_klass=cfg.DATA.num_class):
         # hm,reg_hm=produce_heatmaps_with_bbox(image,boxes,klass,num_klass)
-        hm, reg_hm = produce_heatmaps_with_bbox_official(image, boxes, klass, num_klass)
-        return hm,reg_hm
+        heatmap, wh,reg,ind,reg_mask = produce_heatmaps_with_bbox_official(image, boxes, klass, num_klass)
+        return heatmap, wh,reg,ind,reg_mask
 
 
     def make_safe_box(self,image,boxes):

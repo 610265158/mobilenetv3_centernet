@@ -29,43 +29,30 @@ class Centernet():
             self.ssd_backbone = resnet_ssd
         self.head=CenternetHead()                         ### it is a class
 
-        self.top_k_results_output=100
-    def forward(self,inputs,cls_hm,reg_hm,num_gt,l2_regulation,training_flag):
+        self.top_k_results_output=cfg.MODEL.max_box
 
+    def forward(self,inputs,hm_target, wh_target,reg_target,ind_,regmask_,l2_regulation,training_flag):
 
-
+        ## process the label
         if cfg.DATA.use_int8_data:
-            cls_hm,reg_h=self.process_label(cls_hm,reg_hm)
+            hm_target=self.process_label(hm_target)
+
         ###preprocess
         inputs=self.preprocess(inputs)
 
         ### extract feature maps
         origin_fms=self.ssd_backbone(inputs,training_flag)
 
-        size, kps = self.head(origin_fms, l2_regulation, training_flag)
-        kps= tf.nn.sigmoid(kps)
+        kps_predicts,wh_predicts,reg_predicts = self.head(origin_fms, l2_regulation, training_flag)
+        kps_predicts= tf.nn.sigmoid(kps_predicts)
         ### calculate loss
-        reg_loss, cls_loss = loss(size, kps, reg_hm,cls_hm,num_gt)
+        hm_loss,wh_loss,reg_loss = loss(predicts=[kps_predicts,wh_predicts,reg_predicts] ,targets=[hm_target,wh_target,reg_target,ind_,regmask_])
 
-        kps = tf.identity(kps, name='keypoints')
+        kps_predicts = tf.identity(kps_predicts, name='keypoints')
 
-        self.postprocess(size,kps)
-        ###### adjust the anchors to the image shape, but it trains with a fixed h,w
+        self.postprocess(kps_predicts,wh_predicts,reg_predicts,self.top_k_results_output)
 
-        # if not cfg.MODEL.deployee:
-        #     ##adaptive anchor, more time consume
-        #     h = tf.shape(inputs)[1]
-        #     w = tf.shape(inputs)[2]
-        #     anchors_ = get_all_anchors_fpn(max_size=[h, w])
-        #     anchors_decode_=None
-        # else:
-        #     ###fix anchor
-        #     anchors_ = anchor_tools.anchors /np.array([cfg.DATA.win,cfg.DATA.hin,cfg.DATA.win,cfg.DATA.hin])
-        #     anchors_decode_ = anchor_tools.decode_anchors /np.array([cfg.DATA.win,cfg.DATA.hin,cfg.DATA.win,cfg.DATA.hin])/5.
-        #
-        # self.postprocess(reg, cls, anchors_, anchors_decode_)
-
-        return reg_loss,cls_loss
+        return hm_loss,wh_loss,reg_loss
 
     def preprocess(self,image):
         with tf.name_scope('image_preprocess'):
@@ -74,14 +61,13 @@ class Centernet():
 
             image=image/255.
         return image
-    def process_label(self,cls_hm,reg_hm):
+    def process_label(self,cls_hm):
 
 
         cls_hm = tf.cast(cls_hm, tf.float32)/cfg.DATA.use_int8_enlarge
-        reg_hm =tf.cast(reg_hm, tf.float32)
-        return cls_hm,reg_hm
+        return cls_hm
 
-    def postprocess(self, size,keypoints):
+    def postprocess(self, keypoints,wh,reg,max_size):
         """Postprocess outputs of the network.
 
         Returns:
@@ -155,9 +141,7 @@ class Centernet():
             return detections
 
 
-        #with tf.name_scope('postprocessing'):
-
-        decode(keypoints,size)
+        decode(keypoints,wh,reg,max_size)
 
 
 

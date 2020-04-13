@@ -54,19 +54,10 @@ config.DATA.cover_small_face=0                          ###cover the small faces
 
 config.DATA.mutiscale=False                #if muti scale set False  then config.DATA.MAX_SIZE will be the inputsize
 config.DATA.scales=(320,640)
-config.DATA.use_int8_data=False
+config.DATA.use_int8_data=True
 config.DATA.use_int8_enlarge=255.
-# anchors -------------------------
-config.ANCHOR = edict()
-config.ANCHOR.rect=False
-config.ANCHOR.rect_longer=False       ####    make anchor h/w=1.5
-config.ANCHOR.ANCHOR_STRIDE = 16
-config.ANCHOR.ANCHOR_SIZES = (32, 64, 128, 256, 512)   # sqrtarea of the anchor box
-config.ANCHOR.ANCHOR_STRIDES = (8, 16, 32, 64, 128)  # strides for each FPN level. Must be the same length as ANCHOR_SIZES
-config.ANCHOR.ANCHOR_RATIOS = (0.5, 1., 2.) ######           squrae
-config.ANCHOR.ANCHOR_SCALES = (2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)) ######           1:2 in size,
-config.ANCHOR.POSITIVE_ANCHOR_THRESH = 0.5
-config.ANCHOR.NEGATIVE_ANCHOR_THRESH = 0.4
+
+config.DATA.max_objs=128
 
 ##mobilenetv3 as basemodel
 config.MODEL = edict()
@@ -76,18 +67,12 @@ config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,Mobil
 config.MODEL.pretrained_model='./v3-large_224_1.0_float/ema/model-540000'
 config.MODEL.face=False
 config.MODEL.min_overlap=0.7
-
-
-config.MODEL.focal_loss=True
-config.MODEL.fpn=True
-config.MODEL.max_negatives_per_positive= 3.0
-
+config.MODEL.max_box= 100
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:
     config.TRAIN.batch_size = 1
     config.TRAIN.lock_basenet_bn=True
 
-config.MODEL.iou_thres= 0.3
-config.MODEL.score_thres= 0.05
-config.MODEL.max_box= 1500
+
+

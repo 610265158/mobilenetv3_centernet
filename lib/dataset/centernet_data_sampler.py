@@ -166,32 +166,25 @@ def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=1
 def produce_heatmaps_with_bbox_official(image,boxes,klass,num_klass=cfg.DATA.num_class):
     return fuck(image,boxes,klass,num_klass)
 
-def fuck(image,boxes,klass,num_classes=cfg.DATA.num_class):
+def fuck(image,boxes,klass,num_classes=cfg.DATA.num_class,max_objs=128):
     h_out, w_out, _ = image.shape
     ## stride equal to 4
-    output_h=h_out // 4
-    output_w=w_out // 4
-    boxes[:, :4] //= 4
+    output_h=h_out / 4
+    output_w=w_out / 4
+    boxes[:, :4] /= 4
 
-    max_objs=len(boxes)
 
-    hm = np.zeros((num_classes, output_h, output_w), dtype=np.float32)
+    hm = np.zeros((num_classes, math.ceil(output_h), math.ceil(output_w)), dtype=np.float32)
     wh = np.zeros((max_objs, 2), dtype=np.float32)
-    dense_wh = np.zeros((2, output_h, output_w), dtype=np.float32)
+
     reg = np.zeros((max_objs, 2), dtype=np.float32)
     ind = np.zeros((max_objs), dtype=np.int64)
     reg_mask = np.zeros((max_objs), dtype=np.uint8)
-    cat_spec_wh = np.zeros((max_objs, num_classes * 2), dtype=np.float32)
-    cat_spec_mask = np.zeros((max_objs, num_classes * 2), dtype=np.uint8)
 
-
-
-    gt_det = []
     for k in range(len(boxes)):
 
         bbox = boxes[k]
         cls_id = klass[k]
-
 
         h, w = bbox[3] - bbox[1], bbox[2] - bbox[0]
         if h > 0 and w > 0:
@@ -206,30 +199,14 @@ def fuck(image,boxes,klass,num_classes=cfg.DATA.num_class):
             ind[k] = ct_int[1] * output_w + ct_int[0]
             reg[k] = ct - ct_int
             reg_mask[k] = 1
-            cat_spec_wh[k, cls_id * 2: cls_id * 2 + 2] = wh[k]
-            cat_spec_mask[k, cls_id * 2: cls_id * 2 + 2] = 1
 
-            draw_dense_reg(dense_wh, hm.max(axis=0), ct_int, wh[k], radius)
-            gt_det.append([ct[0] - w / 2, ct[1] - h / 2,
-                           ct[0] + w / 2, ct[1] + h / 2, 1, cls_id])
-
-    # ret = {'input': inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}
-    if 1:
-        hm_a = hm.max(axis=0, keepdims=True)
-        dense_wh_mask = np.concatenate([hm_a, hm_a], axis=0)
-        # ret.update({'dense_wh': dense_wh, 'dense_wh_mask': dense_wh_mask})
-        # del ret['wh']
     heatmap=np.transpose(hm,axes=[1,2,0])
-    dense_wh = np.transpose(dense_wh, axes=[1, 2, 0])
 
     if cfg.DATA.use_int8_data:
-        #h_am = np.amax(heatmap)
 
         heatmap = (heatmap*cfg.DATA.use_int8_enlarge).astype(np.uint8)
 
-        regression_map=dense_wh.astype(np.uint8)
-        return heatmap, regression_map
+        return heatmap, wh,reg,ind,reg_mask
     else:
-
-        return heatmap.astype(np.float16), dense_wh.astype(np.float16)
+        return heatmap, wh,reg,ind,reg_mask
 
