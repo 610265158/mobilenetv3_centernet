@@ -8,7 +8,7 @@ from tensorflow.python.ops import array_ops
 from train_config import config as cfg
 
 def loss(predicts,targets):
-    kps, reg, wh=predicts
+    kps, wh, reg=predicts
     hm_target, wh_target, reg_target, ind_, regmask_=targets
 
     with tf.name_scope('losses'):
@@ -21,13 +21,6 @@ def loss(predicts,targets):
                 hm_target
             )
 
-        with tf.name_scope('reg_loss'):
-            reg_loss = reg_l1_loss(
-                reg,
-                reg_target,
-                ind_,
-                regmask_
-            )
         with tf.name_scope('wh_loss'):
             wh_loss = reg_l1_loss(
                 wh,
@@ -35,9 +28,15 @@ def loss(predicts,targets):
                 ind_,
                 regmask_
             )
+        with tf.name_scope('reg_loss'):
+            reg_loss = reg_l1_loss(
+                reg,
+                reg_target,
+                ind_,
+                regmask_
+            )
 
-
-    return cls_losses,reg_loss,wh_loss*0.1
+    return cls_losses,wh_loss*0.1,reg_loss
 
 
 def classification_loss(predictions, targets):
