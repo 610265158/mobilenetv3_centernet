@@ -92,6 +92,7 @@ class CenternetHeadLight():
                 for i in range(3):
                     deconv_feature=self._upsample(deconv_feature,scope='upsample_%d'%i)
 
+
                 kps = slim.conv2d(deconv_feature,
                                   cfg.DATA.num_class,
                                   [1, 1],
@@ -128,7 +129,7 @@ class CenternetHeadLight():
 
     def _upsample(self,fm,scope='upsample'):
         upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear')(fm)
-        upsampled_conv = slim.conv2d(upsampled, 256, [3, 3], padding='SAME', scope=scope)
+        upsampled_conv = slim.separable_conv2d(upsampled, 256, [1, 1], padding='SAME', scope=scope)
         return upsampled_conv
     def _upsample_deconv(self,fm,scope='upsample'):
 

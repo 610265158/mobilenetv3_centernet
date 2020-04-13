@@ -164,9 +164,12 @@ def produce_heat_map(center, map_size, stride,objects_size, sigma,magic_divide=1
 #         return heatmap.astype(np.float16), regression_map.astype(np.float16)
 
 def produce_heatmaps_with_bbox_official(image,boxes,klass,num_klass=cfg.DATA.num_class):
-    return fuck(image,boxes,klass,num_klass)
+    return _official_centernet_datasampler(image,boxes,klass,num_klass)
 
-def fuck(image,boxes,klass,num_classes=cfg.DATA.num_class,max_objs=128):
+def _official_centernet_datasampler(image,boxes,klass,num_classes=cfg.DATA.num_class,max_objs=cfg.DATA.max_objs):
+
+
+    num_obj=min(max_objs,len(boxes))
     h_out, w_out, _ = image.shape
     ## stride equal to 4
     output_h=h_out / 4
@@ -180,7 +183,7 @@ def fuck(image,boxes,klass,num_classes=cfg.DATA.num_class,max_objs=128):
     ind = np.zeros((max_objs), dtype=np.int64)
     reg_mask = np.zeros((max_objs), dtype=np.uint8)
 
-    for k in range(len(boxes)):
+    for k in range(num_obj):
 
         bbox = boxes[k]
         cls_id = klass[k]

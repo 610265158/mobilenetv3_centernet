@@ -29,7 +29,7 @@ config.TRAIN.lr_decay_every_step = [500,1000,200000,300000,400000]
 
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
-config.TRAIN.vis=True                                    ##check data flag
+config.TRAIN.vis=False                                    ##check data flag
 config.TRAIN.mix_precision=True
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
@@ -69,7 +69,7 @@ config.MODEL.pretrained_model='./v3-small_224_0.75_float/ema/model-497500'
 config.MODEL.fpn_dims=[256,256,256,256,256]
 config.MODEL.face=True
 config.MODEL.min_overlap=0.5
-config.MODEL.max_box= 150
+config.MODEL.max_box= 1000
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:

@@ -40,7 +40,7 @@ def mobilenetv3_large(image,is_training=True):
     return mobilebet_fms
 
 
-def mobilenetv3_small(image,is_training=True):
+def mobilenetv3_small_0_75(image,is_training=True):
 
     arg_scope = training_scope(weight_decay=cfg.TRAIN.weight_decay_factor, is_training=is_training)
 
