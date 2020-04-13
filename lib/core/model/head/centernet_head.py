@@ -92,35 +92,45 @@ class CenternetHeadLight():
                 for i in range(3):
                     deconv_feature=self._upsample(deconv_feature,scope='upsample_%d'%i)
 
-                size = slim.separable_conv2d(deconv_feature,
-                                   64,
-                                   [3, 3],
-                                   stride=1,
-                                   scope='centernet_pre_reg')
-                size = slim.separable_conv2d(size,
+                kps = slim.conv2d(deconv_feature,
+                                  cfg.DATA.num_class,
+                                  [1, 1],
+                                  stride=1,
+                                  activation_fn=None,
+                                  normalizer_fn=None,
+                                  weights_initializer=tf.initializers.random_normal(stddev=0.001),
+                                  biases_initializer=tf.initializers.constant( -2.19),
+                                  scope='centernet_cls_output')
+
+
+                wh = slim.conv2d(deconv_feature,
                                   2,
                                   [1, 1],
                                   stride=1,
                                   activation_fn=None,
                                   normalizer_fn=None,
-                                  scope='centernet_reg_output')
-                kps = slim.separable_conv2d(deconv_feature,
-                                  64,
-                                  [3, 3],
-                                  stride=1,
-                                  scope='centernet_pre_cls')
-                kps = slim.separable_conv2d(kps,
-                                    cfg.DATA.num_class,
-                                    [1, 1],
-                                    stride=1,
-                                    activation_fn=None,
-                                    normalizer_fn=None,
-                                    scope='centernet_cls_output')
+                                  weights_initializer=tf.initializers.random_normal(stddev=0.001),
+                                  biases_initializer=tf.initializers.constant(0.),
+                                  scope='centernet_wh_output')
 
-        return size,kps
+
+                reg = slim.conv2d(deconv_feature,
+                                 2,
+                                 [1, 1],
+                                 stride=1,
+                                 activation_fn=None,
+                                 normalizer_fn=None,
+                                 weights_initializer=tf.initializers.random_normal(stddev=0.001),
+                                 biases_initializer=tf.initializers.constant(0.),
+                                 scope='centernet_reg_output')
+        return kps,wh,reg
 
 
     def _upsample(self,fm,scope='upsample'):
         upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear')(fm)
-        upsampled_conv = slim.separable_conv2d(upsampled, 256, [3, 3], padding='SAME', scope=scope)
+        upsampled_conv = slim.conv2d(upsampled, 256, [3, 3], padding='SAME', scope=scope)
+        return upsampled_conv
+    def _upsample_deconv(self,fm,scope='upsample'):
+
+        upsampled_conv = slim.conv2d_transpose(fm, 256, [4, 4],stride=2, padding='SAME', scope=scope)
         return upsampled_conv
