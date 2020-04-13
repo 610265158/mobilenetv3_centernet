@@ -24,8 +24,8 @@ config.TRAIN.val_set_size=3000             ###widerface val size
 config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.num_gpu // config.TRAIN.batch_size
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
-config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00025,0.0001,0.00001,0.000001]        ##warm up is used
-config.TRAIN.lr_decay_every_step = [500,1000,60000,80000,100000]
+config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.000125,0.0000125,0.00000125,0.000000125]        ##warm up is used
+config.TRAIN.lr_decay_every_step = [500,1000,200000,300000,400000]
 
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
