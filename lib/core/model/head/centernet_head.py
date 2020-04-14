@@ -24,11 +24,14 @@ class CenternetHead():
                 c3, c4, c5 = fms
                 deconv_feature=c5
                 for i in range(3):
-                    deconv_feature=self._upsample_deconv(deconv_feature,scope='upsample_%d'%i)
+                    deconv_feature=self._upsample(deconv_feature,scope='upsample_%d'%i)
                 kps = slim.conv2d(deconv_feature,
                                   64,
                                   [3, 3],
                                   stride=1,
+                                  activation_fn=tf.nn.relu,
+                                  normalizer_fn=None,
+                                  biases_initializer=tf.initializers.constant(0),
                                   scope='centernet_pre_cls')
                 kps = slim.conv2d(kps,
                                   cfg.DATA.num_class,
@@ -44,6 +47,9 @@ class CenternetHead():
                                    64,
                                    [3, 3],
                                    stride=1,
+                                   activation_fn=tf.nn.relu,
+                                   normalizer_fn=None,
+                                   biases_initializer=tf.initializers.constant(0),
                                    scope='centernet_pre_wh')
                 wh = slim.conv2d(wh,
                                   2,
@@ -56,10 +62,13 @@ class CenternetHead():
                                   scope='centernet_wh_output')
 
                 reg = slim.conv2d(deconv_feature,
-                                 64,
-                                 [3, 3],
-                                 stride=1,
-                                 scope='centernet_pre_reg')
+                                  64,
+                                  [3, 3],
+                                  stride=1,
+                                  activation_fn=tf.nn.relu,
+                                  normalizer_fn=None,
+                                  biases_initializer=tf.initializers.constant(0),
+                                  scope='centernet_pre_reg')
                 reg = slim.conv2d(reg,
                                  2,
                                  [1, 1],
