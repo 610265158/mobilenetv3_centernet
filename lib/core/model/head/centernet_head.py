@@ -28,8 +28,8 @@ class CenternetHead():
                 #     deconv_feature=self._upsample(deconv_feature,scope='upsample_%d'%i)
 
                 deconv_feature=self._unet_upsample(fms)
-                kps = slim.conv2d(deconv_feature,
-                                  64,
+                kps = slim.separable_conv2d(deconv_feature,
+                                  256,
                                   [3, 3],
                                   stride=1,
                                   activation_fn=tf.nn.relu,
@@ -46,7 +46,7 @@ class CenternetHead():
                                   biases_initializer=tf.initializers.constant( -2.19),
                                   scope='centernet_cls_output')
 
-                wh = slim.conv2d(deconv_feature,
+                wh = slim.separable_conv2d(deconv_feature,
                                    64,
                                    [3, 3],
                                    stride=1,
@@ -64,7 +64,7 @@ class CenternetHead():
                                   biases_initializer=tf.initializers.constant(0.),
                                   scope='centernet_wh_output')
 
-                reg = slim.conv2d(deconv_feature,
+                reg = slim.separable_conv2d(deconv_feature,
                                   64,
                                   [3, 3],
                                   stride=1,
@@ -86,7 +86,7 @@ class CenternetHead():
 
     def _upsample(self,fm,k_size=5,dim=256,scope='upsample'):
         upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear')(fm)
-        upsampled_conv = slim.conv2d(upsampled, dim, [k_size, k_size], padding='SAME', scope=scope)
+        upsampled_conv = slim.separable_conv2d(upsampled, dim, [k_size, k_size], padding='SAME', scope=scope)
         return upsampled_conv
     def _upsample_deconv(self,fm,scope='upsample'):
 
@@ -97,20 +97,20 @@ class CenternetHead():
     def _unet_upsample(self,fms):
         c2, c3, c4, c5 = fms
 
-        c5_upsample=self._upsample(c5,k_size=5,dim=128,scope='c5_upsample')
+        c5_upsample=self._upsample(c5,k_size=5,dim=256,scope='c5_upsample')
 
-        c4 = slim.conv2d(c4, 128, [1, 1], padding='SAME', scope='c4_1x1')
+        c4 = slim.separable_conv2d(c4, 256, [3, 3], padding='SAME', scope='c4_1x1')
         p4=tf.concat([c4,c5_upsample],axis=3)
-        c4_upsample = self._upsample(p4, k_size=5, dim=128, scope='c4_upsample')
+        c4_upsample = self._upsample(p4, k_size=5, dim=256, scope='c4_upsample')
 
-        c3 = slim.conv2d(c3, 128, [1, 1], padding='SAME', scope='c3_1x1')
+        c3 = slim.separable_conv2d(c3, 256, [3, 3], padding='SAME', scope='c3_1x1')
         p3=tf.concat([c3,c4_upsample],axis=3)
-        c3_upsample = self._upsample(p3, k_size=5, dim=128, scope='c3_upsample')
+        c3_upsample = self._upsample(p3, k_size=5, dim=256, scope='c3_upsample')
 
-        c2 = slim.conv2d(c2, 128, [1, 1], padding='SAME', scope='c2_1x1')
+        c2 = slim.separable_conv2d(c2, 256, [3, 3], padding='SAME', scope='c2_1x1')
         combine_fm = tf.concat([c2, c3_upsample],axis=3)
 
-        combine_fm = slim.conv2d(combine_fm, 256, [1, 1], padding='SAME', scope='combine_fm_1x1')
+        combine_fm = slim.separable_conv2d(combine_fm, 512, [3, 3], padding='SAME', scope='combine_fm')
         return combine_fm
 
 class CenternetHeadLight():
