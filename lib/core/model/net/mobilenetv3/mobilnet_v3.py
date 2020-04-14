@@ -144,8 +144,8 @@ V3_LARGE = dict(
         mbv3_op_se(ef=6, n=160, k=5, s=2, act=hard_swish),
         mbv3_op_se(ef=6, n=160, k=5, s=1, act=hard_swish),
         mbv3_op_se(ef=6, n=160, k=5, s=1, act=hard_swish),
-        op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=960,
-           activation_fn=hard_swish),
+        # op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=960,
+        #    activation_fn=hard_swish),
         # op(reduce_to_1x1, default_size=7, stride=1, padding='VALID'),
         # op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=1280,
         #    normalizer_fn=None, activation_fn=hard_swish)

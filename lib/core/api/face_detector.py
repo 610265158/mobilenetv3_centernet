@@ -21,7 +21,7 @@ class FaceDetector:
 
 
             self.input_image = tf.get_default_graph().get_tensor_by_name('tower_0/images:0')
-            self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
+            #self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
             self.output_ops = [
                 tf.get_default_graph().get_tensor_by_name('tower_0/boxes:0'),
                 tf.get_default_graph().get_tensor_by_name('tower_0/scores:0'),
@@ -65,7 +65,7 @@ class FaceDetector:
         image_fornet = np.expand_dims(image, 0)
 
         outputs,kps = self._sess.run(
-            [self.output_op,self.output_kps], feed_dict={self.input_image: image_fornet,self.training:False}
+            [self.output_op,self.output_kps], feed_dict={self.input_image: image_fornet}
         )
 
         bboxes=outputs[0]

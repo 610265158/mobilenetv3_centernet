@@ -21,10 +21,13 @@ class CenternetHead():
         arg_scope = resnet_arg_scope(weight_decay=L2_reg, bn_is_training=training, )
         with slim.arg_scope(arg_scope):
             with tf.variable_scope('CenternetHead'):
-                c3, c4, c5 = fms
-                deconv_feature=c5
-                for i in range(3):
-                    deconv_feature=self._upsample(deconv_feature,scope='upsample_%d'%i)
+                # c2, c3, c4, c5 = fms
+                # deconv_feature=c5
+
+                # for i in range(3):
+                #     deconv_feature=self._upsample(deconv_feature,scope='upsample_%d'%i)
+
+                deconv_feature=self._unet_upsample(fms)
                 kps = slim.conv2d(deconv_feature,
                                   64,
                                   [3, 3],
@@ -81,14 +84,35 @@ class CenternetHead():
         return kps,wh,reg
 
 
-    def _upsample(self,fm,scope='upsample'):
+    def _upsample(self,fm,k_size=5,dim=256,scope='upsample'):
         upsampled = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear')(fm)
-        upsampled_conv = slim.conv2d(upsampled, 256, [3, 3], padding='SAME', scope=scope)
+        upsampled_conv = slim.conv2d(upsampled, dim, [k_size, k_size], padding='SAME', scope=scope)
         return upsampled_conv
     def _upsample_deconv(self,fm,scope='upsample'):
 
         upsampled_conv = slim.conv2d_transpose(fm, 256, [4, 4],stride=2, padding='SAME', scope=scope)
         return upsampled_conv
+
+
+    def _unet_upsample(self,fms):
+        c2, c3, c4, c5 = fms
+
+        c5_upsample=self._upsample(c5,k_size=5,dim=128,scope='c5_upsample')
+
+        c4 = slim.conv2d(c4, 128, [1, 1], padding='SAME', scope='c4_1x1')
+        p4=tf.concat([c4,c5_upsample],axis=3)
+        c4_upsample = self._upsample(p4, k_size=5, dim=128, scope='c4_upsample')
+
+        c3 = slim.conv2d(c3, 128, [1, 1], padding='SAME', scope='c3_1x1')
+        p3=tf.concat([c3,c4_upsample],axis=3)
+        c3_upsample = self._upsample(p3, k_size=5, dim=128, scope='c3_upsample')
+
+        c2 = slim.conv2d(c2, 128, [1, 1], padding='SAME', scope='c2_1x1')
+        combine_fm = tf.concat([c2, c3_upsample],axis=3)
+
+        combine_fm = slim.conv2d(combine_fm, 256, [1, 1], padding='SAME', scope='combine_fm_1x1')
+        return combine_fm
+
 class CenternetHeadLight():
 
     def __call__(self,fms,L2_reg,training=True):

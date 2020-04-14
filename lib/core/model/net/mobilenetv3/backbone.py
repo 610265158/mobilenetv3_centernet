@@ -30,9 +30,10 @@ def mobilenetv3_large(image,is_training=True):
         # for k,v in endpoints.items():
         #     print('mobile backbone output:',k,v)
         #
-        mobilebet_fms=[endpoints['layer_8/expansion_output'],
-                       endpoints['layer_14/expansion_output'],
-                       _]
+        mobilebet_fms = [endpoints['layer_5/expansion_output'],
+                         endpoints['layer_8/expansion_output'],
+                         endpoints['layer_14/expansion_output'],
+                         _]
 
         # if cfg.MODEL.fpn:
         #     mobilebet_fms=create_fpn_net(mobilebet_fms,dims_list=cfg.MODEL.fpn_dims)
