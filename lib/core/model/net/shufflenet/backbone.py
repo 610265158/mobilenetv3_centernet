@@ -19,9 +19,5 @@ def shufflenetv2_ssd(image,is_training=True):
         with slim.arg_scope([slim.batch_norm], is_training=is_training):
             shufflenet_fms = ShufflenetV2(image,is_training=is_training)
 
-            for fm in shufflenet_fms:
-                print(fm)
-            if cfg.MODEL.fpn:
-                mobilebet_fms=create_fpn_net(shufflenet_fms,dims_list=cfg.MODEL.fpn_dims)
 
-    return mobilebet_fms
+    return shufflenet_fms

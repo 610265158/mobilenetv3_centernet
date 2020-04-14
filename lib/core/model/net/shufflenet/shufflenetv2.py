@@ -56,7 +56,7 @@ def basic_unit(x):
     x = slim.conv2d(x, in_channels, [1, 1], stride=1, activation_fn=tf.nn.relu,
                 normalizer_fn=slim.batch_norm, scope='conv1x1_before')
 
-    x = slim.separable_conv2d(x, num_outputs=None, kernel_size=[3, 3], stride=1, activation_fn=None,
+    x = slim.separable_conv2d(x, num_outputs=None, kernel_size=[5, 5], stride=1, activation_fn=None,
                               normalizer_fn=slim.batch_norm, scope='depthwise', depth_multiplier=1)
 
     x = slim.conv2d(x, in_channels, [1, 1], stride=1, activation_fn=tf.nn.relu,
@@ -77,7 +77,7 @@ def basic_unit_with_downsampling(x,out_channels=None):
                     normalizer_fn=slim.batch_norm, scope='conv1x1_after')
 
     with tf.variable_scope('second_branch'):
-        x = slim.separable_conv2d(x, num_outputs=None, kernel_size=[3, 3], stride=2, activation_fn=None,
+        x = slim.separable_conv2d(x, num_outputs=None, kernel_size=[5, 5], stride=2, activation_fn=None,
                                   normalizer_fn=slim.batch_norm, scope='depthwise',depth_multiplier=1)
         x = slim.conv2d(x, out_channels // 2, [1, 1], stride=1, activation_fn=tf.nn.relu,
                         normalizer_fn=slim.batch_norm, scope='conv1x1_after')
@@ -143,7 +143,7 @@ def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
 
 
 
-def ShufflenetV2(inputs,is_training=True,depth_multiplier='1.0'):
+def ShufflenetV2(inputs,is_training=True,depth_multiplier='1.5'):
     possibilities = {'0.5': 48,'0.75':64, '1.0': 116, '1.5': 176, '2.0': 224}
     initial_depth = possibilities[depth_multiplier]
 
@@ -152,10 +152,10 @@ def ShufflenetV2(inputs,is_training=True,depth_multiplier='1.0'):
         with slim.arg_scope([slim.batch_norm], is_training=is_training):
             with tf.variable_scope('ShuffleNetV2'):
 
-                net = slim.conv2d(inputs, 8, [3, 3],stride=2, activation_fn=tf.nn.relu,
+                net = slim.conv2d(inputs, 24, [3, 3],stride=2, activation_fn=tf.nn.relu,
                                   normalizer_fn=slim.batch_norm, scope='init_conv')
 
-                net = slim.separable_conv2d(net, 16, [5, 5], stride=2, activation_fn=tf.nn.relu,
+                net = slim.separable_conv2d(net, 32, [5, 5], stride=2, activation_fn=tf.nn.relu,
                                           normalizer_fn=slim.batch_norm, scope='init_conv_2', depth_multiplier=1)
 
                 block1 = block(net, num_units=4, out_channels=initial_depth, scope='Stage2')
@@ -164,11 +164,7 @@ def ShufflenetV2(inputs,is_training=True,depth_multiplier='1.0'):
 
                 block3 = block(block2, num_units=4, out_channels=initial_depth*4, scope='Stage4')
 
-
-
-
-
-    return  [block1,block2,block3]
+    return  [net,block1,block2,block3]
 
 
 

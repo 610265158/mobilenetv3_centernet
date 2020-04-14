@@ -97,20 +97,20 @@ class CenternetHead():
     def _unet_upsample(self,fms):
         c2, c3, c4, c5 = fms
 
-        c5_upsample=self._upsample(c5,k_size=5,dim=256,scope='c5_upsample')
+        c5_upsample=self._upsample(c5,k_size=5,dim=128,scope='c5_upsample')
 
-        c4 = slim.separable_conv2d(c4, 256, [3, 3], padding='SAME', scope='c4_1x1')
+        c4 = slim.separable_conv2d(c4, 128, [3, 3], padding='SAME', scope='c4_1x1')
         p4=tf.concat([c4,c5_upsample],axis=3)
-        c4_upsample = self._upsample(p4, k_size=5, dim=256, scope='c4_upsample')
+        c4_upsample = self._upsample(p4, k_size=5, dim=128, scope='c4_upsample')
 
-        c3 = slim.separable_conv2d(c3, 256, [3, 3], padding='SAME', scope='c3_1x1')
+        c3 = slim.separable_conv2d(c3, 128, [3, 3], padding='SAME', scope='c3_1x1')
         p3=tf.concat([c3,c4_upsample],axis=3)
-        c3_upsample = self._upsample(p3, k_size=5, dim=256, scope='c3_upsample')
+        c3_upsample = self._upsample(p3, k_size=5, dim=128, scope='c3_upsample')
 
-        c2 = slim.separable_conv2d(c2, 256, [3, 3], padding='SAME', scope='c2_1x1')
+        c2 = slim.separable_conv2d(c2, 128, [3, 3], padding='SAME', scope='c2_1x1')
         combine_fm = tf.concat([c2, c3_upsample],axis=3)
 
-        combine_fm = slim.separable_conv2d(combine_fm, 512, [3, 3], padding='SAME', scope='combine_fm')
+        combine_fm = slim.separable_conv2d(combine_fm, 256, [3, 3], padding='SAME', scope='combine_fm')
         return combine_fm
 
 class CenternetHeadLight():
