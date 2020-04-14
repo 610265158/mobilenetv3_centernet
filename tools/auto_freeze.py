@@ -8,12 +8,14 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("pretrained_model", help="the trained file,  end with .ckpt",
+parser.add_argument("--pretrained_model", help="the trained file,  end with .ckpt",
                     type=str)
 args = parser.parse_args()
 pretrained_model=args.pretrained_model
 
-command="python tools/centernet_for_freeze_bn.py --ptrained_model %s "%pretrained_model
+print(pretrained_model)
+
+command="python tools/centernet_for_freeze_bn.py --pretrained_model %s "%pretrained_model
 os.system(command)
 print('save ckpt with bn defaut False')
 

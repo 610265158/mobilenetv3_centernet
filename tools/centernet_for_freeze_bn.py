@@ -19,14 +19,14 @@ from lib.helper.logger import logger
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("pretrained_model", help="the trained ckpt file",
+parser.add_argument("--pretrained_model", help="the trained ckpt file",
                     type=str)
 args = parser.parse_args()
 pretrained_model=args.pretrained_model
 
 
 
-saved_file='centernet_deploy.ckpt'
+saved_file='./model/centernet_deploy.ckpt'
 
 class trainner():
     def __init__(self):
@@ -372,10 +372,8 @@ class trainner():
             # Create a saver.
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
 
-            tmp_model_name = cfg.MODEL.model_path + '/detector_for_convert.ckpt'
-            logger.info('A tmp model  saved as %s \n' % tmp_model_name)
-            self.saver.save(self.sess, save_path=tmp_model_name)
 
+            logger.info('A tmp model  saved as %s \n' % saved_file)
 
             self.saver.save(self.sess, save_path=saved_file)
 
