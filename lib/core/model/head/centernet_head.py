@@ -26,7 +26,7 @@ class CenternetHead():
 
                 deconv_feature = self._unet_inception(fms)
 
-                kps = self._pre_head(deconv_feature, 128, 'centernet_cls_pre')
+                kps = self._pre_head(deconv_feature, 144, 'centernet_cls_pre')
                 kps = slim.conv2d(kps,
                                   cfg.DATA.num_class,
                                   [1, 1],
@@ -37,7 +37,7 @@ class CenternetHead():
                                   biases_initializer=tf.initializers.constant(-2.19),
                                   scope='centernet_cls_output')
 
-                wh = self._pre_head(deconv_feature, 64, 'centernet_wh_pre')
+                wh = self._pre_head(deconv_feature, 48, 'centernet_wh_pre')
 
                 wh = slim.conv2d(wh,
                                  2,
@@ -49,7 +49,7 @@ class CenternetHead():
                                  biases_initializer=tf.initializers.constant(0.),
                                  scope='centernet_wh_output')
 
-                reg = self._pre_head(deconv_feature, 64, 'centernet_reg_pre')
+                reg = self._pre_head(deconv_feature, 48, 'centernet_reg_pre')
                 reg = slim.conv2d(reg,
                                   2,
                                   [1, 1],
@@ -63,16 +63,15 @@ class CenternetHead():
 
     def _pre_head(self, fm, dim, scope):
         with tf.variable_scope(scope):
-            x, y, z, se = tf.split(fm, num_or_size_splits=4, axis=3)
+            x, y, z = tf.split(fm, num_or_size_splits=3, axis=3)
 
-            y = slim.conv2d(y, dim // 4, kernel_size=[1, 1], stride=1, scope='branchy_1x1_pre')
 
-            z = slim.separable_conv2d(z, dim // 4, kernel_size=[3, 3], stride=1, scope='branchz_3x3_pre')
+            y = slim.separable_conv2d(y, dim // 3, kernel_size=[3, 3], stride=1, scope='branchz_3x3_pre')
 
-            se = slim.separable_conv2d(se, dim // 4, kernel_size=[3, 3], stride=1, scope='branchse_3x3_pre')
-            se = slim.separable_conv2d(se, dim // 4, kernel_size=[3, 3], stride=1, scope='branchse_3x3_after')
+            z = slim.separable_conv2d(z, dim // 3, kernel_size=[3, 3], stride=1, scope='branchse_3x3_pre')
+            z = slim.separable_conv2d(z, dim // 3, kernel_size=[3, 3], stride=1, scope='branchse_3x3_after')
 
-            final = tf.concat([x, y, z, se], axis=3)  ###96 dims
+            final = tf.concat([x, y, z], axis=3)  ###96 dims
 
             return final
 
@@ -89,14 +88,15 @@ class CenternetHead():
         upsampled_conv = slim.conv2d_transpose(fm, 256, [4, 4], stride=2, padding='SAME', scope=scope)
         return upsampled_conv
 
-    def _inception_upsample(self, fm, dim, scope, shuffle=True):
+    def _inception_upsample(self, fm, dim, scope):
         with tf.variable_scope(scope):
 
             x, y, se = tf.split(fm, num_or_size_splits=3, axis=3)
 
             x = self._upsample(x, dim=dim // 3, k_size=3, scope='branch_x_upsample')
 
-            y = slim.conv2d(y, dim // 3, kernel_size=[3, 3], stride=1, scope='branchy_1x1_pre')
+            y = slim.separable_conv2d(y, dim // 3, kernel_size=[3, 3], stride=1, scope='branchy_1x1_pre')
+
             y = self._upsample(y, dim=dim // 3, k_size=5, scope='branch_y_upsample')
 
             se = tf.reduce_mean(se, axis=[1, 2], keep_dims=True)
@@ -105,25 +105,7 @@ class CenternetHead():
 
             final = tf.concat([x, y], axis=3)  ###2*dims
 
-            if shuffle:
-                shape = tf.shape(final)
-                batch_size = shape[0]
-                height, width = shape[1], shape[2]
 
-                depth = dim//3
-
-                ##shufflnet
-                if cfg.MODEL.deployee:
-                    final = tf.reshape(final, [height, width, 2, depth])  # shape [batch_size, height, width, 2, depth]
-
-                    final = tf.transpose(final, [0, 1, 3, 2])
-
-                else:
-                    final = tf.reshape(final, [batch_size, height, width, 2, depth])  # shape [batch_size, height, width, 2, depth]
-
-                    final = tf.transpose(final, [0, 1, 2, 4, 3])
-
-                final = tf.reshape(final, [batch_size, height, width, 2 * depth])
             return final
 
     def _unet_upsample(self, fms):
@@ -146,26 +128,54 @@ class CenternetHead():
         return combine_fm
 
     def _unet_inception(self, fms, dim=48):
-        c2, c3, c4, c5 = fms
 
-        c5 = slim.conv2d(c5, dim*3, [1, 1],stride=1, padding='SAME', scope='c5_1x1')
+        c2, c3, c4, c5 = fms
 
         c5_upsample = self._inception_upsample(c5, dim=dim * 3, scope='c5_upsample')
 
         c4 = slim.conv2d(c4, dim, [1, 1], padding='SAME', scope='c4_1x1')
 
         p4 = tf.concat([c4, c5_upsample], axis=3)
+        p4 =self._shuffle(p4,dim=dim*3,group=3)
+
         c4_upsample = self._inception_upsample(p4, dim=dim * 3, scope='c4_upsample')
 
         c3 = slim.conv2d(c3, dim, [1, 1], padding='SAME', scope='c3_1x1')
         p3 = tf.concat([c3, c4_upsample], axis=3)
+
+        p3 = self._shuffle(p3, dim=dim * 3, group=3)
         c3_upsample = self._inception_upsample(p3, dim=dim * 3, scope='c3_upsample')
 
         c2 = slim.conv2d(c2, dim, [1, 1], padding='SAME', scope='c2_1x1')
         combine_fm = tf.concat([c2, c3_upsample], axis=3)
+        combine_fm = self._shuffle(combine_fm, dim=dim * 3, group=3)
 
-        # combine_fm = slim.separable_conv2d(combine_fm, 128, [3, 3], padding='SAME', scope='combine_fm')
+
         return combine_fm
+
+    def _shuffle(self,fm,dim,group=3):
+
+        shape = tf.shape(fm)
+        batch_size = shape[0]
+        height, width = shape[1], shape[2]
+
+        depth = dim // 3
+
+        ##shufflnet
+        if cfg.MODEL.deployee:
+            fm = tf.reshape(fm, [height, width, group, depth])  # shape [batch_size, height, width, 2, depth]
+
+            fm = tf.transpose(fm, [0, 1, 3, 2])
+
+        else:
+            fm = tf.reshape(fm,
+                               [batch_size, height, width, group, depth])  # shape [batch_size, height, width, 2, depth]
+
+            fm = tf.transpose(fm, [0, 1, 2, 4, 3])
+
+        fm = tf.reshape(fm, [batch_size, height, width, group * depth])
+        return fm
+
 
 
 class CenternetHeadLight():
