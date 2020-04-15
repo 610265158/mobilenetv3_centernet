@@ -36,7 +36,7 @@ class CenternetHead():
                                 weights_initializer=tf.initializers.random_normal(stddev=0.001),
                                 biases_initializer=tf.initializers.constant(-2.19),
                                 scope='centernet_cls_output')
-                
+
                 wh = self._pre_head(deconv_feature, 64, 'centernet_wh_pre')
 
                 wh = slim.conv2d(wh,
@@ -65,7 +65,7 @@ class CenternetHead():
         with tf.variable_scope(scope):
             x, y, z, se = tf.split(fm, num_or_size_splits=4, axis=3)
 
-            x = slim.max_pool2d(x, kernel_size=3, stride=1)
+            #x = slim.max_pool2d(x, kernel_size=3, stride=1)
 
             y = slim.conv2d(y, dim // 4, kernel_size=[1, 1], stride=1, scope='branchy_1x1_pre')
 
