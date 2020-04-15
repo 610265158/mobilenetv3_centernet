@@ -58,7 +58,7 @@ class CenternetFace():
             if image.dtype.base_dtype != tf.float32:
                 image = tf.cast(image, tf.float32)
 
-            image=image/255.
+            image=image/128.-1
         return image
     def process_label(self,hm_target):
 
