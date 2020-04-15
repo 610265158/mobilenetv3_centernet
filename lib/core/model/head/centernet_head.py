@@ -92,11 +92,11 @@ class CenternetHead():
     def _inception_upsample(self, fm, dim, scope):
         with tf.variable_scope(scope):
             x, y, z, se = tf.split(fm, num_or_size_splits=4, axis=3)
-            ##branch  1  deconv
+
 
             x = self._upsample(x, dim=dim // 4, k_size=1, scope='branch_x_upsample')
 
-            y = slim.separable_conv2d(y, dim // 4, kernel_size=[3, 3], stride=1, scope='branchy_3x3_pre')
+            y = slim.conv2d(y, dim // 4, kernel_size=[1, 1], stride=1, scope='branchy_1x1_pre')
             y = self._upsample(y, dim=dim // 4, k_size=3, scope='branch_y_upsample')
 
             z = slim.separable_conv2d(z, dim // 4, kernel_size=[3, 3], stride=1, scope='branchz_3x3_pre')
@@ -129,23 +129,23 @@ class CenternetHead():
         combine_fm = slim.separable_conv2d(combine_fm, 256, [3, 3], padding='SAME', scope='combine_fm')
         return combine_fm
 
-    def _unet_inception(self, fms, dim=48):
+    def _unet_inception(self, fms, dim=32):
         c2, c3, c4, c5 = fms
 
         c5_upsample = self._inception_upsample(c5, dim=dim*4, scope='c5_upsample')
 
-        c4 = slim.separable_conv2d(c4, dim, [3, 3], padding='SAME', scope='c4_1x1')
+        c4 = slim.conv2d(c4, dim, [1, 1], padding='SAME', scope='c4_1x1')
         p4 = tf.concat([c4, c5_upsample], axis=3)
         c4_upsample = self._inception_upsample(p4, dim=dim*4, scope='c4_upsample')
 
-        c3 = slim.separable_conv2d(c3, dim, [3, 3], padding='SAME', scope='c3_1x1')
+        c3 = slim.conv2d(c3, dim, [1, 1], padding='SAME', scope='c3_1x1')
         p3 = tf.concat([c3, c4_upsample], axis=3)
         c3_upsample = self._inception_upsample(p3, dim=dim*4, scope='c3_upsample')
 
-        c2 = slim.separable_conv2d(c2, dim, [3, 3], padding='SAME', scope='c2_1x1')
+        c2 = slim.conv2d(c2, dim, [1, 1], padding='SAME', scope='c2_1x1')
         combine_fm = tf.concat([c2, c3_upsample], axis=3)
 
-        combine_fm = slim.separable_conv2d(combine_fm, 128, [3, 3], padding='SAME', scope='combine_fm')
+        #combine_fm = slim.separable_conv2d(combine_fm, 128, [3, 3], padding='SAME', scope='combine_fm')
         return combine_fm
 
 
