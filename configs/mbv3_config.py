@@ -30,7 +30,7 @@ config.TRAIN.lr_decay_every_step = [500,1000,250000,350000,450000]
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
 config.TRAIN.vis=False                                    ##check data flag
-config.TRAIN.mix_precision=True
+config.TRAIN.mix_precision=False
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
 config.TRAIN.lock_basenet_bn=False
