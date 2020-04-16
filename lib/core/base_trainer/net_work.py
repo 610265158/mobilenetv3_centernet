@@ -386,7 +386,7 @@ class trainner():
             self.summary_writer = tf.summary.FileWriter(cfg.MODEL.model_path, self.sess.graph)
 
 
-            min_loss_control=1000.
+
             for epoch in range(cfg.TRAIN.epoch):
                 self._train(epoch)
                 val_loss=self._val(epoch)
@@ -451,7 +451,6 @@ class trainner():
                 examples = next(self.train_ds)
                 for n in range(cfg.TRAIN.num_gpu):
 
-                    
 
                     self.train_dict[self.inputs[0][n]] = examples[0][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                     self.train_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
@@ -503,7 +502,7 @@ class trainner():
                                               run_duration))
 
                 if self.ite_num % 100 == 0:
-                    summary_str = self.sess.run(self.summary_op, feed_dict=feed_dict)
+                    summary_str = self.sess.run(self.summary_op, feed_dict=self.train_dict)
                     self.summary_writer.add_summary(summary_str, self.ite_num)
     def _val(self,_epoch):
 
