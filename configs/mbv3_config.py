@@ -35,6 +35,7 @@ config.TRAIN.mix_precision=True
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
 config.TRAIN.lock_basenet_bn=False
 config.TRAIN.frozen_stages=-1   ##no freeze
+config.TRAIN.gradient_clip=False
 
 config.DATA = edict()
 config.DATA.root_path=''

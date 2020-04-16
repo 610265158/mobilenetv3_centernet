@@ -18,7 +18,8 @@ def loss(predicts,targets):
         with tf.name_scope('classification_loss'):
             cls_losses = focal_loss(
                 kps,
-                hm_target
+                hm_target,
+                regmask_
             )
 
         with tf.name_scope('wh_loss'):
@@ -136,7 +137,7 @@ def reg_l1_loss(y_pred, y_true, indices, mask):
 #     return tf.reduce_sum(per_entry_cross_ent)
 
 
-def focal_loss(pred, gt):
+def focal_loss(pred, gt,reg_mask):
     ''' Modified focal loss. Exactly the same as CornerNet.
         Runs faster and costs a little bit more memory
       Arguments:
@@ -151,11 +152,12 @@ def focal_loss(pred, gt):
     pos_loss = tf.log(pred) * tf.pow(1.0 - pred, 2.0) * pos_inds
     neg_loss = tf.log(1.0 - pred) * tf.pow(pred, 2.0) * neg_weights * neg_inds
 
-    num_pos = tf.reduce_sum(pos_inds)
+    num_pos = tf.reduce_sum(reg_mask)
     pos_loss = tf.reduce_sum(pos_loss)
     neg_loss = tf.reduce_sum(neg_loss)
 
-    loss = - (pos_loss + neg_loss) / num_pos
+    normalizer = tf.maximum(1., num_pos)
+    loss = - (pos_loss + neg_loss) / normalizer
 
     return loss
 

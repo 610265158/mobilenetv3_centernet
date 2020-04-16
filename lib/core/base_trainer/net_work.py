@@ -36,7 +36,7 @@ class trainner():
 
         self.ema_weights=False
 
-
+        self.train_dict={}
     def get_opt(self):
 
         with self._graph.as_default():
@@ -174,7 +174,8 @@ class trainner():
             for g, _ in grad_and_vars:
                 # Add 0 dimension to the gradients to represent the tower.
                 try:
-                    g=tf.clip_by_value(g, -5., 5.)
+                    if cfg.TRAIN.gradient_clip:
+                        g=tf.clip_by_value(g, -5., 5.)
                     expanded_g = tf.expand_dims(g, 0)
                 except:
                     print(_)
@@ -446,27 +447,27 @@ class trainner():
             else:
 
                 start_time = time.time()
-                feed_dict = {}
+
                 examples = next(self.train_ds)
                 for n in range(cfg.TRAIN.num_gpu):
 
                     
 
-                    feed_dict[self.inputs[0][n]] = examples[0][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
-                    feed_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
-                    feed_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
-                    feed_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
-                    feed_dict[self.inputs[4][n]] = examples[4][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
-                    feed_dict[self.inputs[5][n]] = examples[5][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
-                feed_dict[self.inputs[6]] = cfg.TRAIN.weight_decay_factor
-                feed_dict[self.inputs[7]] = True
+                    self.train_dict[self.inputs[0][n]] = examples[0][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[4][n]] = examples[4][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[5][n]] = examples[5][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                self.train_dict[self.inputs[6]] = cfg.TRAIN.weight_decay_factor
+                self.train_dict[self.inputs[7]] = True
 
                 fetch_duration = time.time() - start_time
 
                 start_time2 = time.time()
                 _, total_loss_value,hm_loss_value,wh_loss_value,reg_loss_value,l2_loss_value,lr_value = \
                     self.sess.run([*self.outputs],
-                             feed_dict=feed_dict)
+                             feed_dict=self.train_dict)
 
                 duration = time.time() - start_time2
                 run_duration = duration
