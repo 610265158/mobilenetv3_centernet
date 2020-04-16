@@ -46,8 +46,8 @@ config.DATA.num_class = config.DATA.num_category       # +1 background
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
 
-config.DATA.hin = 416  # input size
-config.DATA.win = 416
+config.DATA.hin = 320  # input size
+config.DATA.win = 320
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
 config.DATA.cover_small_face=0                          ###cover the small faces
