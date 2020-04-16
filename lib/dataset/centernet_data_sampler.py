@@ -193,7 +193,10 @@ def _official_centernet_datasampler(image,boxes,klass,num_classes=cfg.DATA.num_c
         h, w = bbox[3] - bbox[1], bbox[2] - bbox[0]
         if h > 0 and w > 0:
             radius = gaussian_radius((math.ceil(h), math.ceil(w)))
-            radius = max(0.00001, int(radius))
+
+            radius = max(0, int(radius))
+            if radius == 0:
+                continue
 
             ct = np.array(
                 [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
