@@ -1,12 +1,25 @@
+import sys
+sys.path.append('.')
+
 import cv2
 import os
 import time
-import numpy as np
-import shutil
-import tensorflow as tf
+
 
 from lib.core.api.face_detector import FaceDetector
 from train_config import config as cfg
+
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--style', type=str,default='coco', help='detect with coco or face',required=False)
+parser.add_argument('--imgDir', type=str,default='../pubdata/mscoco/val2017', help='the image dir to detect')
+parser.add_argument('--thres', type=float,default=0.3, help='the thres for detect')
+args = parser.parse_args()
+
+data_dir=args.imgDir
+style=args.style
+thres=args.thres
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 detector = FaceDetector(['./model/detector.pb'])
@@ -42,11 +55,10 @@ def GetFileList(dir, fileList):
     return fileList
 
 
-def cocodetect():
+def cocodetect(data_dir):
     success_cnt=0
     count = 0
-    data_dir = '../pubdata/mscoco/val2017'
-    fail_dir = './xx'
+
     pics = []
     GetFileList(data_dir,pics)
 
@@ -65,7 +77,7 @@ def cocodetect():
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         star=time.time()
-        boxes=detector(img,0.2,input_shape=(cfg.DATA.hin,cfg.DATA.win))
+        boxes=detector(img,thres,input_shape=(cfg.DATA.hin,cfg.DATA.win))
 
         print(boxes.shape[0])
         if boxes.shape[0]==0:
@@ -126,11 +138,10 @@ def camdetect():
         cv2.waitKey(0)
     print(count)
 
-def facedetect():
+def facedetect(data_dir):
     success_cnt=0
     count = 0
-    data_dir = '/media/lz/73abf007-eec4-4097-9344-48d64dc62346/facedetection/fddb_facetrain/images'
-    fail_dir = './xx'
+
     pics = []
     GetFileList(data_dir,pics)
 
@@ -149,7 +160,7 @@ def facedetect():
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         star=time.time()
-        boxes=detector(img,0.3,input_shape=(cfg.DATA.hin,cfg.DATA.win))
+        boxes=detector(img,thres,input_shape=(cfg.DATA.hin,cfg.DATA.win))
 
         print(boxes.shape[0])
         if boxes.shape[0]==0:
@@ -173,6 +184,8 @@ def facedetect():
     print(success_cnt,'decoded')
     print(count)
 if __name__=='__main__':
-    #hybriddetect()
-    # facedetect()
-    cocodetect()
+
+    if style=='coco':
+        cocodetect(data_dir)
+    else:
+        facedetect(data_dir)
