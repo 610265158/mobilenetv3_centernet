@@ -84,11 +84,11 @@ class CenternetHead():
                                       biases_initializer=tf.initializers.constant(0.),
                                       )
 
-            l= slim.separable_conv2d(z, dim // 4, kernel_size=[5, 5], stride=1, scope='branchse_5x5_pre',
-                           activation_fn=tf.nn.relu,
-                           normalizer_fn=None,
-                           biases_initializer=tf.initializers.constant(0.),
-                           )
+            l= slim.separable_conv2d(l, dim // 4, kernel_size=[5, 5], stride=1, scope='branchse_5x5_pre',
+                                       activation_fn=tf.nn.relu,
+                                       normalizer_fn=None,
+                                       biases_initializer=tf.initializers.constant(0.),
+                                       )
 
             final = tf.concat([x, y, z, l], axis=3)  ###96 dims
 
