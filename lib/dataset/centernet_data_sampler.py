@@ -27,7 +27,22 @@ def gaussian_radius(det_size, min_overlap=cfg.MODEL.min_overlap):
   r3  = (b3 + sq3) / 2
   return min(r1, r2, r3)
 
+def draw_umich_gaussian(heatmap, center, radius, k=1):
+    diameter = 2 * radius + 1
+    gaussian = gaussian2D((diameter, diameter), sigma=diameter / 6)
 
+    x, y = int(center[0]), int(center[1])
+
+    height, width = heatmap.shape[0:2]
+
+    left, right = min(x, radius), min(width - x, radius + 1)
+    top, bottom = min(y, radius), min(height - y, radius + 1)
+
+    masked_heatmap = heatmap[y - top:y + bottom, x - left:x + right]
+    masked_gaussian = gaussian[radius - top:radius + bottom, radius - left:radius + right]
+    if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0:  # TODO debug
+        np.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
+    return heatmap
 def draw_msra_gaussian(heatmap, center, sigma):
   #heatmap=np.transpose(heatmap,axes=[1,0])
   tmp_size = sigma * 3
@@ -201,7 +216,7 @@ def _official_centernet_datasampler(image,boxes,klass,num_classes=cfg.DATA.num_c
             ct = np.array(
                 [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
             ct_int = ct.astype(np.int32)
-            draw_msra_gaussian(hm[cls_id], ct_int, radius)
+            draw_umich_gaussian(hm[cls_id], ct_int, radius)
             wh[k] = 1. * w, 1. * h
             ind[k] = ct_int[1] * output_w + ct_int[0]
             reg[k] = ct - ct_int
