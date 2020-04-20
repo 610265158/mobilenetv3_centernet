@@ -99,8 +99,8 @@ class CenternetHead():
             x, y= tf.split(fm, num_or_size_splits=2, axis=3)
 
             x = self._upsample(x, dim=dim // 2, k_size=3, scope='branch_x_upsample_resize')
-            y=self._upsample_deconv(y,dim=dim//2,scope='branch_y_upsample_deconv')
-
+            # y = self._upsample_deconv(y,dim=dim//2,scope='branch_y_upsample_deconv')
+            y = self._upsample(y, dim=dim // 2, k_size=5, scope='branch_y_upsample_resize')
             final = tf.concat([x, y], axis=3)  ###2*dims
 
             return final
