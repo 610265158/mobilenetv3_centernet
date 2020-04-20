@@ -59,11 +59,15 @@ def inference(mnn_model_path,img_dir,thres=0.3):
                         image, MNN.Tensor_DimensionType_Caffe)
         #construct tensor from np.ndarray
         input_tensor.copyFrom(tmp_input)
+
+        ### the model is nhwc   caution!!!!!!!!!!!!!!!!
+        interpreter.resizeTensor(input_tensor, (1, cfg.DATA.hin, cfg.DATA.win,3))
+
+        interpreter.resizeSession(session)
         interpreter.runSession(session)
 
         output_tensor = interpreter.getSessionOutputAll(session)
 
-        print(output_tensor)
         boxes=output_tensor['tower_0/concat_1'].getData()
         print(boxes)
         boxes=np.reshape(boxes,newshape=[100,6])
