@@ -32,7 +32,7 @@ input_checkpoint = checkpoint.model_checkpoint_path
 input_meta_graph = input_checkpoint + '.meta'
 
 ##output_node_names
-output_node_names='tower_0/images,tower_0/boxes,tower_0/scores,tower_0/labels'
+output_node_names='tower_0/images,tower_0/detections'
 
 #output_graph
 output_graph='./model/detector.pb'

@@ -22,12 +22,7 @@ class FaceDetector:
 
             self.input_image = tf.get_default_graph().get_tensor_by_name('tower_0/images:0')
             #self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
-            self.output_ops = [
-                tf.get_default_graph().get_tensor_by_name('tower_0/boxes:0'),
-                tf.get_default_graph().get_tensor_by_name('tower_0/scores:0'),
-                tf.cast(tf.get_default_graph().get_tensor_by_name('tower_0/labels:0'),dtype=tf.float32)
-            ]
-            self.output_op=tf.concat(self.output_ops,axis=2)
+            self.output_op=tf.get_default_graph().get_tensor_by_name('tower_0/detections:0')
 
             self.output_kps=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0'),
 

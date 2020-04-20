@@ -134,10 +134,11 @@ class Centernet():
 
             # [b,k,6]
             detections = tf.concat([bboxes, scores, clses], axis=-1)
+            detections = tf.identity(detections, name='detections')
 
-            bboxes = tf.identity(bboxes, name='boxes')
-            scores = tf.identity(scores, name='scores')
-            labels = tf.identity(clses, name='labels')  ## no use
+            # bboxes = tf.identity(bboxes, name='boxes')
+            # scores = tf.identity(scores, name='scores')
+            # labels = tf.identity(clses, name='labels')  ## no use
             return detections
 
 
