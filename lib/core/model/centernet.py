@@ -52,8 +52,6 @@ class Centernet():
 
 
 
-        if cfg.MODEL.offset:
-            reg_predicts=None
         self.postprocess(kps_predicts,wh_predicts,reg_predicts,self.top_k_results_output)
 
         return hm_loss,wh_loss,reg_loss

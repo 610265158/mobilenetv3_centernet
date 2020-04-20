@@ -49,16 +49,20 @@ class CenternetHead():
                                  biases_initializer=tf.initializers.constant(0.),
                                  scope='centernet_wh_output')
 
-                reg = self._pre_head(deconv_feature, 64, 'centernet_reg_pre')
-                reg = slim.conv2d(reg,
-                                  2,
-                                  [1, 1],
-                                  stride=1,
-                                  activation_fn=None,
-                                  normalizer_fn=None,
-                                  weights_initializer=tf.initializers.random_normal(stddev=0.001),
-                                  biases_initializer=tf.initializers.constant(0.),
-                                  scope='centernet_reg_output')
+                if cfg.MODEL.offset:
+                    reg = self._pre_head(deconv_feature, 64, 'centernet_reg_pre')
+                    reg = slim.conv2d(reg,
+                                      2,
+                                      [1, 1],
+                                      stride=1,
+                                      activation_fn=None,
+                                      normalizer_fn=None,
+                                      weights_initializer=tf.initializers.random_normal(stddev=0.001),
+                                      biases_initializer=tf.initializers.constant(0.),
+                                      scope='centernet_reg_output')
+                else:
+                    reg = None
+
         return kps, wh, reg
 
     def _pre_head(self, fm, dim, scope):
@@ -98,9 +102,8 @@ class CenternetHead():
         with tf.variable_scope(scope):
             x, y= tf.split(fm, num_or_size_splits=2, axis=3)
 
-            x = self._upsample(x, dim=dim // 2, k_size=3, scope='branch_x_upsample_resize')
-            # y = self._upsample_deconv(y,dim=dim//2,scope='branch_y_upsample_deconv')
-            y = self._upsample(y, dim=dim // 2, k_size=5, scope='branch_y_upsample_resize')
+            x = self._upsample(x, dim=dim // 2, k_size=5, scope='branch_x_upsample_resize')
+            y = self._upsample_group_deconv(y,dim=dim//2,group=4,scope='branch_y_upsample_deconv')
             final = tf.concat([x, y], axis=3)  ###2*dims
 
             return final
@@ -113,10 +116,26 @@ class CenternetHead():
 
         return upsampled_conv
 
-    def _upsample_deconv(self, fm,dim, scope='upsample'):
-        upsampled_conv = slim.conv2d_transpose(fm, dim, [4, 4], stride=2, padding='SAME', scope=scope)
+    def _upsample_group_deconv(self, fm,dim,group=4, scope='upsample'):
+        '''
+        group devonc
 
-        return upsampled_conv
+        :param fm: input feature
+        :param dim: input dim , should be n*group
+        :param group:
+        :param scope:
+        :return:
+        '''
+        sliced_fms=tf.split(fm, num_or_size_splits=group, axis=3)
+
+        deconv_fms=[]
+        for i in range(group):
+            cur_upsampled_conv = slim.conv2d_transpose(sliced_fms[i], dim//group, [4, 4], stride=2, padding='SAME', scope=scope+'group_%d'%i)
+            deconv_fms.append(cur_upsampled_conv)
+
+        deconv_fm= tf.concat(deconv_fms, axis=3)
+
+        return deconv_fm
 
     def _unet_upsample(self, fms):
         c2, c3, c4, c5 = fms

@@ -29,13 +29,17 @@ def loss(predicts,targets):
                 ind_,
                 regmask_
             )
-        with tf.name_scope('reg_loss'):
-            reg_loss = reg_l1_loss(
-                reg,
-                reg_target,
-                ind_,
-                regmask_
-            )
+
+        if cfg.MODEL.offset:
+            with tf.name_scope('reg_loss'):
+                reg_loss = reg_l1_loss(
+                    reg,
+                    reg_target,
+                    ind_,
+                    regmask_
+                )
+        else:
+            reg_loss=0.
 
     return cls_losses,wh_loss*0.1,reg_loss
 
