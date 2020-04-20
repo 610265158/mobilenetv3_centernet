@@ -41,21 +41,22 @@ def mobilenetv3_large(image,is_training=True):
     return mobilebet_fms
 
 
-def mobilenetv3_small_0_75(image,is_training=True):
+def mobilenetv3_small_minimalistic(image,is_training=True):
 
     arg_scope = training_scope(weight_decay=cfg.TRAIN.weight_decay_factor, is_training=is_training)
 
     with tf.contrib.slim.arg_scope(arg_scope):
 
-        final_feature, endpoints = mobilnet_v3.small(image,
-                                        depth_multiplier=0.75,
+        final_feature, endpoints = mobilnet_v3.small_minimalistic(image,
+                                        depth_multiplier=1.0,
                                         is_training=is_training,
                                         base_only=True,
                                         finegrain_classification_mode=False)
 
 
 
-        mobilebet_fms=[endpoints['layer_5/expansion_output'],
+        mobilebet_fms=[endpoints['layer_3/expansion_output'],
+                       endpoints['layer_5/expansion_output'],
                        endpoints['layer_10/expansion_output'],
                        final_feature]
 

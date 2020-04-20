@@ -5,7 +5,7 @@ import tensorflow.contrib.slim as slim
 from lib.core.anchor.box_utils import batch_decode,batch_decode_fix
 
 from lib.core.model.net.shufflenet.backbone import shufflenetv2_ssd
-from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_large,mobilenetv3_small_0_75
+from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_large,mobilenetv3_small_minimalistic
 from lib.core.model.net.mobilenet.backbone import mobilenet_ssd
 from lib.core.model.net.resnet.backbone import resnet_ssd
 from lib.core.model.loss.centernet_loss import loss
@@ -24,7 +24,7 @@ class CenternetFace():
         elif "MobilenetV2" in cfg.MODEL.net_structure:
             self.ssd_backbone = mobilenet_ssd
         elif "MobilenetV3" in cfg.MODEL.net_structure:
-            self.ssd_backbone = mobilenetv3_small_0_75
+            self.ssd_backbone = mobilenetv3_small_minimalistic
         elif "resnet_v2_50" in cfg.MODEL.net_structure:
             self.ssd_backbone = resnet_ssd
         self.head=CenternetHeadLight()                         ### it is a class
@@ -58,7 +58,7 @@ class CenternetFace():
             if image.dtype.base_dtype != tf.float32:
                 image = tf.cast(image, tf.float32)
 
-            image=image/128.-1
+            image=image/(255./2)-1.
         return image
     def process_label(self,hm_target):
 
@@ -106,8 +106,8 @@ class CenternetFace():
                 reg = tf.reshape(reg, (batch, -1, tf.shape(reg)[-1]))
                 # [b,k,2]
                 reg = tf.batch_gather(reg, inds)
-                xs = tf.expand_dims(xs, axis=-1) + reg[..., 0:1]
-                ys = tf.expand_dims(ys, axis=-1) + reg[..., 1:2]
+                xs = tf.expand_dims(xs, axis=-1) + reg[:,:, 0:1]
+                ys = tf.expand_dims(ys, axis=-1) + reg[:,:, 1:2]
             else:
                 xs = tf.expand_dims(xs, axis=-1) + 0.5
                 ys = tf.expand_dims(ys, axis=-1) + 0.5
@@ -120,10 +120,10 @@ class CenternetFace():
             clses = tf.cast(tf.expand_dims(clses, axis=-1), tf.float32)
             scores = tf.expand_dims(scores, axis=-1)
 
-            xmin = xs - wh[..., 0:1] / 2
-            ymin = ys - wh[..., 1:2] / 2
-            xmax = xs + wh[..., 0:1] / 2
-            ymax = ys + wh[..., 1:2] / 2
+            xmin = xs - wh[:,:, 0:1] / 2
+            ymin = ys - wh[:,:, 1:2] / 2
+            xmax = xs + wh[:,:, 0:1] / 2
+            ymax = ys + wh[:,:, 1:2] / 2
 
 
             ##mul by stride 4
