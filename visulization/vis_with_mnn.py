@@ -49,12 +49,13 @@ def inference(mnn_model_path,img_dir,thres=0.3):
         #change to rgb format
 
         image,_,_,_,_ = preprocess(image,target_height=cfg.DATA.hin,target_width=cfg.DATA.win)
+        image_show=image.copy()
 
-        image = image.astype(np.float)
-
+        image = image.astype(np.float32)
+        image = np.transpose(image,axes=[2,0,1])
 
         #cv2 read shape is NHWC, Tensor's need is NCHW,transpose it
-        tmp_input = MNN.Tensor((1, cfg.DATA.hin, cfg.DATA.win, 3), MNN.Halide_Type_Float,\
+        tmp_input = MNN.Tensor((1, 3,cfg.DATA.hin, cfg.DATA.win), MNN.Halide_Type_Float,\
                         image, MNN.Tensor_DimensionType_Caffe)
         #construct tensor from np.ndarray
         input_tensor.copyFrom(tmp_input)
@@ -63,21 +64,25 @@ def inference(mnn_model_path,img_dir,thres=0.3):
         output_tensor = interpreter.getSessionOutputAll(session)
 
         print(output_tensor)
-        boxes=output_tensor['tower_0/Cast_5'].getData()
-        scores=output_tensor['tower_0/ExpandDims_3'].getData()
-        labels=output_tensor['tower_0/mul_3'].getData()
-
+        boxes=output_tensor['tower_0/concat_1'].getData()
+        print(boxes)
+        boxes=np.reshape(boxes,newshape=[100,6])
+        print(boxes.shape)
         for i in range(len(boxes)):
-            if scores[i]>thres:
+            bbox = boxes[i]
+            print(bbox)
+            if bbox[4]>thres:
 
-                bbox = boxes[i]
 
-                cv2.rectangle(image, (int(bbox[0]), int(bbox[1])),
+
+                cv2.rectangle(image_show, (int(bbox[0]), int(bbox[1])),
                               (int(bbox[2]), int(bbox[3])), (255, 0, 0), 4)
                 str_draw = '%s:%.2f' % (coco_map[int(bbox[5])][1], bbox[4])
-                cv2.putText(image, str_draw, (int(bbox[0]), int(bbox[1])), cv2.FONT_HERSHEY_SIMPLEX, 2,
+                cv2.putText(image_show, str_draw, (int(bbox[0]), int(bbox[1])), cv2.FONT_HERSHEY_SIMPLEX, 2,
                             (255, 0, 255), 2)
 
+        cv2.imshow('mnn result',image_show)
+        cv2.waitKey(0)
 
 if __name__ == "__main__":
 
