@@ -27,6 +27,8 @@ pretrained_model=args.pretrained_model
 
 
 saved_file='./model/centernet_deploy.ckpt'
+cfg.MODEL.deployee=True
+
 
 class trainner():
     def __init__(self):
@@ -233,7 +235,8 @@ class trainner():
                                                              [1, cfg.DATA.hin, cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.float32, [None, None, None, cfg.DATA.channel],
+                                    ###fix size
+                                    images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin, cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
                                 hm_ = tf.placeholder(tf.float32,

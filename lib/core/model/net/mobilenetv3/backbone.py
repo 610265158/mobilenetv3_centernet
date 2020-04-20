@@ -35,8 +35,6 @@ def mobilenetv3_large(image,is_training=True):
                          endpoints['layer_14/expansion_output'],
                          _]
 
-        # if cfg.MODEL.fpn:
-        #     mobilebet_fms=create_fpn_net(mobilebet_fms,dims_list=cfg.MODEL.fpn_dims)
 
     return mobilebet_fms
 

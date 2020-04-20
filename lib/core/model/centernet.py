@@ -51,7 +51,6 @@ class Centernet():
         kps_predicts = tf.identity(kps_predicts, name='keypoints')
 
 
-
         self.postprocess(kps_predicts,wh_predicts,reg_predicts,self.top_k_results_output)
 
         return hm_loss,wh_loss,reg_loss
@@ -94,9 +93,9 @@ class Centernet():
             topk_scores, topk_inds = tf.nn.top_k(scores, k=K)
             # [b,k]
             topk_clses = topk_inds % cat
-            topk_xs = tf.cast(topk_inds // cat % width, tf.float32)
-            topk_ys = tf.cast(topk_inds // cat // width, tf.float32)
-            topk_inds = tf.cast(topk_ys * tf.cast(width, tf.float32) + topk_xs, tf.int32)
+            topk_xs = topk_inds // cat % width
+            topk_ys = topk_inds // cat // width
+            topk_inds = topk_ys * width + topk_xs
 
             return topk_scores, topk_inds, topk_clses, topk_ys, topk_xs
 
@@ -109,11 +108,11 @@ class Centernet():
                 reg = tf.reshape(reg, (batch, -1, tf.shape(reg)[-1]))
                 # [b,k,2]
                 reg = tf.batch_gather(reg, inds)
-                xs = tf.expand_dims(xs, axis=-1) + reg[:,:, 0:1]
-                ys = tf.expand_dims(ys, axis=-1) + reg[:,:, 1:2]
+                xs = tf.cast(tf.expand_dims(xs, axis=-1),tf.float32) + reg[:,:, 0:1]
+                ys = tf.cast(tf.expand_dims(ys, axis=-1),tf.float32) + reg[:,:, 1:2]
             else:
-                xs = tf.expand_dims(xs, axis=-1) + 0.5
-                ys = tf.expand_dims(ys, axis=-1) + 0.5
+                xs = tf.cast(tf.expand_dims(xs, axis=-1),tf.float32) + 0.5
+                ys = tf.cast(tf.expand_dims(ys, axis=-1),tf.float32) + 0.5
 
             # [b,h*w,2]
             wh = tf.reshape(wh, (batch, -1, tf.shape(wh)[-1]))
