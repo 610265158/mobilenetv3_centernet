@@ -72,6 +72,8 @@ config.MODEL.fpn_dims=[256,256,256,256,256]
 config.MODEL.face=True
 config.MODEL.min_overlap=0.4
 config.MODEL.max_box= 1000
+config.MODEL.offset= True
+
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:

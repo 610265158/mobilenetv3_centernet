@@ -51,7 +51,8 @@ def mobilenetv3_small_minimalistic(image,is_training=True):
                                         base_only=True,
                                         finegrain_classification_mode=False)
 
-
+        for k,v in endpoints.items():
+            print('mobile backbone output:',k,v)
 
         mobilebet_fms=[endpoints['layer_3/expansion_output'],
                        endpoints['layer_5/expansion_output'],

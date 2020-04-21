@@ -305,20 +305,20 @@ class CenternetHeadLight():
         return deconv_fm
 
 
-    def _unet_magic(self, fms, dim=64):
+    def _unet_magic(self, fms):
 
         c2, c3, c4, c5 = fms
 
-        c5_upsample = self._complex_upsample(c5, input_dim=720,output_dim=dim*2, scope='c5_upsample')
-        c4 = slim.conv2d(c4, dim*2, [1, 1], padding='SAME', scope='c4_1x1')
+        c5_upsample = self._complex_upsample(c5, input_dim=96,output_dim=64, scope='c5_upsample')
+        c4 = slim.conv2d(c4, 64, [1, 1], padding='SAME', scope='c4_1x1')
         p4 = c4+c5_upsample
 
-        c4_upsample = self._complex_upsample(p4, input_dim=dim*2, output_dim=dim*3//2, scope='c4_upsample')
-        c3 = slim.conv2d(c3, dim*3//2, [1, 1], padding='SAME', scope='c3_1x1')
+        c4_upsample = self._complex_upsample(p4, input_dim=64, output_dim=48, scope='c4_upsample')
+        c3 = slim.conv2d(c3, 48, [1, 1], padding='SAME', scope='c3_1x1')
         p3 = c3+c4_upsample
 
-        c3_upsample = self._complex_upsample(p3,  input_dim=dim*3//2,output_dim=dim, scope='c3_upsample')
-        c2 = slim.conv2d(c2, dim, [1, 1], padding='SAME', scope='c2_1x1')
+        c3_upsample = self._complex_upsample(p3,  input_dim=48,output_dim=32, scope='c3_upsample')
+        c2 = slim.conv2d(c2, 32, [1, 1], padding='SAME', scope='c2_1x1')
         combine_fm = c2+c3_upsample
 
         return combine_fm
