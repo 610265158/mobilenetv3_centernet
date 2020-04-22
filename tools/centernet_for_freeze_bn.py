@@ -32,8 +32,8 @@ cfg.MODEL.deployee=False
 
 class trainner():
     def __init__(self):
-        self.train_ds = DataIter(cfg.DATA.root_path, cfg.DATA.train_txt_path, training_flag=True)
-        self.val_ds = DataIter(cfg.DATA.root_path, cfg.DATA.val_txt_path, training_flag=False)
+        # self.train_ds = DataIter(cfg.DATA.root_path, cfg.DATA.train_txt_path, training_flag=True)
+        # self.val_ds = DataIter(cfg.DATA.root_path, cfg.DATA.val_txt_path, training_flag=False)
 
         self.inputs = []
         self.outputs = []
