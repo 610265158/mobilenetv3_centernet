@@ -69,7 +69,7 @@ def inference(model_path,img_dir,thres=0.3):
                 cv2.rectangle(image_show, (int(bbox[0]), int(bbox[1])),
                               (int(bbox[2]), int(bbox[3])), (255, 0, 0), 4)
 
-                print((bbox[5]))
+
                 str_draw = '%s:%.2f' % (coco_map[int(bbox[5])%80][1], bbox[4])
                 cv2.putText(image_show, str_draw, (int(bbox[0]), int(bbox[1])), cv2.FONT_HERSHEY_SIMPLEX, 2,
                             (255, 0, 255), 2)

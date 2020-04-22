@@ -14,7 +14,7 @@ So there is an easy project contains model training and model converter.
 
 
 ## pretrained model , and preformance
-
+coming soon
 
 
 
@@ -38,33 +38,24 @@ So there is an easy project contains model training and model converter.
 ### MSCOCO
 
 #### train
-1. download mscoco data
+1. download mscoco data, then run `python prepare_coco_data.py --mscocodir ./mscoco`
 
 2. download pretrained model from
 [mbv3-large0.75](https://storage.googleapis.com/mobilenet_v3/checkpoints/v3-large_224_0.75_float.tgz)
 
+relese it in the current dir.
 
 3. then, modify in config=mb3_config in train_config.py,  then run:
 
    ```python train.py```
    
-   and if u want to check the data when training, u could set vis in train_config.py as True
+   and if u want to check the data when training, u could set vis in confifs/mscoco/mbv3_config.py as True
 
 4. After training, freeze the model as .pb  by
 
-    ` python tools/auto_freeze.py --pretrained_mobile yourmodel.ckpt`
+    ` python tools/auto_freeze.py --pretrained_mobile ./model/yourmodel.ckpt`
 
     it will produce a detector.pb
-
-    4.1 MNN
-
-    just use the converter, for example:
-    `./MNNConvert -f TF --modelFile detector.pb --MNNModel centernet.mnn --bizCode biz  --fp16 1`
-
-    4.2 coreml
-
-    python tools/converter_to_coreml.py
-
 
 
 #### evaluation
@@ -76,11 +67,33 @@ python model_eval/custome_eval.py [--model [TRAINED_MODEL]] [--annFile [cocostyl
 python model_eval/custome_eval.py --model model/detector.pb
                                 --annFile ../mscoco/annotations/instances_val2017.json
                                 --imgDir ../mscoco/val2017
+                                --is_show 1
+
+ps, no test time augmentation is used.
 ```
 
-###  face
+###  FACE
 
 #### train
+1. download widerface data from http://shuoyang1213.me/WIDERFACE/,
+ and release the WIDER_train, WIDER_val and wider_face_split into ./WIDER,
+  then run python prepare_wider_data.py
+
+2. download pretrained model from [mbv3-small-minimalistic](https://storage.googleapis.com/mobilenet_v3/checkpoints/v3-small-minimalistic_224_1.0_float.tgz)
+release it in current dir
+
+3. then, modify in config=face_config in train_config.py,  then run:
+
+   ```python train.py```
+
+   and if u want to check the data when training, u could set vis in confifs/mscoco/mbv3_config.py as True
+
+4. After training, freeze the model as .pb  by
+
+    ` python tools/auto_freeze.py --pretrained_mobile ./model/yourmodel.ckpt`
+
+    it will produce a detector.pb
+
 
 #### evaluation
 
@@ -121,5 +134,29 @@ if u get a trained model and dont need to work on mobile device, run `python too
 u can check th code in visualization to make it runable, it's simple.
 
 
+### model convert for mobile device
+I have carefully processed the postprocess, and it can works within the model, so it could be deployed end to end.
+
+4.1 MNN
+
+4.1.1 convert model
+
+just use the MNN converter, for example:
+`./MNNConvert -f TF --modelFile detector.pb --MNNModel centernet.mnn --bizCode biz  --fp16 1`
+
+4.1.2 visualization with mnn python wraper
+
+`python visualization/vis_with_mnn.py --mnn_model centernet.mnn --imgDir 'your image dir'`
+
+4.2 coreml
+
+4.2.1 convert
+
+python tools/converter_to_coreml.py
+4.2.2 visualization with coreml python wraper
+
+`python visualization/vis_with_coreml.py --coreml_model centernet.mlmodel --imgDir 'your image dir'`
+
+ps, if you want to do quantization, please do it by yourself.
 ### TODO: 
 - [ ] Android project.

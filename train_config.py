@@ -2,11 +2,8 @@
 
 import os
 
-from configs.shufflenetv2_config import config as shufflenet_config
-from configs.mb_config import config as mb_config
-from configs.mbv3_config import config as mb3_config
-from configs.face_mbv3_config import config as face_bv3_config
-from configs.resnet_config import config as resnet_config
+from configs.mscoco.mbv3_config import config as mb3_config
+from configs.face.face_mbv3_config import config as face_config
 ##### the config for different backbone,
 config=mb3_config
 

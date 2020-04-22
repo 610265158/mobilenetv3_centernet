@@ -3,8 +3,13 @@ import os
 
 from lib.dataset.coco_data import BoxInfo
 
+import argparse
 
-coco_dir='../pubdata/mscoco'
+parser = argparse.ArgumentParser()
+parser.add_argument('--mscocodir', type=str,default='../pubdata/mscoco', help='detect with coco or face',required=False)
+args = parser.parse_args()
+
+coco_dir=args.mscocodir
 
 train_im_path = os.path.join(coco_dir,'train2017')
 train_ann_path =  os.path.join(coco_dir,'annotations/instances_train2017.json')

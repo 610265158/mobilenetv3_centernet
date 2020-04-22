@@ -27,8 +27,10 @@ pretrained_model=args.pretrained_model
 
 
 saved_file='./model/centernet_deploy.ckpt'
-cfg.MODEL.deployee=False
-
+cfg.MODEL.deployee=True
+if cfg.MODEL.deployee:
+    cfg.TRAIN.batch_size = 1
+    cfg.TRAIN.lock_basenet_bn=True
 
 class trainner():
     def __init__(self):

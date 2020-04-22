@@ -25,27 +25,27 @@ spec = centernet_model.get_spec()
 tfcoreml.optimize_nn_spec(spec)
 
 #
-# #####clean the name of the model
-# print(spec.description)
-# spec.description.input[0].name = "image"
-# spec.description.input[0].shortDescription = "Input image"
-# spec.description.output[0].name = "detections"
-# spec.description.output[0].shortDescription = "Predicted coordinates for each bounding box"
-# #
-# # # #
-# # # #
-# # ##rename the tensor name
-# for i in range(len(spec.neuralNetwork.layers)):
+#####clean the name of the model
+print(spec.description)
+spec.description.input[0].name = "image"
+spec.description.input[0].shortDescription = "Input image"
+spec.description.output[0].name = "detections"
+spec.description.output[0].shortDescription = "Predicted coordinates for each bounding box"
 #
-#     try:
-#         if spec.neuralNetwork.layers[i].input[0] == input_tensor:
-#             spec.neuralNetwork.layers[i].input[0] = "image"
-#
-#         if spec.neuralNetwork.layers[i].output[0]==output_tensors[0]:
-#             spec.neuralNetwork.layers[i].output[0] = "detections"
-#
-#     except:
-#         continue
+# # #
+# # #
+# ##rename the tensor name
+for i in range(len(spec.neuralNetwork.layers)):
+
+    try:
+        if spec.neuralNetwork.layers[i].input[0] == input_tensor:
+            spec.neuralNetwork.layers[i].input[0] = "image"
+
+        if spec.neuralNetwork.layers[i].output[0]==output_tensors[0]:
+            spec.neuralNetwork.layers[i].output[0] = "detections"
+
+    except:
+        continue
 
 
 
@@ -66,7 +66,7 @@ centernet_model_re = coremltools.models.MLModel(spec)
 print(spec.description)
 
 
-print(flexible_shape_utils.get_allowed_shape_ranges(spec))
+
 centernet_model_re.save("centernet.mlmodel")
 
 
