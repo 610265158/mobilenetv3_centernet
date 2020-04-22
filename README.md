@@ -42,7 +42,6 @@ coming soon
 
 2. download pretrained model from
 [mbv3-large0.75](https://storage.googleapis.com/mobilenet_v3/checkpoints/v3-large_224_0.75_float.tgz)
-
 relese it in the current dir.
 
 3. then, modify in config=mb3_config in train_config.py,  then run:
@@ -139,24 +138,26 @@ I have carefully processed the postprocess, and it can works within the model, s
 
 4.1 MNN
 
-4.1.1 convert model
+    + 4.1.1 convert model
 
-just use the MNN converter, for example:
-`./MNNConvert -f TF --modelFile detector.pb --MNNModel centernet.mnn --bizCode biz  --fp16 1`
+        just use the MNN converter, for example:
+        `./MNNConvert -f TF --modelFile detector.pb --MNNModel centernet.mnn --bizCode biz  --fp16 1`
 
-4.1.2 visualization with mnn python wraper
+    + 4.1.2 visualization with mnn python wraper
 
-`python visualization/vis_with_mnn.py --mnn_model centernet.mnn --imgDir 'your image dir'`
+        `python visualization/vis_with_mnn.py --mnn_model centernet.mnn --imgDir 'your image dir'`
 
 4.2 coreml
 
-4.2.1 convert
+    + 4.2.1 convert
 
-python tools/converter_to_coreml.py
-4.2.2 visualization with coreml python wraper
+        `python tools/converter_to_coreml.py`
 
-`python visualization/vis_with_coreml.py --coreml_model centernet.mlmodel --imgDir 'your image dir'`
+    + 4.2.2 visualization with coreml python wraper
 
-ps, if you want to do quantization, please do it by yourself.
+        `python visualization/vis_with_coreml.py --coreml_model centernet.mlmodel --imgDir 'your image dir'`
+
+ps, if you want to do quantization, please reffer to the official doc, it is easy.
+
 ### TODO: 
 - [ ] Android project.
