@@ -13,50 +13,61 @@ output_tensors = ["tower_0/detections"]
 
 
 
-ssd_model=tfcoreml.convert(tf_model_path='./model/detector.pb',
+centernet_model=tfcoreml.convert(tf_model_path='./model/detector.pb',
                              mlmodel_path='./model/my_model.mlmodel',
-                             # image_input_names=input_tensor,
+                             #image_input_names=input_tensor,
                              output_feature_names=output_tensors,
                              input_name_shape_dict={'tower_0/images': [1, cfg.DATA.hin, cfg.DATA.win, cfg.DATA.channel]},  # map from input tensor name (placeholder op in the graph) to shape
                              minimum_ios_deployment_target='13',
                              is_bgr=False)
 
-spec = ssd_model.get_spec()
+spec = centernet_model.get_spec()
 tfcoreml.optimize_nn_spec(spec)
 
 #
-#####clean the name of the model
-print(spec.description)
-spec.description.input[0].name = "image"
-spec.description.input[0].shortDescription = "Input image"
-spec.description.output[0].name = "detections"
-spec.description.output[0].shortDescription = "Predicted coordinates for each bounding box"
+# #####clean the name of the model
+# print(spec.description)
+# spec.description.input[0].name = "image"
+# spec.description.input[0].shortDescription = "Input image"
+# spec.description.output[0].name = "detections"
+# spec.description.output[0].shortDescription = "Predicted coordinates for each bounding box"
+# #
+# # # #
+# # # #
+# # ##rename the tensor name
+# for i in range(len(spec.neuralNetwork.layers)):
 #
-# # #
-# # #
-# ##rename the tensor name
-for i in range(len(spec.neuralNetwork.layers)):
+#     try:
+#         if spec.neuralNetwork.layers[i].input[0] == input_tensor:
+#             spec.neuralNetwork.layers[i].input[0] = "image"
+#
+#         if spec.neuralNetwork.layers[i].output[0]==output_tensors[0]:
+#             spec.neuralNetwork.layers[i].output[0] = "detections"
+#
+#     except:
+#         continue
 
-    try:
-        if spec.neuralNetwork.layers[i].input[0] == input_tensor:
-            spec.neuralNetwork.layers[i].input[0] = "image"
 
-        if spec.neuralNetwork.layers[i].output[0]==output_tensors[0]:
-            spec.neuralNetwork.layers[i].output[0] = "detections"
 
-    except:
-        continue
+
+from coremltools.models.neural_network import  flexible_shape_utils
+#
+
+# img_size_ranges = flexible_shape_utils.NeuralNetworkImageSizeRange()
+# img_size_ranges.add_height_range((320, -1))
+# img_size_ranges.add_width_range((320, -1))
+# flexible_shape_utils.update_image_size_range(spec, feature_name=input_tensor, size_range=img_size_ranges)
+
 
 
 spec = coremltools.utils.convert_neural_network_spec_weights_to_fp16(spec)
 centernet_model_re = coremltools.models.MLModel(spec)
 
+print(spec.description)
+
+
+print(flexible_shape_utils.get_allowed_shape_ranges(spec))
 centernet_model_re.save("centernet.mlmodel")
-
-
-
-
-
 
 
 
