@@ -6,16 +6,17 @@ import tfcoreml
 import coremltools
 import cv2
 import numpy as np
-
+import coremltools
 
 input_tensor = "tower_0/images"
-output_tensor = "tower_0/detections"
+output_tensors = ["tower_0/detections"]
+
 
 
 ssd_model=tfcoreml.convert(tf_model_path='./model/detector.pb',
                              mlmodel_path='./model/my_model.mlmodel',
-                             image_input_names=input_tensor,
-                             output_feature_names=[output_tensor],  # name of the output tensor (appended by ":0")
+                             # image_input_names=input_tensor,
+                             output_feature_names=output_tensors,
                              input_name_shape_dict={'tower_0/images': [1, cfg.DATA.hin, cfg.DATA.win, cfg.DATA.channel]},  # map from input tensor name (placeholder op in the graph) to shape
                              minimum_ios_deployment_target='13',
                              is_bgr=False)
@@ -24,32 +25,42 @@ spec = ssd_model.get_spec()
 tfcoreml.optimize_nn_spec(spec)
 
 #
-# #####clean the name of the model
-# print(spec.description)
-# spec.description.input[0].name = "image"
-# spec.description.input[0].shortDescription = "Input image"
-# spec.description.output[0].name = "scores"
-# spec.description.output[0].shortDescription = "Predicted class scores for each bounding box"
-# spec.description.output[1].name = "boxes"
-# spec.description.output[1].shortDescription = "Predicted coordinates for each bounding box"
-# #
-# #
-# input_mlmodel = input_tensor.replace(":", "__").replace("/", "__")
-# class_output_mlmodel = class_output_tensor.replace(":", "__").replace("/", "__")
-# bbox_output_mlmodel = bbox_output_tensor.replace(":", "__").replace("/", "__")
+#####clean the name of the model
+print(spec.description)
+spec.description.input[0].name = "image"
+spec.description.input[0].shortDescription = "Input image"
+spec.description.output[0].name = "detections"
+spec.description.output[0].shortDescription = "Predicted coordinates for each bounding box"
 #
-# for i in range(len(spec.neuralNetwork.layers)):
-#     try:
-#         if spec.neuralNetwork.layers[i].input[0] == input_mlmodel:
-#             spec.neuralNetwork.layers[i].input[0] = "image"
-#
-#
-#         if class_output_mlmodel in spec.neuralNetwork.layers[i].output:
-#             spec.neuralNetwork.layers[i].output[1] = "scores"
-#         if spec.neuralNetwork.layers[i].output[0] == bbox_output_mlmodel:
-#             spec.neuralNetwork.layers[i].output[0] = "boxes"
-#     except:
-#         continue
+# # #
+# # #
+# ##rename the tensor name
+for i in range(len(spec.neuralNetwork.layers)):
+
+    try:
+        if spec.neuralNetwork.layers[i].input[0] == input_tensor:
+            spec.neuralNetwork.layers[i].input[0] = "image"
+
+        if spec.neuralNetwork.layers[i].output[0]==output_tensors[0]:
+            spec.neuralNetwork.layers[i].output[0] = "detections"
+
+    except:
+        continue
+
+
+spec = coremltools.utils.convert_neural_network_spec_weights_to_fp16(spec)
+centernet_model_re = coremltools.models.MLModel(spec)
+
+centernet_model_re.save("centernet.mlmodel")
+
+
+
+
+
+
+
+
+
 #
 #
 #

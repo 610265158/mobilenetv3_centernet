@@ -117,15 +117,15 @@ class Centernet():
             # [b,h*w,2]
             wh = tf.reshape(wh, (batch, -1, tf.shape(wh)[-1]))
             # [b,k,2]
-            wh = tf.batch_gather(wh, inds)
+            wh = tf.batch_gather(wh, inds)/ 2
 
             clses = tf.cast(tf.expand_dims(clses, axis=-1), tf.float32)
             scores = tf.expand_dims(scores, axis=-1)
 
-            xmin = xs - wh[:,:, 0:1] / 2
-            ymin = ys - wh[:,:, 1:2] / 2
-            xmax = xs + wh[:,:, 0:1] / 2
-            ymax = ys + wh[:,:, 1:2] / 2
+            xmin = xs - wh[:,:, 0:1]
+            ymin = ys - wh[:,:, 1:2]
+            xmax = xs + wh[:,:, 0:1]
+            ymax = ys + wh[:,:, 1:2]
 
 
             ##mul by stride 4
