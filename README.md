@@ -1,35 +1,29 @@
-# mobile_detect
+# mobile_centernet
 
 ## introduction
 
-This is a tensorflow implement mobilenetv3-ssd framework,
-which can be easily deployeed on both Android(MNN) and IOS(CoreML) mobile devices.
+This is a tensorflow implement mobilenetv3-centernet framework,
+which can be easily deployeed on both Android(MNN) and IOS(CoreML) mobile devices end to end.
 
 Purpose: Light detection algorithms that work on mobile devices is widely used, 
-such as face detection, qrcode detection. 
+such as face detection, targets detection.
 So there is an easy project contains model training and model converter. 
 
-** More convenient, the anchor decode  and the postprocess(nms) is included in the model. **
- 
 ** contact me if u have question 2120140200@mail.nankai.edu.cn **
 
 
 
-##pretrained model 
-+ [baidu disk](https://pan.baidu.com/s/1FmALvtd8heKbus-sYzLr5A) ( password  rj94)
-+ [google drive]()
+## pretrained model , and preformance
 
 
 
-##### (mnn  inference time 13ms including nms,inputs 480x480, on kirin980
-##### coreml not tested)
 
 
 ## requirment
 
-+ tensorflow1.14
++ tensorflow 1.14
 
-+ tensorpack  (for data provider)
++ tensorpack 0.9.9  (for data provider)
 
 + opencv
 
@@ -41,66 +35,55 @@ So there is an easy project contains model training and model converter.
 
 ## useage
 
-we make face detection as an example:
+### MSCOCO
 
-### train
+#### train
 1. download mscoco data
 
-2. download pretrained model from 
-[mbv3-large](https://storage.googleapis.com/mobilenet_v3/checkpoints/v3-large_224_1.0_float.tgz)
+2. download pretrained model from
 [mbv3-large0.75](https://storage.googleapis.com/mobilenet_v3/checkpoints/v3-large_224_0.75_float.tgz)
-[resnetv250](http://download.tensorflow.org/models/resnet_v2_50_2017_04_14.tar.gz)
 
-3. then, run:
+
+3. then, modify in config=mb3_config in train_config.py,  then run:
 
    ```python train.py```
    
    and if u want to check the data when training, u could set vis in train_config.py as True
 
-4. After training, we should fix some params, such as training_flag, and batch=1, and so on, 
-do as follow:
+4. After training, freeze the model as .pb  by
 
-    4.1 android, mnn
+    ` python tools/auto_freeze.py --pretrained_mobile yourmodel.ckpt`
 
-    ```
-    4.1.1 modify the configs/mbv3_cpnfig.py file 
-    
-        config.MODEL.continue_train=True
-        config.MODEL.pretrained_model='yourmodel.ckpt'
-        config.MODEL.deployee='mnn'
-	
-    4.1.2 python train.py, load and save the ckpt immediately,
+    it will produce a detector.pb
 
-    4.1.3 python tools/auto_freeze.py
+    4.1 MNN
 
-    4.1.4 convert the model by MNNconverter, refer to MNN doc.
+    just use the converter, for example:
+    `./MNNConvert -f TF --modelFile detector.pb --MNNModel centernet.mnn --bizCode biz  --fp16 1`
 
-    ```
-    
-    4.2 ios, coreml
+    4.2 coreml
 
-    ```
-    4.2.1 modify the configs/mbv3_cpnfig.py file 
-    
-        config.MODEL.continue_train=True
-        config.MODEL.pretrained_model='yourmodel.ckpt'
-        config.MODEL.deployee='coreml'
-    
-    
-    4.2.2 python train.py, load and save the ckpt immediately,
-
-    4.2.3 python tools/auto_freeze.py
-    4.2.4 python tools/convert_to_coreml.py produce coreml_mbv3.mlmodel
-    ```
+    python tools/converter_to_coreml.py
 
 
-    
-  Outputs of he models converted are nx4 and nx1, stand for coordinates and scores, and the coordinates are normalized
 
+#### evaluation
 
-### evaluation
+```
+python model_eval/custome_eval.py [--model [TRAINED_MODEL]] [--annFile [cocostyle annFile]]
+                          [--imgDir [the images dir]] [--is_show [show the result]]
 
-default scripts is for face detection.
+python model_eval/custome_eval.py --model model/detector.pb
+                                --annFile ../mscoco/annotations/instances_val2017.json
+                                --imgDir ../mscoco/val2017
+```
+
+###  face
+
+#### train
+
+#### evaluation
+
 ** fddb **
 ```
     python model_eval/fddb.py [--model [TRAINED_MODEL]] [--data_dir [DATA_DIR]]
@@ -133,9 +116,9 @@ example `python model_eval/wider.py --model model/detector.pb
 
 if u get a trained model and dont need to work on mobile device, run `python tools/auto_freeze.py`, it will read the checkpoint file in ./model, and produce detector.pb, then
 
-`python vis.py`
+`python visualization/vis.py`
 
-u can check th code in vis.py to make it runable, it's simple.
+u can check th code in visualization to make it runable, it's simple.
 
 
 ### TODO: 
