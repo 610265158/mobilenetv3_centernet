@@ -51,13 +51,28 @@ def mobilenetv3_small_minimalistic(image,is_training=True):
                                         base_only=True,
                                         finegrain_classification_mode=False)
 
+        extern_conv=slim.separable_conv2d(final_feature, 64,
+                                          [3, 3],
+                                          padding='SAME',
+                                          scope='extern1')
+        extern_conv = slim.separable_conv2d(extern_conv, 64,
+                                            [3, 3],
+                                            padding='SAME',
+                                            scope='extern2')
+        extern_conv = slim.separable_conv2d(extern_conv, 128,
+                                            [5, 5],
+                                            padding='SAME',
+                                            scope='extern3')
+
+
         for k,v in endpoints.items():
             print('mobile backbone output:',k,v)
 
         mobilebet_fms=[endpoints['layer_3/expansion_output'],
                        endpoints['layer_5/expansion_output'],
-                       endpoints['layer_10/expansion_output'],
-                       final_feature]
+                       endpoints['layer_9/expansion_output'],
+                       #final_feature,
+                       extern_conv]
 
 
     return mobilebet_fms

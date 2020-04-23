@@ -20,7 +20,7 @@ ap.add_argument("--is_show", required=False, default=False, help="show result or
 ap.add_argument("--data_dir", required=False, default="./WIDER/WIDER_val", help="dir to img")
 ap.add_argument("--multiscale", required=False, default=0, type=int, help="test in multiscales  0-False 1-True")
 
-ap.add_argument("--input_shape", required=False, type=int, default=640, help="input shape")
+ap.add_argument("--input_shape", required=False, type=int, default=512, help="input shape")
 ap.add_argument("--result", required=False, default='./result', help="dir to write result")
 
 args = ap.parse_args()

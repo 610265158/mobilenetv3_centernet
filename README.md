@@ -17,6 +17,18 @@ So there is an easy project contains model training and model converter.
 coming soon
 
 
+### mscoco
+
+### fddb
+| model                     |input_size |fddb      |
+| :------:                  |:------:   |:------:  |
+|  mbv3-small-minimalistic_modified  |512x512     | 0.95    |
+
+
+### widerface
+| model         |input_size  |wider easy|wider medium |wider hard |
+| :------:      |:------:     |:------:  | :------:  | :------:  | 
+|mbv3-small-minimalistic_modified |512x512      | 0.842    |0.790     |0.455      |
 
 
 ## requirment

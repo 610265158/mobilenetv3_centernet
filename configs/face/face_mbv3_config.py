@@ -28,7 +28,7 @@ config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.000125,0.0000125,0.00000125
 config.TRAIN.lr_decay_every_step = [500,1000,60000,80000,100000]
 
 config.TRAIN.opt='adam'
-config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
+config.TRAIN.weight_decay_factor = 1.e-4                  ##l2 regular
 config.TRAIN.vis=False                                    ##check data flag
 config.TRAIN.mix_precision=True
 config.TRAIN.gradient_clip=False
@@ -69,7 +69,7 @@ config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
 config.MODEL.pretrained_model='./v3-small-minimalistic_224_1.0_float/ema/model-498000'
 config.MODEL.face=True
-config.MODEL.min_overlap=0.4
+config.MODEL.min_overlap=0.6
 config.MODEL.max_box= 1000
 config.MODEL.offset= True
 config.MODEL.global_stride=4
