@@ -130,7 +130,7 @@ class CenternetFace():
 
 
             ##mul by stride 4
-            bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)*4
+            bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)**cfg.MODEL.global_stride
 
 
 
