@@ -44,7 +44,18 @@ def mobilenetv3_small_minimalistic(image,is_training=True):
     arg_scope = training_scope(weight_decay=cfg.TRAIN.weight_decay_factor, is_training=is_training)
 
     with tf.contrib.slim.arg_scope(arg_scope):
-
+        if cfg.DATA.channel==1:
+            if cfg.MODEL.global_stride==8:
+                stride=2
+            else:
+                stride=1
+            image = slim.separable_conv2d(image,
+                                          3,
+                                          [3, 3],
+                                          stride=stride,
+                                          padding='SAME',
+                                          scope='preconv')
+            
         final_feature, endpoints = mobilnet_v3.small_minimalistic(image,
                                         depth_multiplier=1.0,
                                         is_training=is_training,
