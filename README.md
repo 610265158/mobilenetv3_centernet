@@ -6,7 +6,7 @@ This is a tensorflow implement mobilenetv3-centernet framework,
 which can be easily deployeed on both Android(MNN) and IOS(CoreML) mobile devices end to end.
 
 Purpose: Light detection algorithms that work on mobile devices is widely used, 
-such as face detection, targets detection.
+such as face detection.
 So there is an easy project contains model training and model converter. 
 
 ** contact me if u have question 2120140200@mail.nankai.edu.cn **
@@ -16,8 +16,12 @@ So there is an easy project contains model training and model converter.
 ## pretrained model , and preformance
 coming soon
 
-
 ### mscoco
+
+no test time augmentation,
+| model                     |input_size |map      | map@0.5|map@0.75|
+| :------:                  |:------:   |:------:  |:------:  |:------:  |
+|  mbv3-large-0.75-modified_head  |512x512     | 0.224    | 0.398|0.224  |
 
 ### fddb
 | model                     |input_size |fddb      |
@@ -135,6 +139,12 @@ example `python model_eval/wider.py --model model/detector.pb
                                     --data_dir 'WIDER/WIDER_val/' 
                                     --result 'result/' `
 
+### finetune
+1. download the trained model,
+modify the config config.MODEL.pretrained_model='yourmodel.ckpt',
+and set config.MODEL.continue_train=True
+2. `python train.py`
+
 
 ### visualization
 
@@ -155,7 +165,7 @@ I have carefully processed the postprocess, and it can works within the model, s
         just use the MNN converter, for example:
         `./MNNConvert -f TF --modelFile detector.pb --MNNModel centernet.mnn --bizCode biz  --fp16 1`
 
-    + 4.1.2 visualization with mnn python wraper
+    + 4.1.2 visualization with mnn python wrapper
 
         `python visualization/vis_with_mnn.py --mnn_model centernet.mnn --imgDir 'your image dir'`
 
@@ -165,7 +175,7 @@ I have carefully processed the postprocess, and it can works within the model, s
 
         `python tools/converter_to_coreml.py`
 
-    + 4.2.2 visualization with coreml python wraper
+    + 4.2.2 visualization with coreml python wrapper
 
         `python visualization/vis_with_coreml.py --coreml_model centernet.mlmodel --imgDir 'your image dir'`
 

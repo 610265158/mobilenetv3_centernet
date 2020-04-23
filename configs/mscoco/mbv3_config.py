@@ -42,7 +42,7 @@ config.DATA.root_path=''
 config.DATA.train_txt_path='train.txt'
 config.DATA.val_txt_path='val.txt'
 config.DATA.num_category=80                                  ###face 1  voc 20 coco 80
-config.DATA.num_class = config.DATA.num_category       # +1 background
+config.DATA.num_class = config.DATA.num_category
 
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
