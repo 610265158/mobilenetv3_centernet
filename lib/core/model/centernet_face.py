@@ -48,8 +48,7 @@ class CenternetFace():
         hm_loss,wh_loss,reg_loss = loss(predicts=[kps_predicts,wh_predicts,reg_predicts] ,targets=[hm_target,wh_target,reg_target,ind_,regmask_])
 
         kps_predicts = tf.identity(kps_predicts, name='keypoints')
-        if cfg.MODEL.offset:
-            reg_predicts=None
+        
         self.postprocess(kps_predicts,wh_predicts,reg_predicts,self.top_k_results_output)
 
         return hm_loss,wh_loss,reg_loss
