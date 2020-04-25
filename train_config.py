@@ -8,5 +8,9 @@ from configs.face.face_mbv3_config import config as face_config
 config=mb3_config
 
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+config.TRAIN.num_gpu = 1
+
+
 
 

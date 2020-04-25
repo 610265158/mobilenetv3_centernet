@@ -52,7 +52,7 @@ config.DATA.hin = 512  # input size
 config.DATA.win = 512
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
-config.DATA.cover_small_face=4                          ###cover the small faces
+config.DATA.cover_obj=8                        ###cover the small objs
 config.DATA.max_objs=1333
 
 
@@ -60,7 +60,7 @@ config.DATA.mutiscale=False                #if muti scale set False  then config
 config.DATA.scales=(320,640)
 config.DATA.use_int8_data=True            ### we use uint8 data to decrease memery access to speed up
 config.DATA.use_int8_enlarge=255.
-
+config.DATA.cracy_crop=0.3
 
 ##mobilenetv3 as basemodel
 config.MODEL = edict()
@@ -68,7 +68,7 @@ config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
 config.MODEL.pretrained_model='./v3-small-minimalistic_224_1.0_float/ema/model-498000'
-config.MODEL.face=True
+config.MODEL.task='face'
 config.MODEL.min_overlap=0.6
 config.MODEL.max_box= 1000
 config.MODEL.offset= True

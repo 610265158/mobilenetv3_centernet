@@ -137,7 +137,7 @@ class trainner():
         # Build the portion of the Graph calculating the losses. Note that we will
         # assemble the total_loss using a custom function below.
 
-        if cfg.MODEL.face:
+        if cfg.MODEL.task=='face':
             centernet = CenternetFace()
         else:
             centernet=Centernet()

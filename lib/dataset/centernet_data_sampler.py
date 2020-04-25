@@ -191,7 +191,9 @@ def _official_centernet_datasampler(image,boxes,klass,num_classes=cfg.DATA.num_c
     ## stride equal to 4
     output_h=h_out / cfg.MODEL.global_stride
     output_w=w_out / cfg.MODEL.global_stride
-    boxes[:, :4] /= cfg.MODEL.global_stride
+
+    if len(boxes)>0:
+        boxes[:, :4] /= cfg.MODEL.global_stride
 
     hm = np.zeros((num_classes, math.ceil(output_h), math.ceil(output_w)), dtype=np.float32)
     wh = np.zeros((max_objs, 2), dtype=np.float32)

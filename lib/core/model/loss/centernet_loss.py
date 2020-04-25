@@ -60,7 +60,7 @@ def classification_loss(predictions, targets):
     return cross_entropy
 
 
-def localization_loss(predictions, targets,sigma=9):
+def localization_loss(predictions, targets, indices, mask,sigma=9):
     """A usual L1 smooth loss.
 
     Arguments:
@@ -84,7 +84,6 @@ def localization_loss(predictions, targets,sigma=9):
     # compute the normalizer: the number of positive anchors
     normalizer = tf.maximum(1, tf.shape(indices)[0])
     normalizer = tf.cast(normalizer, dtype=tf.float32)
-
 
     return  tf.reduce_sum(tf.where(abs_diff_lt_1, 0.5 * tf.square(abs_diff), abs_diff - 0.5/sigma))/normalizer
 

@@ -272,7 +272,7 @@ class CenternetHeadLight():
             x = self._upsample_resize(x, dim=output_dim // 2, k_size=3, scope='branch_x_upsample_resize')
             y = self._upsample_group_deconv(y,dim=output_dim//2,group=4,scope='branch_y_upsample_deconv')
             final = tf.concat([x, y], axis=3)  ###2*dims
-
+            final = self._shuffle(final)
             return final
 
     def _upsample_resize(self, fm, k_size=5, dim=256, scope='upsample'):
@@ -322,3 +322,27 @@ class CenternetHeadLight():
         combine_fm = c2+c3_upsample
 
         return combine_fm
+
+    def _shuffle(self,z,group=2):
+
+        with tf.name_scope('shuffle'):
+            shape = tf.shape(z)
+            batch_size = shape[0]
+            height, width = shape[1], shape[2]
+
+            depth = z.shape[3].value//2
+
+            if cfg.MODEL.deployee:
+                z = tf.reshape(z, [height, width, group, depth])  # shape [batch_size, height, width, 2, depth]
+
+                z = tf.transpose(z, [0, 1, 3, 2])
+
+            else:
+                z = tf.reshape(z,
+                               [batch_size, height, width, group, depth])  # shape [batch_size, height, width, 2, depth]
+
+                z = tf.transpose(z, [0, 1, 2, 4, 3])
+
+            z = tf.reshape(z, [batch_size, height, width, group * depth])
+
+            return z
