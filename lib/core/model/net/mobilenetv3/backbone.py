@@ -62,16 +62,13 @@ def mobilenetv3_small_minimalistic(image,is_training=True):
                                         base_only=True,
                                         finegrain_classification_mode=False)
 
-        extern_conv=slim.separable_conv2d(final_feature, 64,
+        extern_conv=slim.separable_conv2d(final_feature, 128,
                                           [3, 3],
                                           padding='SAME',
                                           scope='extern1')
-        extern_conv = slim.separable_conv2d(extern_conv, 64,
-                                            [3, 3],
-                                            padding='SAME',
-                                            scope='extern2')
+
         extern_conv = slim.separable_conv2d(extern_conv, 128,
-                                            [5, 5],
+                                            [3, 3],
                                             padding='SAME',
                                             scope='extern3')
 

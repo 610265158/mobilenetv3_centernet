@@ -24,13 +24,13 @@ config.TRAIN.val_set_size=3000             ###widerface val size
 config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.num_gpu // config.TRAIN.batch_size
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
-config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.000125,0.0000125,0.00000125,0.000000125]        ##warm up is used
+config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00025,0.000025,0.0000025,0.00000025]        ##warm up is used
 config.TRAIN.lr_decay_every_step = [500,1000,60000,80000,100000]
 
 config.TRAIN.opt='adam'
-config.TRAIN.weight_decay_factor = 1.e-4                  ##l2 regular
+config.TRAIN.weight_decay_factor = 5.e-5                 ##l2 regular
 config.TRAIN.vis=False                                    ##check data flag
-config.TRAIN.mix_precision=True
+config.TRAIN.mix_precision=False
 config.TRAIN.gradient_clip=False
 
 
@@ -52,7 +52,7 @@ config.DATA.hin = 512  # input size
 config.DATA.win = 512
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
-config.DATA.cover_obj=8                        ###cover the small objs
+config.DATA.cover_obj=4                        ###cover the small objs
 config.DATA.max_objs=1333
 
 
@@ -70,7 +70,7 @@ config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,Mobil
 config.MODEL.pretrained_model='./v3-small-minimalistic_224_1.0_float/ema/model-498000'
 config.MODEL.task='face'
 config.MODEL.min_overlap=0.6
-config.MODEL.max_box= 1000
+config.MODEL.max_box= 1333
 config.MODEL.offset= True
 config.MODEL.global_stride=4
 

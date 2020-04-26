@@ -65,7 +65,13 @@ class data_info():
 
 class MutiScaleBatcher(BatchData):
 
-    def __init__(self, ds, batch_size, remainder=False, use_list=False,scale_range=None,input_size=(512,512),divide_size=32):
+    def __init__(self, ds, batch_size,
+                 remainder=False,
+                 use_list=False,
+                 scale_range=None,
+                 input_size=(512,512),
+                 divide_size=32,
+                 is_training=True):
         """
         Args:
             ds (DataFlow): A dataflow that produces either list or dict.
@@ -95,7 +101,7 @@ class MutiScaleBatcher(BatchData):
         self.divide_size=divide_size
 
         self.input_size=input_size
-
+        self.traing_flag=is_training
     def __iter__(self):
         """
         Yields:
@@ -117,7 +123,7 @@ class MutiScaleBatcher(BatchData):
 
             ### do crazy crop
 
-            if random.uniform(0,1)<cfg.DATA.cracy_crop:
+            if random.uniform(0,1)<cfg.DATA.cracy_crop and self.traing_flag:
                 if len(holder) == self.batch_size:
                     crazy_holder=[]
                     for i in range(0,len(holder),4):
@@ -596,13 +602,17 @@ class DataIter():
 
         ds = DataFromGenerator(self.generator)
 
-
         if cfg.DATA.mutiscale and self.training_flag:
-            ds = MutiScaleBatcher(ds, self.num_gpu * self.batch_size, scale_range=cfg.DATA.scales,
-                                  input_size=(cfg.DATA.hin, cfg.DATA.win))
+            ds = MutiScaleBatcher(ds, self.num_gpu * self.batch_size,
+                                  scale_range=cfg.DATA.scales,
+                                  input_size=(cfg.DATA.hin, cfg.DATA.win),
+                                  is_training=self.training_flag)
         else:
-            ds = MutiScaleBatcher(ds, self.num_gpu * self.batch_size, input_size=(cfg.DATA.hin, cfg.DATA.win))
-
+            ds = MutiScaleBatcher(ds, self.num_gpu * self.batch_size,
+                                  input_size=(cfg.DATA.hin, cfg.DATA.win),
+                                  is_training=self.training_flag)
+        if not self.training_flag:
+            self.process_num=1
         ds = MultiProcessPrefetchData(ds, self.prefetch_size, self.process_num)
         ds.reset_state()
         ds = ds.get_data()
