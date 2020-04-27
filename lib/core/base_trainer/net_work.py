@@ -83,7 +83,7 @@ class trainner():
                 print(variables_restore)
 
                 ### we use mbv3 large and the 13-16 num of output was multipe by 0.5,
-                # so we cannot load params from the classification model, fileter them
+                # so we cannot load params from the classification model, filter them
 
                 if cfg.MODEL.net_structure=='MobilenetV3' and cfg.MODEL.task=='mscoco':
                     variables_restore_n = [v for v in variables_restore if
@@ -110,7 +110,6 @@ class trainner():
 
 
             variables_need_grads=[]
-
 
             variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
 
