@@ -383,6 +383,7 @@ def _reduce_consecutive_layers(conv_defs, start_id, end_id, multiplier=0.5):
 V3_LARGE_DETECTION = _reduce_consecutive_layers(V3_LARGE, 13, 16)
 V3_SMALL_DETECTION = _reduce_consecutive_layers(V3_SMALL, 9, 12)
 
+large_detection = wrapped_partial(mobilenet, conv_defs=V3_LARGE_DETECTION)
 
 __all__ = ['training_scope', 'mobilenet', 'V3_LARGE', 'V3_SMALL', 'large',
            'small', 'V3_LARGE_DETECTION', 'V3_SMALL_DETECTION']

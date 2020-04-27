@@ -5,7 +5,7 @@ import tensorflow.contrib.slim as slim
 from lib.core.anchor.box_utils import batch_decode,batch_decode_fix
 
 from lib.core.model.net.shufflenet.backbone import shufflenetv2_ssd
-from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_large,mobilenetv3_small_minimalistic
+from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_small_minimalistic
 from lib.core.model.net.mobilenet.backbone import mobilenet_ssd
 from lib.core.model.net.resnet.backbone import resnet_ssd
 from lib.core.model.loss.centernet_loss import loss

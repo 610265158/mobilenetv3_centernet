@@ -5,7 +5,7 @@ import tensorflow.contrib.slim as slim
 from lib.core.anchor.box_utils import batch_decode,batch_decode_fix
 
 from lib.core.model.net.shufflenet.backbone import shufflenetv2_ssd
-from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_large
+from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_large_detection
 from lib.core.model.net.mobilenet.backbone import mobilenet_ssd
 from lib.core.model.net.resnet.backbone import resnet_ssd
 from lib.core.model.loss.centernet_loss import loss
@@ -20,13 +20,13 @@ class Centernet():
 
     def __init__(self,):
         if "ShufflenetV2"  in cfg.MODEL.net_structure:
-            self.ssd_backbone=shufflenetv2_ssd                 ### it is a func
+            self.backbone=shufflenetv2_ssd                 ### it is a func
         elif "MobilenetV2" in cfg.MODEL.net_structure:
-            self.ssd_backbone = mobilenet_ssd
+            self.backbone = mobilenet_ssd
         elif "MobilenetV3" in cfg.MODEL.net_structure:
-            self.ssd_backbone = mobilenetv3_large
+            self.backbone = mobilenetv3_large_detection
         elif "resnet_v2_50" in cfg.MODEL.net_structure:
-            self.ssd_backbone = resnet_ssd
+            self.backbone = resnet_ssd
         self.head=CenternetHead()                         ### it is a class
 
         self.top_k_results_output=cfg.MODEL.max_box
@@ -41,7 +41,7 @@ class Centernet():
         inputs=self.preprocess(inputs)
 
         ### extract feature maps
-        origin_fms=self.ssd_backbone(inputs,training_flag)
+        origin_fms=self.backbone(inputs,training_flag)
 
         kps_predicts,wh_predicts,reg_predicts = self.head(origin_fms, l2_regulation, training_flag)
         kps_predicts= tf.nn.sigmoid(kps_predicts)
@@ -60,7 +60,7 @@ class Centernet():
             if image.dtype.base_dtype != tf.float32:
                 image = tf.cast(image, tf.float32)
 
-            image=image/(255./2)-1.
+            image=image/255.
         return image
     def process_label(self,cls_hm):
 

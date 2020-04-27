@@ -82,8 +82,21 @@ class trainner():
                             variables_restore.append(v)
                 print(variables_restore)
 
-                variables_restore_n = [v for v in variables_restore if
-                                       'GN' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                ### we use mbv3 large and the 13-16 num of output was multipe by 0.5,
+                # so we cannot load params from the classification model, fileter them
+
+                if cfg.MODEL.net_structure=='MobilenetV3' and cfg.MODEL.task=='mscoco':
+
+                    variables_restore_n = [v for v in variables_restore if
+                                           'conv1' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                    variables_restore_n = [v for v in variables_restore_n if
+                                           '13' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                    variables_restore_n = [v for v in variables_restore_n if
+                                           '14' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                    variables_restore_n = [v for v in variables_restore_n if
+                                           '15' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                    variables_restore_n = [v for v in variables_restore_n if
+                                           '16' not in v.name]  # Conv2d_1c_1x1 Bottleneck
                 # print(variables_restore_n)
                 saver2 = tf.train.Saver(variables_restore_n)
                 saver2.restore(self.sess, cfg.MODEL.pretrained_model)
