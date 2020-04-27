@@ -115,8 +115,7 @@ class CenternetHead():
             y = fm[:, :, :, input_dim // 2:]
 
             x = self._upsample_resize(x, dim=output_dim // 2, k_size=3, scope='branch_x_upsample_resize')
-            y = self._upsample_resize(y, dim=output_dim // 2, k_size=5, scope='branch_y_upsample_resize')
-            #y = self._upsample_group_deconv(y,dim=output_dim//2,group=4,scope='branch_y_upsample_deconv')
+            y = self._upsample_group_deconv(y,dim=output_dim//2,group=4,scope='branch_y_upsample_deconv')
             final = tf.concat([x, y], axis=3)  ###2*dims
 
             return final
@@ -297,8 +296,8 @@ class CenternetHeadLight():
             y = fm[:, :, :, input_dim // 2:]
 
             x = self._upsample_resize(x, dim=output_dim // 2, k_size=3, scope='branch_x_upsample_resize')
-            #y = self._upsample_group_deconv(y,dim=output_dim//2,group=4,scope='branch_y_upsample_deconv')
-            y = self._upsample_resize(y, dim=output_dim // 2, k_size=5, scope='branch_y_upsample_resize')
+            y = self._upsample_group_deconv(y,dim=output_dim//2,group=4,scope='branch_y_upsample_deconv')
+            # y = self._upsample_resize(y, dim=output_dim // 2, k_size=5, scope='branch_y_upsample_resize')
             final = tf.concat([x, y], axis=3)  ###2*dims
             final = self._shuffle(final)
             return final
