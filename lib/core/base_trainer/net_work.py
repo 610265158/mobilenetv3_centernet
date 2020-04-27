@@ -86,18 +86,19 @@ class trainner():
                 # so we cannot load params from the classification model, fileter them
 
                 if cfg.MODEL.net_structure=='MobilenetV3' and cfg.MODEL.task=='mscoco':
-
                     variables_restore_n = [v for v in variables_restore if
-                                           'conv1' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                                           'Conv_1' not in v.name]  # Conv2d_1c_1x1 Bottleneck
                     variables_restore_n = [v for v in variables_restore_n if
-                                           '13' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                                           'conv_12' not in v.name]  # Conv2d_1c_1x1 Bottleneck
                     variables_restore_n = [v for v in variables_restore_n if
-                                           '14' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                                           'conv_13' not in v.name]  # Conv2d_1c_1x1 Bottleneck
                     variables_restore_n = [v for v in variables_restore_n if
-                                           '15' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                                           'conv_14' not in v.name]  # Conv2d_1c_1x1 Bottleneck
                     variables_restore_n = [v for v in variables_restore_n if
-                                           '16' not in v.name]  # Conv2d_1c_1x1 Bottleneck
-                # print(variables_restore_n)
+                                           'conv_15' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                    variables_restore_n = [v for v in variables_restore_n if
+                                           'conv_16' not in v.name]  # Conv2d_1c_1x1 Bottleneck
+                print(variables_restore_n)
                 saver2 = tf.train.Saver(variables_restore_n)
                 saver2.restore(self.sess, cfg.MODEL.pretrained_model)
             else:
