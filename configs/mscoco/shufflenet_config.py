@@ -13,7 +13,7 @@ config.TRAIN.process_num = 4                      ### process_num for data provi
 config.TRAIN.prefetch_size = 20                  ### prefect Q size for data provider
 
 config.TRAIN.num_gpu = 1                         ##match with   os.environ["CUDA_VISIBLE_DEVICES"]
-config.TRAIN.batch_size = 16                    ###A big batch size may achieve a better result, but the memory is a problem
+config.TRAIN.batch_size = 24                    ###A big batch size may achieve a better result, but the memory is a problem
 config.TRAIN.log_interval = 10
 config.TRAIN.epoch = 300                      ###just keep training , evaluation shoule be take care by yourself,
                                                ### generally 10,0000 iters is enough
@@ -29,7 +29,7 @@ config.TRAIN.lr_decay_every_step = [500,1000,300000,400000,450000]
 config.TRAIN.lr_decay_every_step = [int(x//config.TRAIN.num_gpu) for x  in [500,1000,300000,400000,450000]]
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
-config.TRAIN.vis=False                                    ##check data flag
+config.TRAIN.vis=True                                    ##check data flag
 config.TRAIN.mix_precision=False
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
@@ -64,8 +64,8 @@ config.DATA.cracy_crop=0.3
 config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
-config.MODEL.net_structure='MobilenetV3' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
-config.MODEL.pretrained_model='./v3-large_224_1.0_float/ema/model-54000'
+config.MODEL.net_structure='ShufflenetV2' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
+config.MODEL.pretrained_model=None#'./v3-large_224_0.75_float/ema/model-220000'
 config.MODEL.task='mscoco'
 config.MODEL.min_overlap=0.7
 config.MODEL.max_box= 100

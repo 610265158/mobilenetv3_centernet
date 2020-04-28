@@ -143,8 +143,8 @@ def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
 
 
 
-def ShufflenetV2(inputs,is_training=True,depth_multiplier='1.5'):
-    possibilities = {'0.5': 48,'0.75':64, '1.0': 116, '1.5': 176, '2.0': 224}
+def ShufflenetV2(inputs,is_training=True,depth_multiplier='1.0'):
+    possibilities = {'0.5': 48,'0.75':64, '1.0': 120, '1.5': 176, '2.0': 224}
     initial_depth = possibilities[depth_multiplier]
 
     arg_scope = shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor)
