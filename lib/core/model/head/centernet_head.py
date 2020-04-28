@@ -149,6 +149,11 @@ class CenternetHead():
 
         return deconv_fm
 
+    def _sam(self,fm,dim):
+
+        se=slim.conv2d(fm, dim, [1, 1], padding='SAME',activation_fn=tf.sigmoid, scope='se')
+
+        return fm*se
 
     def _unet_magic(self, fms, dim=128):
 
@@ -164,10 +169,13 @@ class CenternetHead():
         p3 = tf.concat([c3,c4_upsample],axis=3)
         p3 = self._shuffle(p3,4)
 
-        c3_upsample = self._complex_upsample(p3,  input_dim=dim*2,output_dim=dim//4*3, scope='c3_upsample')
-        c2 = slim.separable_conv2d(c2, dim//4*3, [3, 3], padding='SAME', scope='c2_1x1')
+        c3_upsample = self._complex_upsample(p3,  input_dim=dim*2,output_dim=dim//2, scope='c3_upsample')
+        c2 = slim.separable_conv2d(c2, dim//2, [3, 3], padding='SAME', scope='c2_1x1')
         p2 = tf.concat([c2,c3_upsample],axis=3)
         p2 = self._shuffle(p2,4)
+
+        p2=self._sam(p2,dim=dim)
+
         return p2
 
     def _shuffle(self,z,group=2):
