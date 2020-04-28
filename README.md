@@ -26,13 +26,13 @@ no test time augmentation,
 ### fddb
 | model                     |input_size |fddb      |
 | :------:                  |:------:   |:------:  |
-|  mbv3-small-minimalistic_modified  |512x512     | 0.95    |
+|  mbv3-small-minimalistic_modified  |512x512     | 0.947    |
 
 
 ### widerface
 | model         |input_size  |wider easy|wider medium |wider hard |
 | :------:      |:------:     |:------:  | :------:  | :------:  | 
-|mbv3-small-minimalistic_modified |512x512      | 0.842    |0.790     |0.455      |
+|mbv3-small-minimalistic_modified |512x512      | 0.841    |0.803     |0.488    |
 
 
 ## requirment

@@ -54,9 +54,13 @@ def mobilenetv3_small_minimalistic(image,is_training=True):
 
         extern_conv=slim.separable_conv2d(final_feature, 128,
                                           [3, 3],
+                                          stride=2,
                                           padding='SAME',
                                           scope='extern1')
-
+        extern_conv = slim.separable_conv2d(extern_conv, 96,
+                                            [3, 3],
+                                            padding='SAME',
+                                            scope='extern2')
         extern_conv = slim.separable_conv2d(extern_conv, 128,
                                             [3, 3],
                                             padding='SAME',

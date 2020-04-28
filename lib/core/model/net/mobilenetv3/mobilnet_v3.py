@@ -220,7 +220,7 @@ V3_SMALL_MINIMALISTIC = dict(
         mbv3_op(ef=6, n=40, k=3, s=1),
         mbv3_op(ef=3, n=48, k=3, s=1),
         mbv3_op(ef=3, n=48, k=3, s=1),
-        mbv3_op(ef=6, n=96, k=3, s=2),
+        #mbv3_op(ef=6, n=96, k=3, s=2),
         #mbv3_op(ef=6, n=96, k=3, s=1),
         #mbv3_op(ef=6, n=96, k=3, s=1),
         # op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=576),

@@ -335,17 +335,17 @@ class CenternetHeadLight():
 
         c2, c3, c4, c5 = fms
 
-        c5_upsample = self._complex_upsample(c5, input_dim=96, output_dim=dim, scope='c5_upsample')
+        c5_upsample = self._complex_upsample(c5, input_dim=128, output_dim=dim, scope='c5_upsample')
         c4 = slim.conv2d(c4, dim, [1, 1], padding='SAME', scope='c4_1x1')
         p4 = tf.concat([c4, c5_upsample], axis=3)
         p4 = self._shuffle(p4, 4)
 
-        c4_upsample = self._complex_upsample(p4, input_dim=dim * 2, output_dim=48, scope='c4_upsample')
-        c3 = slim.conv2d(c3, 48, [1, 1], padding='SAME', scope='c3_1x1')
+        c4_upsample = self._complex_upsample(p4, input_dim=dim * 2, output_dim=32, scope='c4_upsample')
+        c3 = slim.conv2d(c3, 32, [1, 1], padding='SAME', scope='c3_1x1')
         p3 = tf.concat([c3, c4_upsample], axis=3)
         p3 = self._shuffle(p3, 4)
 
-        c3_upsample = self._complex_upsample(p3, input_dim=dim * 2, output_dim=24, scope='c3_upsample')
+        c3_upsample = self._complex_upsample(p3, input_dim=64, output_dim=24, scope='c3_upsample')
         c2 = slim.separable_conv2d(c2, 24, [3, 3], padding='SAME', scope='c2_1x1')
         p2 = tf.concat([c2, c3_upsample], axis=3)
         p2 = self._shuffle(p2, 4)
@@ -358,7 +358,7 @@ class CenternetHeadLight():
             batch_size = shape[0]
             height, width = shape[1], shape[2]
 
-            depth = z.shape[3].value//2
+            depth = z.shape[3].value//group
 
             if cfg.MODEL.deployee:
                 z = tf.reshape(z, [height, width, group, depth])  # shape [batch_size, height, width, 2, depth]
