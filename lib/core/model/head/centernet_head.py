@@ -76,47 +76,58 @@ class CenternetHead():
                 x,y,z,l=fms
                 x = slim.max_pool2d(x, kernel_size=3, stride=1, padding='SAME')
                 x = slim.separable_conv2d(x, dim // 4, kernel_size=[3, 3], stride=1, scope='branchx_3x3_pre',
-                                          activation_fn=tf.nn.relu,
+                                          activation_fn=None,
                                           normalizer_fn=None,
                                           biases_initializer=tf.initializers.constant(0.),
                                           )
 
                 y = slim.conv2d(y, dim // 4, kernel_size=[1, 1], stride=1, scope='branchy_3x3_pre',
-                                activation_fn=tf.nn.relu,
+                                activation_fn=None,
                                 normalizer_fn=None,
                                 biases_initializer=tf.initializers.constant(0.),
                                 )
 
                 z = slim.separable_conv2d(z, dim // 4, kernel_size=[3, 3], stride=1, scope='branchz_3x3_pre',
-                                          activation_fn=tf.nn.relu,
+                                          activation_fn=None,
                                           normalizer_fn=None,
                                           biases_initializer=tf.initializers.constant(0.),
                                           )
 
                 l = slim.separable_conv2d(l, dim // 4, kernel_size=[5, 5], stride=1, scope='branchse_5x5_pre',
-                                          activation_fn=tf.nn.relu,
+                                          activation_fn=None,
                                           normalizer_fn=None,
                                           biases_initializer=tf.initializers.constant(0.),
                                           )
 
-                fm = tf.concat([x, y, z, l], axis=3)  ###128 dims
+                fm = tf.nn.relu(tf.concat([x, y, z, l], axis=3) ) ###128 dims
+
                 return fm
+
 
         split_fm = tf.split(fm, num_or_size_splits=4, axis=3)
 
-        kps=_head_conv(split_fm,dim=128,child_scope='kps')
+        kps=_head_conv(split_fm,dim=96,child_scope='kps')
+
+        ##we share the params between wh and offside
         wh = _head_conv(split_fm, dim=64, child_scope='wh')
-        reg = _head_conv(split_fm, dim=64, child_scope='reg')
-        return kps,wh,reg
+        #reg = _head_conv(split_fm, dim=48, child_scope='reg')
+        return kps,wh,wh
 
     def _complex_upsample(self,fm,input_dim,output_dim, scope='upsample'):
         with tf.variable_scope(scope):
-            x = fm[:, :, :, :input_dim//2]
-            y = fm[:, :, :, input_dim // 2:]
+            x = fm[:, :, :, :input_dim//3]
+            y = fm[:, :, :, input_dim // 3:2*input_dim // 3]
 
-            x = self._upsample_resize(x, dim=output_dim // 2, k_size=3, scope='branch_x_upsample_resize')
-            y = self._upsample_group_deconv(y,dim=output_dim//2,group=4,scope='branch_y_upsample_deconv')
-            final = tf.concat([x, y], axis=3)  ###2*dims
+            z =fm[:, :, :, 2*input_dim // 3:]
+
+
+            x = self._upsample_resize(x, dim=output_dim // 3, k_size=3, scope='branch_x_upsample_resize')
+            y = self._upsample_group_deconv(y,dim=output_dim//3,group=8,scope='branch_y_upsample_deconv')
+
+            z=tf.reduce_mean(z,axis=[1,2],keep_dims=True)
+            z= slim.conv2d(z, output_dim//3, [1, 1], padding='SAME',activation_fn=tf.sigmoid, scope='branch_z_se')
+
+            final=tf.concat([x,y*z],axis=3)
 
             return final
 
@@ -124,13 +135,13 @@ class CenternetHead():
 
         upsampled_conv = slim.separable_conv2d(fm, dim, [k_size, k_size], padding='SAME', scope=scope)
 
-        upsampled_conv = tf.keras.layers.UpSampling2D(data_format='channels_last')(upsampled_conv)
+        upsampled_conv = tf.keras.layers.UpSampling2D(data_format='channels_last',)(upsampled_conv)
 
         return upsampled_conv
 
     def _upsample_group_deconv(self, fm,dim,group=4, scope='upsample'):
         '''
-        group devonc
+        group deconv
 
         :param fm: input feature
         :param dim: input dim , should be n*group
@@ -155,26 +166,24 @@ class CenternetHead():
 
         return fm*se
 
-    def _unet_magic(self, fms, dim=128):
+    def _unet_magic(self, fms, dims=[64,48,32]):
 
         c2, c3, c4, c5 = fms
 
-        c5_upsample = self._complex_upsample(c5, input_dim=480,output_dim=dim, scope='c5_upsample')
-        c4 = slim.conv2d(c4, dim, [1, 1], padding='SAME', scope='c4_1x1')
+        c5_upsample = self._complex_upsample(c5, input_dim=480,output_dim=dims[0]*3, scope='c5_upsample')
+        c4 = slim.conv2d(c4, dims[0], [1, 1], padding='SAME', scope='c4_1x1')
         p4 = tf.concat([c4,c5_upsample],axis=3)
-        p4=self._shuffle(p4,4)
+        p4=self._shuffle(p4,3)
 
-        c4_upsample = self._complex_upsample(p4, input_dim=dim*2, output_dim=dim, scope='c4_upsample')
-        c3 = slim.conv2d(c3, dim, [1, 1], padding='SAME', scope='c3_1x1')
+        c4_upsample = self._complex_upsample(p4, input_dim=dims[0]*3, output_dim=dims[1]*3, scope='c4_upsample')
+        c3 = slim.conv2d(c3, dims[1], [1, 1], padding='SAME', scope='c3_1x1')
         p3 = tf.concat([c3,c4_upsample],axis=3)
-        p3 = self._shuffle(p3,4)
+        p3 = self._shuffle(p3,3)
 
-        c3_upsample = self._complex_upsample(p3,  input_dim=dim*2,output_dim=dim//2, scope='c3_upsample')
-        c2 = slim.separable_conv2d(c2, dim//2, [3, 3], padding='SAME', scope='c2_1x1')
+        c3_upsample = self._complex_upsample(p3,  input_dim=dims[1]*3,output_dim=dims[2]*3, scope='c3_upsample')
+        c2 = slim.separable_conv2d(c2, dims[2], [3, 3], padding='SAME', scope='c2_1x1')
         p2 = tf.concat([c2,c3_upsample],axis=3)
-        p2 = self._shuffle(p2,4)
-
-        p2=self._sam(p2,dim=dim)
+        p2 = self._shuffle(p2,3)
 
         return p2
 
