@@ -130,51 +130,53 @@ class CenternetDatasampler:
         box_target = np.ones((self.wh_planes, output_h, output_w),dtype=np.float32) * -1
         reg_weight = np.zeros((self.wh_planes // 4, output_h, output_w),dtype=np.float32)
 
-        if self.wh_area_process == 'log':
-            boxes_areas_log = np.log(bbox_areas(gt_boxes))
-        elif self.wh_area_process == 'sqrt':
-            boxes_areas_log = np.sqrt(bbox_areas(gt_boxes))
-        else:
-            boxes_areas_log = bbox_areas(gt_boxes)
 
-        boxes_area_topk_log, boxes_ind = torch_style_topK(boxes_areas_log, boxes_areas_log.shape[0])
+        if len(box_target)>0:
+            if self.wh_area_process == 'log':
+                boxes_areas_log = np.log(bbox_areas(gt_boxes))
+            elif self.wh_area_process == 'sqrt':
+                boxes_areas_log = np.sqrt(bbox_areas(gt_boxes))
+            else:
+                boxes_areas_log = bbox_areas(gt_boxes)
 
-        if self.wh_area_process == 'norm':
-            boxes_area_topk_log[:] = 1.
+            boxes_area_topk_log, boxes_ind = torch_style_topK(boxes_areas_log, boxes_areas_log.shape[0])
 
-        gt_boxes = gt_boxes[boxes_ind]
-        gt_labels = gt_labels[boxes_ind]
+            if self.wh_area_process == 'norm':
+                boxes_area_topk_log[:] = 1.
 
-        feat_gt_boxes = gt_boxes / self.down_ratio
-        feat_gt_boxes[:, [0, 2]] = np.clip(feat_gt_boxes[:, [0, 2]], a_min=0,
-                                               a_max=output_w - 1)
-        feat_gt_boxes[:, [1, 3]] = np.clip(feat_gt_boxes[:, [1, 3]], a_min=0,
-                                               a_max=output_h - 1)
-        feat_hs, feat_ws = (feat_gt_boxes[:, 3] - feat_gt_boxes[:, 1],
-                            feat_gt_boxes[:, 2] - feat_gt_boxes[:, 0])
+            gt_boxes = gt_boxes[boxes_ind]
+            gt_labels = gt_labels[boxes_ind]
 
-        # we calc the center and ignore area based on the gt-boxes of the origin scale
-        # no peak will fall between pixels
-        ct_ints = (np.stack([(gt_boxes[:, 0] + gt_boxes[:, 2]) / 2,
-                                (gt_boxes[:, 1] + gt_boxes[:, 3]) / 2],
-                               axis=1) / self.down_ratio).astype(np.int)
+            feat_gt_boxes = gt_boxes / self.down_ratio
+            feat_gt_boxes[:, [0, 2]] = np.clip(feat_gt_boxes[:, [0, 2]], a_min=0,
+                                                   a_max=output_w - 1)
+            feat_gt_boxes[:, [1, 3]] = np.clip(feat_gt_boxes[:, [1, 3]], a_min=0,
+                                                   a_max=output_h - 1)
+            feat_hs, feat_ws = (feat_gt_boxes[:, 3] - feat_gt_boxes[:, 1],
+                                feat_gt_boxes[:, 2] - feat_gt_boxes[:, 0])
+
+            # we calc the center and ignore area based on the gt-boxes of the origin scale
+            # no peak will fall between pixels
+            ct_ints = (np.stack([(gt_boxes[:, 0] + gt_boxes[:, 2]) / 2,
+                                    (gt_boxes[:, 1] + gt_boxes[:, 3]) / 2],
+                                   axis=1) / self.down_ratio).astype(np.int)
 
 
-        h_radiuses_alpha = (feat_hs / 2. * self.alpha).astype(np.int)
-        w_radiuses_alpha = (feat_ws / 2. * self.alpha).astype(np.int)
+            h_radiuses_alpha = (feat_hs / 2. * self.alpha).astype(np.int)
+            w_radiuses_alpha = (feat_ws / 2. * self.alpha).astype(np.int)
 
-        if self.wh_gaussian and self.alpha != self.beta:
-            h_radiuses_beta = (feat_hs / 2. * self.beta).astype(np.int)
-            w_radiuses_beta = (feat_ws / 2. * self.beta).astype(np.int)
+            if self.wh_gaussian and self.alpha != self.beta:
+                h_radiuses_beta = (feat_hs / 2. * self.beta).astype(np.int)
+                w_radiuses_beta = (feat_ws / 2. * self.beta).astype(np.int)
 
-        if not self.wh_gaussian:
-            # calculate positive (center) regions
-            r1 = (1 - self.beta) / 2
-            ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s = calc_region(gt_boxes.transpose(0, 1), r1)
-            ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s = [np.round(x.float() / self.down_ratio).int()
-                                                  for x in [ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s]]
-            ctr_x1s, ctr_x2s = [np.clamp(x, max=output_w - 1) for x in [ctr_x1s, ctr_x2s]]
-            ctr_y1s, ctr_y2s = [np.clamp(y, max=output_h - 1) for y in [ctr_y1s, ctr_y2s]]
+            if not self.wh_gaussian:
+                # calculate positive (center) regions
+                r1 = (1 - self.beta) / 2
+                ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s = calc_region(gt_boxes.transpose(0, 1), r1)
+                ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s = [np.round(x.float() / self.down_ratio).int()
+                                                      for x in [ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s]]
+                ctr_x1s, ctr_x2s = [np.clamp(x, max=output_w - 1) for x in [ctr_x1s, ctr_x2s]]
+                ctr_y1s, ctr_y2s = [np.clamp(y, max=output_h - 1) for y in [ctr_y1s, ctr_y2s]]
 
         # larger boxes have lower priority than small boxes.
         for k in range(boxes_ind.shape[0]):
