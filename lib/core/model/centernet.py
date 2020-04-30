@@ -31,11 +31,11 @@ class Centernet():
 
         self.top_k_results_output=cfg.MODEL.max_box
 
-    def forward(self,inputs,hm_target, wh_target,reg_target,ind_,regmask_,l2_regulation,training_flag):
+    def forward(self,inputs,hm_target, wh_target,weights_,l2_regulation,training_flag):
 
         ## process the label
         if cfg.DATA.use_int8_data:
-            hm_target=self.process_label(hm_target)
+            hm_target,wh_target,weights_=self.process_label(hm_target,wh_target,weights_)
 
         ###preprocess
         inputs=self.preprocess(inputs)
@@ -43,17 +43,17 @@ class Centernet():
         ### extract feature maps
         origin_fms=self.backbone(inputs,training_flag)
 
-        kps_predicts,wh_predicts,reg_predicts = self.head(origin_fms, l2_regulation, training_flag)
+        kps_predicts,wh_predicts = self.head(origin_fms, l2_regulation, training_flag)
         kps_predicts= tf.nn.sigmoid(kps_predicts)
         ### calculate loss
-        hm_loss,wh_loss,reg_loss = loss(predicts=[kps_predicts,wh_predicts,reg_predicts] ,targets=[hm_target,wh_target,reg_target,ind_,regmask_])
+        hm_loss,wh_loss = loss(predicts=[kps_predicts,wh_predicts] ,targets=[hm_target,wh_target,weights_])
 
         kps_predicts = tf.identity(kps_predicts, name='keypoints')
 
 
-        self.postprocess(kps_predicts,wh_predicts,reg_predicts,self.top_k_results_output)
+        #self.postprocess(kps_predicts,wh_predicts,self.top_k_results_output)
 
-        return hm_loss,wh_loss,reg_loss
+        return hm_loss,wh_loss
 
     def preprocess(self,image):
         with tf.name_scope('image_preprocess'):
@@ -62,11 +62,12 @@ class Centernet():
 
             image=image/255.
         return image
-    def process_label(self,cls_hm):
+    def process_label(self,cls_hm,wh_target,weights_):
 
 
         cls_hm = tf.cast(cls_hm, tf.float32)/cfg.DATA.use_int8_enlarge
-        return cls_hm
+
+        return cls_hm,wh_target,weights_
 
     def postprocess(self, keypoints,wh,reg,max_size):
         """Postprocess outputs of the network.

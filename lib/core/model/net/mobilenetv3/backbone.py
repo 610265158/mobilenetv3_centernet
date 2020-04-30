@@ -5,6 +5,7 @@ from train_config import config as cfg
 
 from lib.core.model.net.mobilenetv3 import mobilnet_v3
 from lib.core.model.net.mobilenet.mobilenet import training_scope
+from lib.core.model.net.mobilenetv3.mobilnet_v3 import hard_swish
 
 def mobilenetv3_large_detection(image,is_training=True):
 
@@ -12,19 +13,28 @@ def mobilenetv3_large_detection(image,is_training=True):
 
     with tf.contrib.slim.arg_scope(arg_scope):
 
-        _, endpoints = mobilnet_v3.large_detection(image,
-                                        depth_multiplier=1.,
+        _, endpoints = mobilnet_v3.large(image,
+                                        depth_multiplier=0.75,
                                         is_training=is_training,
                                         base_only=True,
                                         finegrain_classification_mode=False)
 
         for k,v in endpoints.items():
             print('mobile backbone output:',k,v)
-        print(_)
+
+        extern_conv = slim.conv2d(_,
+                                  480,
+                                  [1, 1],
+                                  stride=1,
+                                  padding='SAME',
+                                  activation_fn=hard_swish,
+                                  scope='extern1')
+
+        print(extern_conv)
         mobilebet_fms = [endpoints['layer_5/expansion_output'],
                          endpoints['layer_8/expansion_output'],
                          endpoints['layer_14/expansion_output'],
-                         _]
+                         extern_conv]
 
     return mobilebet_fms
 

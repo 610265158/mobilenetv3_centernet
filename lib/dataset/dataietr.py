@@ -13,6 +13,8 @@ from tensorpack.dataflow import BatchData, MultiProcessPrefetchData
 
 
 from lib.dataset.centernet_data_sampler import get_affine_transform,affine_transform
+from lib.dataset.ttf_net_data_sampler import CenternetDatasampler
+
 
 from lib.dataset.augmentor.augmentation import Random_scale_withbbox,\
                                                 Random_flip,\
@@ -31,6 +33,8 @@ from train_config import config as cfg
 
 
 import math
+
+
 class data_info():
     def __init__(self,img_root,txt):
         self.txt_file=txt
@@ -102,6 +106,10 @@ class MutiScaleBatcher(BatchData):
 
         self.input_size=input_size
         self.traing_flag=is_training
+
+
+
+        self.target_producer=CenternetDatasampler()
     def __iter__(self):
         """
         Yields:
@@ -248,13 +256,13 @@ class MutiScaleBatcher(BatchData):
                     cv2.rectangle(image, (int(__box[0]), int(__box[1])),
                                   (int(__box[2]), int(__box[3])), (255, 0, 0), 4)
 
-            heatmap, wh,reg,ind,reg_mask = self.produce_for_centernet(image,boxes_, klass_)
+            heatmap, wh_map,weight = self.target_producer.ttfnet_centernet_datasampler(image,boxes_, klass_)
 
             if cfg.DATA.channel==1:
                 image=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
                 image=np.expand_dims(image,-1)
 
-            alig_data.append([image,heatmap, wh,reg,ind,reg_mask])
+            alig_data.append([image,heatmap, wh_map,weight])
 
         return alig_data
 

@@ -8,40 +8,85 @@ from tensorflow.python.ops import array_ops
 from train_config import config as cfg
 
 def loss(predicts,targets):
-    kps, wh, reg=predicts
-    hm_target, wh_target, reg_target, ind_, regmask_=targets
+    pred_hm, pred_wh=predicts
+    hm_target, wh_target,weights_=targets
 
+
+    print(pred_wh)
     with tf.name_scope('losses'):
         # whether anchor is matched
         # shape [batch_size, num_anchors]
 
         with tf.name_scope('classification_loss'):
-            cls_losses = focal_loss(
-                kps,
-                hm_target,
-                regmask_
+            hm_loss = focal_loss(
+                pred_hm,
+                hm_target
             )
+        with tf.name_scope('iou_loss'):
+            H, W = tf.shape(pred_hm)[1],tf.shape(pred_hm)[2]
 
-        with tf.name_scope('wh_loss'):
-            wh_loss = reg_l1_loss(
-                wh,
-                wh_target,
-                ind_,
-                regmask_
-            )
+            weights_=tf.transpose(weights_,perm=[0,3,1,2])
+            mask = tf.reshape(weights_,shape=(-1, H, W))
+            avg_factor = tf.reduce_sum(mask) + 1e-4
 
-        if cfg.MODEL.offset:
-            with tf.name_scope('reg_loss'):
-                reg_loss = reg_l1_loss(
-                    reg,
-                    reg_target,
-                    ind_,
-                    regmask_
-                )
-        else:
-            reg_loss=0.
+            base_step = cfg.MODEL.global_stride
+            shifts_x = tf.range(0, (W - 1) * base_step + 1, base_step,
+                                    dtype=tf.int32)
+            shifts_x=tf.cast(shifts_x,dtype=tf.float32)
+            shifts_y = tf.range(0, (H - 1) * base_step + 1, base_step,
+                                    dtype=tf.int32)
+            shifts_y = tf.cast(shifts_y, dtype=tf.float32)
 
-    return cls_losses,wh_loss*0.1,reg_loss
+            shift_y, shift_x = tf.meshgrid(shifts_y, shifts_x)
+            base_loc = tf.stack((shift_x, shift_y), axis=2)  # (2, h, w)
+            base_loc =tf.expand_dims(base_loc,axis=0)
+
+            pred_boxes = tf.concat((base_loc[:,:,:,0:1] - pred_wh[:,:,:, 0:1],
+                                    base_loc[:,:,:,1:2] - pred_wh[:,:,:, 1:2],
+                                    base_loc[:,:,:,0:1] + pred_wh[:,:,:, 2:3],
+                                    base_loc[:,:,:,1:2] + pred_wh[:,:,:, 3:4]), axis=3)
+
+
+
+            # (batch, h, w, 4)
+            boxes = wh_target#.permute(0, 2, 3, 1)
+
+            wh_loss = giou_loss(pred_boxes, boxes, mask, avg_factor=avg_factor)
+
+        return hm_loss, wh_loss*5
+
+def giou_loss(pred,
+              target,
+              weight,
+              avg_factor=None):
+    """GIoU loss.
+    Computing the GIoU loss between a set of predicted bboxes and target bboxes.
+    """
+    pos_mask = weight > 0
+    weight = tf.cast(weight[pos_mask],tf.float32)
+    if avg_factor is None:
+        avg_factor = tf.reduce_sum(pos_mask) + 1e-6
+    bboxes1 = tf.reshape(pred[pos_mask],(-1, 4))
+    bboxes2 =  tf.reshape(target[pos_mask],(-1, 4))
+
+
+    lt = tf.maximum(bboxes1[:, :2], bboxes2[:, :2])  # [rows, 2]
+    rb = tf.minimum(bboxes1[:, 2:], bboxes2[:, 2:])  # [rows, 2]
+    wh = tf.nn.relu((rb - lt + 1))  # [rows, 2]
+    enclose_x1y1 = tf.minimum(bboxes1[:, :2], bboxes2[:, :2])
+    enclose_x2y2 = tf.maximum(bboxes1[:, 2:], bboxes2[:, 2:])
+    enclose_wh =  tf.nn.relu((enclose_x2y2 - enclose_x1y1 + 1))
+
+    overlap = wh[:, 0] * wh[:, 1]
+    ap = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)
+    ag = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (bboxes2[:, 3] - bboxes2[:, 1] + 1)
+    ious = overlap / (ap + ag - overlap)
+
+    enclose_area = enclose_wh[:, 0] * enclose_wh[:, 1]  # i.e. C in paper
+    u = ap + ag - overlap
+    gious = ious - (enclose_area - u) / enclose_area
+    iou_distances = 1 - gious
+    return tf.reduce_sum(iou_distances * weight) / avg_factor
 
 
 def classification_loss(predictions, targets):
@@ -99,6 +144,8 @@ def reg_l1_loss(y_pred, y_true, indices, mask):
     reg_loss = total_loss / (tf.reduce_sum(mask) + 1e-4)
     return reg_loss
 
+
+
 # def focal_loss(prediction_tensor, target_tensor, weights=None, alpha=0.25, gamma=2):
 #     r"""Compute focal loss for predictions.
 #         Multi-labels Focal loss formula:
@@ -140,7 +187,7 @@ def reg_l1_loss(y_pred, y_true, indices, mask):
 #     return tf.reduce_sum(per_entry_cross_ent)
 
 
-def focal_loss(pred, gt,reg_mask):
+def focal_loss(pred, gt):
     ''' Modified focal loss. Exactly the same as CornerNet.
         Runs faster and costs a little bit more memory
       Arguments:
@@ -155,7 +202,7 @@ def focal_loss(pred, gt,reg_mask):
     pos_loss = tf.log(pred) * tf.pow(1.0 - pred, 2.0) * pos_inds
     neg_loss = tf.log(1.0 - pred) * tf.pow(pred, 2.0) * neg_weights * neg_inds
 
-    num_pos = tf.reduce_sum(reg_mask)
+    num_pos = tf.reduce_sum(pos_inds)
     pos_loss = tf.reduce_sum(pos_loss)
     neg_loss = tf.reduce_sum(neg_loss)
 

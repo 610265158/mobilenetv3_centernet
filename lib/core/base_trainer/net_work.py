@@ -85,20 +85,7 @@ class trainner():
                 ### we use mbv3 large and the 13-16 num of output was multipe by 0.5,
                 # so we cannot load params from the classification model, filter them
                 variables_restore_n=variables_restore
-                if cfg.MODEL.net_structure=='MobilenetV3' and cfg.MODEL.task=='mscoco':
-                    variables_restore_n = [v for v in variables_restore_n if
-                                           'Conv_1' not in v.name]  # Conv2d_1c_1x1 Bottleneck
-                    variables_restore_n = [v for v in variables_restore_n if
-                                           'conv_12' not in v.name]  # Conv2d_1c_1x1 Bottleneck
-                    variables_restore_n = [v for v in variables_restore_n if
-                                           'conv_13' not in v.name]  # Conv2d_1c_1x1 Bottleneck
-                    variables_restore_n = [v for v in variables_restore_n if
-                                           'conv_14' not in v.name]  # Conv2d_1c_1x1 Bottleneck
-                    variables_restore_n = [v for v in variables_restore_n if
-                                           'conv_15' not in v.name]  # Conv2d_1c_1x1 Bottleneck
-                    variables_restore_n = [v for v in variables_restore_n if
-                                           'conv_16' not in v.name]  # Conv2d_1c_1x1 Bottleneck
-                    print(variables_restore_n)
+
                 saver2 = tf.train.Saver(variables_restore_n)
                 saver2.restore(self.sess, cfg.MODEL.pretrained_model)
             else:
@@ -135,7 +122,7 @@ class trainner():
     def add_summary(self,event):
         self.summaries.append(event)
 
-    def tower_loss(self,scope, images, kps_hm_, wh_,reg_,ind_,regmask_,L2_reg, training):
+    def tower_loss(self,scope, images, kps_hm_, wh_,weights_,L2_reg, training):
         """Calculate the total loss on a single tower running the model.
 
         Args:
@@ -157,14 +144,14 @@ class trainner():
 
 
         if cfg.TRAIN.lock_basenet_bn:
-            hm_loss,wh_loss,reg_loss=centernet.forward(images,kps_hm_, wh_,reg_,ind_,regmask_, L2_reg, False)
+            hm_loss,wh_loss=centernet.forward(images,kps_hm_, wh_,weights_, L2_reg, False)
         else:
-            hm_loss,wh_loss,reg_loss = centernet.forward(images, kps_hm_, wh_,reg_,ind_,regmask_,L2_reg, training)
+            hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_,L2_reg, training)
 
         #reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
         regularization_losses = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES), name='l2_loss')
 
-        return hm_loss,wh_loss,reg_loss,regularization_losses
+        return hm_loss,wh_loss,regularization_losses
     def average_gradients(self,tower_grads):
         """Calculate the average gradient for each shared variable across all towers.
 
@@ -223,9 +210,8 @@ class trainner():
             images_place_holder_list = []
             hm_gt_place_holder_list = []
             wh_gt_place_holder_list = []
-            reg_place_holder_list = []
-            ind_place_holder_list = []
-            regmask_place_holder_list = []
+            weights_place_holder_list = []
+
 
 
             weights_initializer = slim.xavier_initializer()
@@ -243,32 +229,26 @@ class trainner():
                                 if cfg.MODEL.deployee:
                                     images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.float32, [None, None,None, cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
                                 hm_ = tf.placeholder(tf.float32,
                                                          [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
                                                          name="heatmap_target")
                                 wh_=tf.placeholder(tf.float32,
-                                                         [cfg.TRAIN.batch_size, None, 2],
+                                                         [cfg.TRAIN.batch_size, None,None, 4],
                                                          name="wh_target")
-                                reg_ = tf.placeholder(tf.float32,
-                                                     [cfg.TRAIN.batch_size, None, 2],
+                                weight_ = tf.placeholder(tf.float32,
+                                                     [cfg.TRAIN.batch_size, None,None, 1],
                                                      name="reg_target")
-                                ind_ = tf.placeholder(tf.float32,
-                                                      [cfg.TRAIN.batch_size, None],
-                                                      name="ind_target")
-                                regmask_ = tf.placeholder(tf.float32,
-                                                      [cfg.TRAIN.batch_size,None],
-                                                      name="regmask_target")
+
                                 ###total anchor
 
                                 images_place_holder_list.append(images_)
                                 hm_gt_place_holder_list.append(hm_)
                                 wh_gt_place_holder_list.append(wh_)
-                                reg_place_holder_list.append(reg_)
-                                ind_place_holder_list.append(ind_)
-                                regmask_place_holder_list.append(regmask_)
+                                weights_place_holder_list.append(weight_)
+
                                 with slim.arg_scope([slim.conv2d, slim.conv2d_in_plane, \
                                                      slim.conv2d_transpose, slim.separable_conv2d,
                                                      slim.fully_connected],
@@ -276,14 +256,14 @@ class trainner():
                                                     biases_regularizer=biases_regularizer,
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
-                                    hm_loss, wh_loss,reg_loss, l2_loss = self.tower_loss(
-                                        scope, images_, hm_, wh_,reg_,ind_,regmask_, L2_reg, training)
+                                    hm_loss, wh_loss, l2_loss = self.tower_loss(
+                                        scope, images_, hm_, wh_,weight_, L2_reg, training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
-                                        total_loss = tf.add_n([hm_loss, wh_loss,reg_loss, l2_loss])
+                                        total_loss = tf.add_n([hm_loss, wh_loss, l2_loss])
                                     else:
-                                        total_loss = tf.add_n([hm_loss, wh_loss,reg_loss])
+                                        total_loss = tf.add_n([hm_loss, wh_loss])
                                 total_loss_to_show += total_loss
                                 # Reuse variables for the next tower.
                                 tf.get_variable_scope().reuse_variables()
@@ -313,7 +293,6 @@ class trainner():
             self.add_summary(tf.summary.scalar('total_loss', total_loss_to_show))
             self.add_summary(tf.summary.scalar('hm_loss', hm_loss))
             self.add_summary(tf.summary.scalar('wh_loss', wh_loss))
-            self.add_summary(tf.summary.scalar('reg_loss', reg_loss))
             self.add_summary(tf.summary.scalar('l2_loss', l2_loss))
 
             # Add histograms for gradients.
@@ -344,22 +323,18 @@ class trainner():
             self.inputs = [images_place_holder_list,
                            hm_gt_place_holder_list,
                            wh_gt_place_holder_list,
-                           reg_place_holder_list,
-                           ind_place_holder_list,
-                           regmask_place_holder_list,
+                           weights_place_holder_list,
                            L2_reg,
                            training]
             self.outputs = [train_op,
                             total_loss_to_show,
                             hm_loss,
                             wh_loss,
-                            reg_loss,
                             l2_loss,
                             lr]
             self.val_outputs = [total_loss_to_show,
                                 hm_loss,
                                 wh_loss,
-                                reg_loss,
                                 l2_loss,
                                 lr]
 
@@ -433,7 +408,7 @@ class trainner():
 
             ########show_flag check the data
             if cfg.TRAIN.vis:
-                example_image,example_hm, example_wh,example_reg,example_ind,example_reg_mask = next(self.train_ds)
+                example_image,example_hm, example_wh,example_weights= next(self.train_ds)
 
                 print(example_hm.shape)
                 for i in range(example_hm.shape[0]):
@@ -441,18 +416,19 @@ class trainner():
 
                     img=example_image[i]
                     hm=example_hm[i]
-                    print(example_wh[i])
-                    print(example_reg[i])
+                    wh=example_wh[i]
 
                     if cfg.DATA.use_int8_data:
                         hm = hm[:,:,0].astype(np.uint8)
-
+                        wh = wh[:, :, 0]
                     else:
                         hm = hm[:, :, 0].astype(np.float32)
-
+                        wh = wh[:, :, 0].astype(np.float32)
 
                     cv2.namedWindow('hm', 0)
                     cv2.imshow('hm', hm)
+                    cv2.namedWindow('wh', 0)
+                    cv2.imshow('wh', wh+1)
                     cv2.namedWindow('img', 0)
                     cv2.imshow('img', img)
                     cv2.waitKey(0)
@@ -469,15 +445,14 @@ class trainner():
                     self.train_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                     self.train_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                     self.train_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
-                    self.train_dict[self.inputs[4][n]] = examples[4][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
-                    self.train_dict[self.inputs[5][n]] = examples[5][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
-                self.train_dict[self.inputs[6]] = cfg.TRAIN.weight_decay_factor
-                self.train_dict[self.inputs[7]] = True
+
+                self.train_dict[self.inputs[4]] = cfg.TRAIN.weight_decay_factor
+                self.train_dict[self.inputs[5]] = True
 
                 fetch_duration = time.time() - start_time
 
                 start_time2 = time.time()
-                _, total_loss_value,hm_loss_value,wh_loss_value,reg_loss_value,l2_loss_value,lr_value = \
+                _, total_loss_value,hm_loss_value,wh_loss_value,l2_loss_value,lr_value = \
                     self.sess.run([*self.outputs],
                              feed_dict=self.train_dict)
 
@@ -495,7 +470,6 @@ class trainner():
                                   'total_loss=%.6f '
                                   'hm_loss=%.6f '
                                   'wh_loss=%.6f '
-                                  'reg_loss=%.6f '
                                   'l2_loss=%.6f '
                                   'learning rate =%e '
                                   '(%.1f examples/sec; %.3f sec/batch) '
@@ -506,7 +480,6 @@ class trainner():
                                               total_loss_value,
                                               hm_loss_value,
                                               wh_loss_value,
-                                              reg_loss_value,
                                               l2_loss_value,
                                               lr_value,
                                               examples_per_sec,
@@ -531,13 +504,11 @@ class trainner():
                 feed_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
-                feed_dict[self.inputs[4][n]] = examples[4][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
-                feed_dict[self.inputs[5][n]] = examples[5][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
 
-            feed_dict[self.inputs[6]] = 0
-            feed_dict[self.inputs[7]] = False
+            feed_dict[self.inputs[4]] = 0
+            feed_dict[self.inputs[5]] = False
 
-            total_loss_value, hm_loss_value,wh_loss_value,reg_loss_value, l2_loss_value, lr_value = \
+            total_loss_value, hm_loss_value,wh_loss_value, l2_loss_value, lr_value = \
                 self.sess.run([*self.val_outputs],
                               feed_dict=feed_dict)
 
