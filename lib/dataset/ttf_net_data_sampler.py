@@ -10,7 +10,9 @@ from train_config import config as cfg
 
 
 def bbox_areas(bboxes, keep_axis=False):
+
     x_min, y_min, x_max, y_max = bboxes[:, 0], bboxes[:, 1], bboxes[:, 2], bboxes[:, 3]
+
     areas = (y_max - y_min + 1) * (x_max - x_min + 1)
     if keep_axis:
         return areas[:, None]
@@ -131,7 +133,8 @@ class CenternetDatasampler:
         reg_weight = np.zeros((self.wh_planes // 4, output_h, output_w),dtype=np.float32)
 
 
-        if len(box_target)>0:
+        if gt_boxes.shape[0]>0:
+
             if self.wh_area_process == 'log':
                 boxes_areas_log = np.log(bbox_areas(gt_boxes))
             elif self.wh_area_process == 'sqrt':
