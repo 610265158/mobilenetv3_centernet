@@ -14,6 +14,9 @@ def bbox_areas(bboxes, keep_axis=False):
     x_min, y_min, x_max, y_max = bboxes[:, 0], bboxes[:, 1], bboxes[:, 2], bboxes[:, 3]
 
     areas = (y_max - y_min + 1) * (x_max - x_min + 1)
+    areas+=0.000001
+
+    areas[areas<0]=0.00000001
     if keep_axis:
         return areas[:, None]
     return areas
@@ -52,7 +55,7 @@ def torch_style_topK(matrix, K, axis=0):
     :param axis: dimension to be sorted.
     :return:
     """
-    full_sort = np.argsort(matrix, axis=axis)
+    full_sort = np.argsort(-matrix, axis=axis)
 
     ind=full_sort.take(np.arange(K), axis=axis)
     return matrix[ind],ind
@@ -77,12 +80,18 @@ class CenternetDatasampler:
         self.wh_agnostic = wh_agnostic,
         self.wh_gaussian = wh_gaussian,
         self.wh_planes=4
+
+
     def _ttfnet_gaussian_2d(self, shape, sigma_x=1, sigma_y=1):
         m, n = [(ss - 1.) / 2. for ss in shape]
         y, x = np.ogrid[-m:m + 1, -n:n + 1]
 
         h = np.exp(-(x * x / (2 * sigma_x * sigma_x) + y * y / (2 * sigma_y * sigma_y)))
-        h[h < np.finfo(h.dtype).eps * h.max()] = 0
+        try:
+            h[h < np.finfo(h.dtype).eps * h.max()] = 0
+
+        except:
+            print(h.shape)
         return h
 
     def draw_truncate_gaussian(self,heatmap, center, h_radius, w_radius, k=1):
@@ -180,7 +189,8 @@ class CenternetDatasampler:
                                                       for x in [ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s]]
                 ctr_x1s, ctr_x2s = [np.clamp(x, max=output_w - 1) for x in [ctr_x1s, ctr_x2s]]
                 ctr_y1s, ctr_y2s = [np.clamp(y, max=output_h - 1) for y in [ctr_y1s, ctr_y2s]]
-
+        else:
+            boxes_ind=np.array([])
         # larger boxes have lower priority than small boxes.
         for k in range(boxes_ind.shape[0]):
             cls_id = gt_labels[k]
@@ -188,17 +198,18 @@ class CenternetDatasampler:
             fake_heatmap = fake_heatmap*0
 
             self.draw_truncate_gaussian(fake_heatmap, ct_ints[k],
-                                        h_radiuses_alpha[k].item(), w_radiuses_alpha[k].item())
+                                        h_radiuses_alpha[k], w_radiuses_alpha[k])
 
             heatmap[cls_id] = np.maximum(heatmap[cls_id], fake_heatmap)
 
 
             if self.wh_gaussian:
                 if self.alpha != self.beta:
-                    fake_heatmap = fake_heatmap.zero_()
-                    self.draw_truncate_gaussian(fake_heatmap, ct_ints[k],
-                                                h_radiuses_beta[k].item(),
-                                                w_radiuses_beta[k].item())
+                    fake_heatmap = fake_heatmap*0
+                    self.draw_truncate_gaussian(fake_heatmap,
+                                                ct_ints[k],
+                                                h_radiuses_beta[k],
+                                                w_radiuses_beta[k])
                 box_target_inds = fake_heatmap > 0
             else:
                 ctr_x1, ctr_y1, ctr_x2, ctr_y2 = ctr_x1s[k], ctr_y1s[k], ctr_x2s[k], ctr_y2s[k]
@@ -207,25 +218,30 @@ class CenternetDatasampler:
 
             if self.wh_agnostic:
 
-                box_target[:, box_target_inds] = gt_boxes[k][:, None]
+                box_target[:, box_target_inds] =np.expand_dims(gt_boxes[k],-1)
 
                 cls_id = 0
             else:
-                box_target[(cls_id * 4):((cls_id + 1) * 4), box_target_inds] = gt_boxes[k][:, None]
+                box_target[(cls_id * 4):((cls_id + 1) * 4), box_target_inds] = np.expand_dims(gt_boxes[k],-1)
 
             if self.wh_gaussian:
                 local_heatmap = fake_heatmap[box_target_inds]
+
+
+
                 ct_div = local_heatmap.sum()
                 local_heatmap *= boxes_area_topk_log[k]
                 reg_weight[cls_id, box_target_inds] = local_heatmap / ct_div
             else:
                 reg_weight[cls_id, box_target_inds] = \
-                    boxes_area_topk_log[k] / box_target_inds.sum().float()
+                    boxes_area_topk_log[k] / box_target_inds.sum()
 
 
         heatmap = np.transpose(heatmap, axes=[1, 2, 0])
         box_target= np.transpose(box_target, axes=[1, 2, 0])
         reg_weight = np.transpose(reg_weight, axes=[1, 2, 0])
+
+
 
 
 
@@ -250,9 +266,9 @@ if __name__=='__main__':
 
     for i in range(1000):
         image = cv2.imread('./lib/dataset/augmentor/test.jpg')
-        boxes = np.array([[165, 60, 233, 138]], dtype=np.float)
+        boxes = np.array([[165, 60, 233, 138],[5, 60, 133, 138]], dtype=np.float)
 
-        cls=np.array([0])
+        cls=np.array([0,0])
 
         heatmap, box_target, reg_weight=data_sampler.ttfnet_centernet_datasampler(image,boxes,cls)
 
@@ -262,7 +278,7 @@ if __name__=='__main__':
         weight=reg_weight[:, :, 0]
 
         print(np.max(wh))
-
+        print(np.max(weight))
         cv2.namedWindow('image', 0)
         cv2.imshow('image', image)
 

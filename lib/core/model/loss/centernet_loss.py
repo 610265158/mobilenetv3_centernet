@@ -11,8 +11,6 @@ def loss(predicts,targets):
     pred_hm, pred_wh=predicts
     hm_target, wh_target,weights_=targets
 
-
-    print(pred_wh)
     with tf.name_scope('losses'):
         # whether anchor is matched
         # shape [batch_size, num_anchors]
@@ -22,6 +20,9 @@ def loss(predicts,targets):
                 pred_hm,
                 hm_target
             )
+
+
+
         with tf.name_scope('iou_loss'):
             H, W = tf.shape(pred_hm)[1],tf.shape(pred_hm)[2]
 
@@ -38,7 +39,8 @@ def loss(predicts,targets):
             shifts_y = tf.cast(shifts_y, dtype=tf.float32)
 
             shift_y, shift_x = tf.meshgrid(shifts_y, shifts_x)
-            base_loc = tf.stack((shift_x, shift_y), axis=2)  # (2, h, w)
+
+            base_loc = tf.stack((shift_y, shift_x), axis=2)  # (2, h, w)
             base_loc =tf.expand_dims(base_loc,axis=0)
 
             pred_boxes = tf.concat((base_loc[:,:,:,0:1] - pred_wh[:,:,:, 0:1],
@@ -46,14 +48,28 @@ def loss(predicts,targets):
                                     base_loc[:,:,:,0:1] + pred_wh[:,:,:, 2:3],
                                     base_loc[:,:,:,1:2] + pred_wh[:,:,:, 3:4]), axis=3)
 
-
-
             # (batch, h, w, 4)
             boxes = wh_target#.permute(0, 2, 3, 1)
 
             wh_loss = giou_loss(pred_boxes, boxes, mask, avg_factor=avg_factor)
 
         return hm_loss, wh_loss*5
+
+def _reg_l1_loss(pred,
+              target,
+              weight,
+              avg_factor=None):
+    pos_mask = weight > 0
+    weight = tf.cast(weight[pos_mask], tf.float32)
+    if avg_factor is None:
+        avg_factor = tf.reduce_sum(pos_mask) + 1e-6
+    bboxes1 = tf.reshape(pred[pos_mask], (-1, 4))
+    bboxes2 = tf.reshape(target[pos_mask], (-1, 4))
+
+
+    loss=tf.reduce_mean(tf.abs(bboxes1-bboxes2),axis=1)
+    return tf.reduce_sum(loss * weight) / avg_factor
+
 
 def giou_loss(pred,
               target,
@@ -72,10 +88,10 @@ def giou_loss(pred,
 
     lt = tf.maximum(bboxes1[:, :2], bboxes2[:, :2])  # [rows, 2]
     rb = tf.minimum(bboxes1[:, 2:], bboxes2[:, 2:])  # [rows, 2]
-    wh = tf.nn.relu((rb - lt + 1))  # [rows, 2]
+    wh = tf.maximum((rb - lt + 1),0)  # [rows, 2]
     enclose_x1y1 = tf.minimum(bboxes1[:, :2], bboxes2[:, :2])
     enclose_x2y2 = tf.maximum(bboxes1[:, 2:], bboxes2[:, 2:])
-    enclose_wh =  tf.nn.relu((enclose_x2y2 - enclose_x1y1 + 1))
+    enclose_wh =  tf.maximum((enclose_x2y2 - enclose_x1y1 + 1),0)
 
     overlap = wh[:, 0] * wh[:, 1]
     ap = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)

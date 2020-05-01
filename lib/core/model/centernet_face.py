@@ -30,11 +30,11 @@ class CenternetFace():
         self.head=CenternetHeadLight()                         ### it is a class
 
         self.top_k_results_output=cfg.MODEL.max_box
-    def forward(self,inputs,hm_target, wh_target,reg_target,ind_,regmask_,l2_regulation,training_flag):
+    def forward(self,inputs,hm_target, wh_target,weights,l2_regulation,training_flag):
 
         ## process the label
         if cfg.DATA.use_int8_data:
-            hm_target=self.process_label(hm_target)
+            hm_target,wh_target,weights=self.process_label(hm_target,wh_target,weights)
 
         ###preprocess
         inputs=self.preprocess(inputs)
@@ -42,16 +42,17 @@ class CenternetFace():
         ### extract feature maps
         origin_fms=self.ssd_backbone(inputs,training_flag)
 
-        kps_predicts,wh_predicts,reg_predicts = self.head(origin_fms, l2_regulation, training_flag)
+        kps_predicts,wh_predicts = self.head(origin_fms, l2_regulation, training_flag)
         kps_predicts= tf.nn.sigmoid(kps_predicts)
         ### calculate loss
-        hm_loss,wh_loss,reg_loss = loss(predicts=[kps_predicts,wh_predicts,reg_predicts] ,targets=[hm_target,wh_target,reg_target,ind_,regmask_])
+        hm_loss,wh_loss = loss(predicts=[kps_predicts,wh_predicts] ,targets=[hm_target,wh_target,weights])
 
         kps_predicts = tf.identity(kps_predicts, name='keypoints')
-        
-        self.postprocess(kps_predicts,wh_predicts,reg_predicts,self.top_k_results_output)
+        wh_predicts = tf.identity(wh_predicts, name='wh')
 
-        return hm_loss,wh_loss,reg_loss
+        self.postprocess(kps_predicts,wh_predicts,self.top_k_results_output)
+
+        return hm_loss,wh_loss
 
     def preprocess(self,image):
         with tf.name_scope('image_preprocess'):
@@ -60,15 +61,17 @@ class CenternetFace():
 
             image=image/255.
         return image
-    def process_label(self,hm_target):
+    def process_label(self,hm_target,wh_target,weights):
 
 
         hm_target = tf.cast(hm_target, tf.float32)/cfg.DATA.use_int8_enlarge
 
-        return hm_target
+        wh_target= tf.cast(wh_target, tf.float32)
+        weights= tf.cast(weights, tf.float32)
+        return hm_target,wh_target,weights
 
 
-    def postprocess(self, keypoints,wh,reg,max_size):
+    def postprocess(self, keypoints,wh,max_size):
         """Postprocess outputs of the network.
 
         Returns:
@@ -99,38 +102,31 @@ class CenternetFace():
 
             return topk_scores, topk_inds, topk_clses, topk_ys, topk_xs
 
-        def decode(heat, wh, reg=None, K=100):
+        def decode(heat, wh, K=100):
             batch, height, width, cat = tf.shape(heat)[0], tf.shape(heat)[1], tf.shape(heat)[2], tf.shape(heat)[3]
             heat = nms(heat)
             scores, inds, clses, ys, xs = topk(heat, K=K)
 
-            if reg is not None:
-                reg = tf.reshape(reg, (batch, -1, tf.shape(reg)[-1]))
-                # [b,k,2]
-                reg = tf.batch_gather(reg, inds)
-                xs = tf.cast(tf.expand_dims(xs, axis=-1),tf.float32) + reg[:,:, 0:1]
-                ys = tf.cast(tf.expand_dims(ys, axis=-1),tf.float32) + reg[:,:, 1:2]
-            else:
-                xs = tf.cast(tf.expand_dims(xs, axis=-1),tf.float32) + 0.5
-                ys = tf.cast(tf.expand_dims(ys, axis=-1),tf.float32) + 0.5
+
+            xs = tf.cast(tf.expand_dims(xs, axis=-1),tf.float32) + 0.5
+            ys = tf.cast(tf.expand_dims(ys, axis=-1),tf.float32) + 0.5
 
             # [b,h*w,2]
             wh = tf.reshape(wh, (batch, -1, tf.shape(wh)[-1]))
             # [b,k,2]
-            wh = tf.batch_gather(wh, inds)/2
+            wh = tf.batch_gather(wh, inds)
 
             clses = tf.cast(tf.expand_dims(clses, axis=-1), tf.float32)
             scores = tf.expand_dims(scores, axis=-1)
 
-            xmin = xs - wh[:,:, 0:1]
-            ymin = ys - wh[:,:, 1:2]
-            xmax = xs + wh[:,:, 0:1]
-            ymax = ys + wh[:,:, 1:2]
+            xmin = xs*cfg.MODEL.global_stride - wh[:,:, 0:1]
+            ymin = ys*cfg.MODEL.global_stride - wh[:,:, 1:2]
+            xmax = xs*cfg.MODEL.global_stride + wh[:,:, 2:3]
+            ymax = ys*cfg.MODEL.global_stride + wh[:,:, 3:4]
 
 
             ##mul by stride 4
-            bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)*cfg.MODEL.global_stride
-
+            bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)
 
 
             # [b,k,6]
@@ -143,7 +139,7 @@ class CenternetFace():
             return detections
 
 
-        decode(keypoints,wh,reg,max_size)
+        decode(keypoints,wh,max_size)
 
 
 

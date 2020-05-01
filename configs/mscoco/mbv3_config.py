@@ -69,7 +69,7 @@ config.MODEL.pretrained_model='./v3-large_224_0.75_float/ema/model-220000'
 config.MODEL.task='mscoco'
 config.MODEL.min_overlap=0.7
 config.MODEL.max_box= 100
-config.MODEL.offset= True
+
 config.MODEL.global_stride=4
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml

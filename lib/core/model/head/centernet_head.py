@@ -98,7 +98,6 @@ class CenternetHead():
 
         kps=_head_conv(split_fm,dim=128,child_scope='kps')
 
-        ##we share the params between wh and offside
         wh = _head_conv(split_fm, dim=64, child_scope='wh')
 
         return kps,wh
@@ -267,7 +266,7 @@ class CenternetHeadLight():
 
 
                 wh = slim.conv2d(pre_fm,
-                                 2,
+                                 4,
                                  [1, 1],
                                  stride=1,
                                  activation_fn=None,
@@ -276,21 +275,9 @@ class CenternetHeadLight():
                                  biases_initializer=tf.initializers.constant(0.),
                                  scope='centernet_wh_output')
 
-                if cfg.MODEL.offset:
 
-                    reg = slim.conv2d(pre_fm,
-                                      2,
-                                      [1, 1],
-                                      stride=1,
-                                      activation_fn=None,
-                                      normalizer_fn=None,
-                                      weights_initializer=tf.initializers.random_normal(stddev=0.001),
-                                      biases_initializer=tf.initializers.constant(0.),
-                                      scope='centernet_reg_output')
-                else:
-                    reg = None
 
-        return kps, wh, reg
+        return kps, wh
 
 
 
@@ -378,20 +365,20 @@ class CenternetHeadLight():
 
         c2, c3, c4, c5 = fms
 
-        c5_upsample = self._complex_upsample(c5, input_dim=128, output_dim=dim, scope='c5_upsample')
-        c4 = slim.conv2d(c4, dim, [1, 1], padding='SAME', scope='c4_1x1')
-        p4 = tf.concat([c4, c5_upsample], axis=3)
-        p4 = self._shuffle(p4, 4)
+        c5_upsample = self._complex_upsample(c5, input_dim=128, output_dim=64, scope='c5_upsample')
+        c4 = slim.conv2d(c4, 64, [1, 1], padding='SAME', scope='c4_1x1')
+        p4 = c4+c5_upsample
 
-        c4_upsample = self._complex_upsample(p4, input_dim=dim * 2, output_dim=32, scope='c4_upsample')
+
+        c4_upsample = self._complex_upsample(p4, input_dim=64 , output_dim=32, scope='c4_upsample')
         c3 = slim.conv2d(c3, 32, [1, 1], padding='SAME', scope='c3_1x1')
-        p3 = tf.concat([c3, c4_upsample], axis=3)
-        p3 = self._shuffle(p3, 4)
+        p3 = c3+c4_upsample
 
-        c3_upsample = self._complex_upsample(p3, input_dim=64, output_dim=24, scope='c3_upsample')
+
+        c3_upsample = self._complex_upsample(p3, input_dim=32, output_dim=24, scope='c3_upsample')
         c2 = slim.separable_conv2d(c2, 24, [3, 3], padding='SAME', scope='c2_1x1')
-        p2 = tf.concat([c2, c3_upsample], axis=3)
-        p2 = self._shuffle(p2, 4)
+        p2 = c2+c3_upsample
+
         return p2
 
     def _shuffle(self,z,group=2):

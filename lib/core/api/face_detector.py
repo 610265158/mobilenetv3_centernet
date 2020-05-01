@@ -24,8 +24,9 @@ class FaceDetector:
             #self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
             self.output_op=tf.get_default_graph().get_tensor_by_name('tower_0/detections:0')
 
-            self.output_kps=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0'),
+            self.output_kps=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0')
 
+            self.wh = tf.get_default_graph().get_tensor_by_name('tower_0/wh:0')
 
     def __call__(self, image, score_threshold=0.5,input_shape=(cfg.DATA.hin,cfg.DATA.win),max_boxes=1000):
         """Detect faces.
@@ -59,19 +60,29 @@ class FaceDetector:
 
         image_fornet = np.expand_dims(image, 0)
 
-        outputs,kps = self._sess.run(
-            [self.output_op,self.output_kps], feed_dict={self.input_image: image_fornet}
+        outputs,kps,wh = self._sess.run(
+            [self.output_op,self.output_kps,self.wh], feed_dict={self.input_image: image_fornet}
         )
 
         bboxes=outputs[0]
 
+        print(kps.shape)
+        kps=kps[0][:,:,0]
 
-
-        kps=kps[0][0][:,:,0]
         label =kps
         #label = (label / np.max(label) * 255).astype(np.uint8)
         cv2.namedWindow('label', 0)
         cv2.imshow('label', label)
+
+        wh = wh[0][:, :, 0]
+
+        print(np.min(wh))
+        print(np.max(wh))
+        wh = wh / np.max(wh)
+        wh = wh
+        # label = (label / np.max(label) * 255).astype(np.uint8)
+        cv2.namedWindow('wh', 0)
+        cv2.imshow('wh', wh)
 
 
         bboxes = self.py_nms(np.array(bboxes), iou_thres=None, score_thres=score_threshold,max_boxes=max_boxes)
@@ -91,7 +102,7 @@ class FaceDetector:
 
 
 
-        self.stats_graph(self._sess.graph)
+        #self.stats_graph(self._sess.graph)
         return bboxes
 
 

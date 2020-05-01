@@ -130,7 +130,7 @@ class trainner():
     def add_summary(self, event):
         self.summaries.append(event)
 
-    def tower_loss(self, scope, images, kps_hm_, wh_, reg_, ind_, regmask_, L2_reg, training):
+    def tower_loss(self,scope, images, kps_hm_, wh_,weights_,L2_reg, training):
         """Calculate the total loss on a single tower running the model.
 
         Args:
@@ -145,20 +145,21 @@ class trainner():
         # Build the portion of the Graph calculating the losses. Note that we will
         # assemble the total_loss using a custom function below.
 
-        if cfg.MODEL.task == 'face':
+        if cfg.MODEL.task=='face':
             centernet = CenternetFace()
         else:
-            centernet = Centernet()
+            centernet=Centernet()
+
 
         if cfg.TRAIN.lock_basenet_bn:
-            hm_loss, wh_loss, reg_loss = centernet.forward(images, kps_hm_, wh_, reg_, ind_, regmask_, L2_reg, False)
+            hm_loss,wh_loss=centernet.forward(images,kps_hm_, wh_,weights_, L2_reg, False)
         else:
-            hm_loss, wh_loss, reg_loss = centernet.forward(images, kps_hm_, wh_, reg_, ind_, regmask_, L2_reg, False)
+            hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_,L2_reg, training)
 
-        # reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
+        #reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
         regularization_losses = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES), name='l2_loss')
 
-        return hm_loss, wh_loss, reg_loss, regularization_losses
+        return hm_loss,wh_loss,regularization_losses
 
     def average_gradients(self, tower_grads):
         """Calculate the average gradient for each shared variable across all towers.
@@ -202,7 +203,6 @@ class trainner():
         return average_grads
 
     def build(self):
-
         with self._graph.as_default(), tf.device('/cpu:0'):
 
             # Create an optimizer that performs gradient descent.
@@ -216,9 +216,9 @@ class trainner():
             images_place_holder_list = []
             hm_gt_place_holder_list = []
             wh_gt_place_holder_list = []
-            reg_place_holder_list = []
-            ind_place_holder_list = []
-            regmask_place_holder_list = []
+            weights_place_holder_list = []
+
+
 
             weights_initializer = slim.xavier_initializer()
             biases_initializer = tf.constant_initializer(0.)
@@ -233,37 +233,28 @@ class trainner():
                         with tf.name_scope('tower_%d' % (i)) as scope:
                             with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
                                 if cfg.MODEL.deployee:
-                                    images_ = tf.placeholder(tf.float32,
-                                                             [1, cfg.DATA.hin, cfg.DATA.win, cfg.DATA.channel],
-                                                             name="images")
+                                    images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
                                 else:
-                                    ###fix size
-                                    images_ = tf.placeholder(tf.float32, [None,None,None, cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.float32, [None, None,None, cfg.DATA.channel],
                                                              name="images")
 
                                 hm_ = tf.placeholder(tf.float32,
-                                                     [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
-                                                     name="heatmap_target")
-                                wh_ = tf.placeholder(tf.float32,
-                                                     [cfg.TRAIN.batch_size, None, 2],
-                                                     name="wh_target")
-                                reg_ = tf.placeholder(tf.float32,
-                                                      [cfg.TRAIN.batch_size, None, 2],
-                                                      name="reg_target")
-                                ind_ = tf.placeholder(tf.float32,
-                                                      [cfg.TRAIN.batch_size, None],
-                                                      name="ind_target")
-                                regmask_ = tf.placeholder(tf.float32,
-                                                          [cfg.TRAIN.batch_size, None],
-                                                          name="regmask_target")
+                                                         [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
+                                                         name="heatmap_target")
+                                wh_=tf.placeholder(tf.float32,
+                                                         [cfg.TRAIN.batch_size, None,None, 4],
+                                                         name="wh_target")
+                                weight_ = tf.placeholder(tf.float32,
+                                                     [cfg.TRAIN.batch_size, None,None, 1],
+                                                     name="reg_target")
+
                                 ###total anchor
 
                                 images_place_holder_list.append(images_)
                                 hm_gt_place_holder_list.append(hm_)
                                 wh_gt_place_holder_list.append(wh_)
-                                reg_place_holder_list.append(reg_)
-                                ind_place_holder_list.append(ind_)
-                                regmask_place_holder_list.append(regmask_)
+                                weights_place_holder_list.append(weight_)
+
                                 with slim.arg_scope([slim.conv2d, slim.conv2d_in_plane, \
                                                      slim.conv2d_transpose, slim.separable_conv2d,
                                                      slim.fully_connected],
@@ -271,14 +262,14 @@ class trainner():
                                                     biases_regularizer=biases_regularizer,
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
-                                    hm_loss, wh_loss, reg_loss, l2_loss = self.tower_loss(
-                                        scope, images_, hm_, wh_, reg_, ind_, regmask_, L2_reg, training)
+                                    hm_loss, wh_loss, l2_loss = self.tower_loss(
+                                        scope, images_, hm_, wh_,weight_, L2_reg, training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
-                                        total_loss = tf.add_n([hm_loss, wh_loss, reg_loss, l2_loss])
+                                        total_loss = tf.add_n([hm_loss, wh_loss, l2_loss])
                                     else:
-                                        total_loss = tf.add_n([hm_loss, wh_loss, reg_loss])
+                                        total_loss = tf.add_n([hm_loss, wh_loss])
                                 total_loss_to_show += total_loss
                                 # Reuse variables for the next tower.
                                 tf.get_variable_scope().reuse_variables()
@@ -308,7 +299,6 @@ class trainner():
             self.add_summary(tf.summary.scalar('total_loss', total_loss_to_show))
             self.add_summary(tf.summary.scalar('hm_loss', hm_loss))
             self.add_summary(tf.summary.scalar('wh_loss', wh_loss))
-            self.add_summary(tf.summary.scalar('reg_loss', reg_loss))
             self.add_summary(tf.summary.scalar('l2_loss', l2_loss))
 
             # Add histograms for gradients.
@@ -333,28 +323,27 @@ class trainner():
             else:
                 train_op = tf.group(apply_gradient_op, *bn_update_ops)
 
+
+
             ###set inputs and ouputs
             self.inputs = [images_place_holder_list,
                            hm_gt_place_holder_list,
                            wh_gt_place_holder_list,
-                           reg_place_holder_list,
-                           ind_place_holder_list,
-                           regmask_place_holder_list,
+                           weights_place_holder_list,
                            L2_reg,
                            training]
             self.outputs = [train_op,
                             total_loss_to_show,
                             hm_loss,
                             wh_loss,
-                            reg_loss,
                             l2_loss,
                             lr]
             self.val_outputs = [total_loss_to_show,
                                 hm_loss,
                                 wh_loss,
-                                reg_loss,
                                 l2_loss,
                                 lr]
+
 
             tf_config = tf.ConfigProto(
                 allow_soft_placement=True,
@@ -365,7 +354,7 @@ class trainner():
             ##init all variables
             init = tf.global_variables_initializer()
             self.sess.run(init)
-            ######
+
 
     def save(self):
         """Train faces data for a number of epoch."""
