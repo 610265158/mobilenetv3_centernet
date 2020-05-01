@@ -8,15 +8,27 @@ import math
 import cv2
 from train_config import config as cfg
 
+def safe_box(bboxes,klasses):
+    safe_box=[]
+    safe_klass=[]
+    for i in range(bboxes.shape[0]):
+        cur_box=bboxes[i]
+        cur_klass=klasses[i]
+        x_min, y_min, x_max, y_max = cur_box[0], cur_box[1], cur_box[ 2], cur_box[ 3]
+
+        if x_min<x_max  and y_min<y_max:
+            safe_box.append(cur_box)
+            safe_klass.append(cur_klass)
+
+
+    return np.array(safe_box),np.array(safe_klass)
 
 def bbox_areas(bboxes, keep_axis=False):
 
     x_min, y_min, x_max, y_max = bboxes[:, 0], bboxes[:, 1], bboxes[:, 2], bboxes[:, 3]
 
     areas = (y_max - y_min + 1) * (x_max - x_min + 1)
-    areas+=0.000001
 
-    areas[areas<0]=0.00000001
     if keep_axis:
         return areas[:, None]
     return areas
@@ -126,7 +138,7 @@ class CenternetDatasampler:
             box_target: tensor, tensor <=> img, (4, h, w) or (80 * 4, h, w).
             reg_weight: tensor, same as box_target
         """
-
+        gt_boxes,gt_labels=safe_box(gt_boxes, gt_labels)
 
 
         img_h,img_w,_c=image.shape

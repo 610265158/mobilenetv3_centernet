@@ -374,9 +374,9 @@ class CenternetHeadLight():
 
         c2, c3, c4, c5 = fms
 
-        c5_upsample = self._complex_upsample(c5, input_dim=128, output_dim=64, scope='c5_upsample')
+        c5_upsample = self._complex_upsample(c5, input_dim=128, output_dim=48, scope='c5_upsample')
         c4 = self._group_sep_conv(c4,
-                                  64,
+                                  48,
                                   [3, 3],
                                   stride=1,
                                   group=4,
@@ -384,9 +384,9 @@ class CenternetHeadLight():
         p4 = c4+c5_upsample
 
 
-        c4_upsample = self._complex_upsample(p4, input_dim=64 , output_dim=32, scope='c4_upsample')
+        c4_upsample = self._complex_upsample(p4, input_dim=48 , output_dim=24, scope='c4_upsample')
         c3 = self._group_sep_conv(c3,
-                                  32,
+                                  24,
                                   [3, 3],
                                   stride=1,
                                   group=4,
