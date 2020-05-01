@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="451d1601-c330-4744-b03f-3b79698361ce" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/configs/face/face_mbv3_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/face/face_mbv3_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/mscoco/mbv3_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/mscoco/mbv3_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/dataset/ttf_net_data_sampler.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dataset/ttf_net_data_sampler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_config.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/core/model/head/centernet_head.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="720">
+              <caret line="403" column="27" lean-forward="true" selection-start-line="403" selection-start-column="27" selection-end-line="403" selection-end-column="27" />
+              <folding>
+                <element signature="e#23#46#0" expanded="true" />
+                <element signature="e#440#2043#0" />
+                <element signature="e#2092#4110#0" />
+                <element signature="e#4245#4688#0" />
+                <element signature="e#4772#5259#0" />
+                <element signature="e#5341#6266#0" />
+                <element signature="e#6346#7092#0" />
+                <element signature="e#7155#8385#0" />
+                <element signature="e#8430#9142#0" />
+                <element signature="e#9180#10793#0" />
+                <element signature="e#10895#12791#0" />
+                <element signature="e#10944#12643#0" />
+                <element signature="e#12876#13438#0" />
+                <element signature="e#13522#13747#0" />
+                <element signature="e#13829#14398#0" />
+                <element signature="e#14059#14724#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/configs/mscoco/mbv3_config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="627">
+              <caret line="62" column="21" selection-start-line="62" selection-start-column="19" selection-end-line="62" selection-end-column="21" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/dataset/ttf_net_data_sampler.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="437">
+              <caret line="66" column="35" selection-start-line="66" selection-start-column="35" selection-end-line="66" selection-end-column="35" />
+              <folding>
+                <element signature="e#164#418#0" />
+                <element signature="e#474#1394#0" />
+                <element signature="e#1442#1745#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/configs/face/face_mbv3_config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="646">
+              <caret line="36" column="21" selection-start-line="36" selection-start-column="19" selection-end-line="36" selection-end-column="21" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/train_config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="133">
+              <caret line="7" selection-start-line="7" selection-end-line="7" />
+              <folding>
+                <element signature="e#21#30#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>keypoints</find>
+      <find>print</find>
+      <find>cover_obj</find>
+      <find>max_x</find>
+    </findStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/mobilnet_v3.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/backbone.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/net/shufflenet/shufflenetv2.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/net/shufflenet/backbone.py" />
+        <option value="$PROJECT_DIR$/configs/mscoco/shufflenet_config.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/loss/tensorflow_detection/box_list.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/loss/tensorflow_detection/box_list_op.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/loss/giou.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/loss/tensorflow_detection/box_list_ops.py" />
+        <option value="$PROJECT_DIR$/tools/centernet_for_freeze_bn.py" />
+        <option value="$PROJECT_DIR$/lib/core/api/face_detector.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/loss/iouloss.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/centernet_face.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/loss/centernet_loss.py" />
+        <option value="$PROJECT_DIR$/tmp.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/centernet.py" />
+        <option value="$PROJECT_DIR$/lib/dataset/ttf_net_data_sampler.py" />
+        <option value="$PROJECT_DIR$/configs/mscoco/mbv3_config.py" />
+        <option value="$PROJECT_DIR$/configs/face/face_mbv3_config.py" />
+        <option value="$PROJECT_DIR$/train_config.py" />
+        <option value="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="65" />
+    <option name="y" value="24" />
+    <option name="width" value="1855" />
+    <option name="height" value="1056" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="mobile_centernet" type="b2602c69:ProjectViewProjectNode" />
+              <item name="mobile_centernet" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="451d1601-c330-4744-b03f-3b79698361ce" name="Default Changelist" comment="" />
+      <created>1588082542650</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1588082542650</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24959038" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="10" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/prepare_coco_data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="11" column="23" lean-forward="true" selection-start-line="11" selection-start-column="23" selection-end-line="11" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/net/shufflenet/shufflenetv2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1406">
+          <caret line="76" column="49" selection-start-line="76" selection-start-column="39" selection-end-line="76" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/net/mobilenetv3/mobilnet_v3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="422">
+          <caret line="147" column="39" selection-start-line="146" selection-start-column="10" selection-end-line="147" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/net/mobilenetv3/backbone.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-467">
+          <caret line="20" column="33" selection-start-line="20" selection-start-column="27" selection-end-line="20" selection-end-column="33" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/net/shufflenet/backbone.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="19" column="93" selection-start-line="19" selection-start-column="93" selection-end-line="19" selection-end-column="93" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/configs/mscoco/shufflenet_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="53" column="24" selection-start-line="53" selection-start-column="24" selection-end-line="53" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/loss/tensorflow_detection/box_list.py" />
+    <entry file="file://$PROJECT_DIR$/lib/core/model/loss/tensorflow_detection/box_list_ops.py" />
+    <entry file="file://$PROJECT_DIR$/lib/core/model/loss/giou.py" />
+    <entry file="file://$PROJECT_DIR$/tools/centernet_for_freeze_bn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3029">
+          <caret line="355" column="31" selection-start-line="355" selection-start-column="31" selection-end-line="355" selection-end-column="31" />
+          <folding>
+            <element signature="e#5942#7616#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/auto_freeze.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/base_trainer/net_work.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1786">
+          <caret line="508" column="21" selection-start-line="508" selection-start-column="12" selection-end-line="508" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/dataset/dataietr.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="423">
+          <caret line="178" column="50" selection-start-line="178" selection-start-column="45" selection-end-line="178" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/dataset/centernet_data_sampler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="570">
+          <caret line="76" column="12" selection-start-line="76" selection-start-column="12" selection-end-line="76" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/api/face_detector.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="597">
+          <caret line="79" column="20" selection-start-line="79" selection-start-column="20" selection-end-line="79" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tmp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="549">
+          <caret line="100" selection-start-line="100" selection-end-line="100" />
+          <folding>
+            <element signature="e#382#400#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/centernet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="355">
+          <caret line="45" column="37" selection-start-line="45" selection-start-column="37" selection-end-line="45" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/centernet_face.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="673">
+          <caret line="141" column="37" selection-start-line="72" selection-end-line="141" selection-end-column="37" />
+          <folding>
+            <element signature="e#2535#5090#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/loss/iouloss.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="426">
+          <caret line="50" column="12" selection-start-line="50" selection-start-column="4" selection-end-line="50" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/loss/centernet_loss.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="780">
+          <caret line="71" selection-start-line="71" selection-end-line="71" />
+          <folding>
+            <element signature="e#22#45#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/dataset/ttf_net_data_sampler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="437">
+          <caret line="66" column="35" selection-start-line="66" selection-start-column="35" selection-end-line="66" selection-end-column="35" />
+          <folding>
+            <element signature="e#164#418#0" />
+            <element signature="e#474#1394#0" />
+            <element signature="e#1442#1745#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/configs/mscoco/mbv3_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="627">
+          <caret line="62" column="21" selection-start-line="62" selection-start-column="19" selection-end-line="62" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/configs/face/face_mbv3_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="646">
+          <caret line="36" column="21" selection-start-line="36" selection-start-column="19" selection-end-line="36" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/core/model/head/centernet_head.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="720">
+          <caret line="403" column="27" lean-forward="true" selection-start-line="403" selection-start-column="27" selection-end-line="403" selection-end-column="27" />
+          <folding>
+            <element signature="e#23#46#0" expanded="true" />
+            <element signature="e#440#2043#0" />
+            <element signature="e#2092#4110#0" />
+            <element signature="e#4245#4688#0" />
+            <element signature="e#4772#5259#0" />
+            <element signature="e#5341#6266#0" />
+            <element signature="e#6346#7092#0" />
+            <element signature="e#7155#8385#0" />
+            <element signature="e#8430#9142#0" />
+            <element signature="e#9180#10793#0" />
+            <element signature="e#10895#12791#0" />
+            <element signature="e#10944#12643#0" />
+            <element signature="e#12876#13438#0" />
+            <element signature="e#13522#13747#0" />
+            <element signature="e#13829#14398#0" />
+            <element signature="e#14059#14724#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="133">
+          <caret line="7" selection-start-line="7" selection-end-line="7" />
+          <folding>
+            <element signature="e#21#30#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

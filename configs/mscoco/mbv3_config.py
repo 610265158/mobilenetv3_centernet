@@ -24,11 +24,11 @@ config.TRAIN.val_set_size=5000             ###widerface val size
 config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.num_gpu // config.TRAIN.batch_size
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
-config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00025,0.000025,0.0000025,0.00000025]        ##warm up is used
+config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.001,0.0001,0.00001,0.000001]        ##warm up is used
 config.TRAIN.lr_decay_every_step = [500,1000,300000,400000,450000]
 config.TRAIN.lr_decay_every_step = [int(x//config.TRAIN.num_gpu) for x  in [500,1000,300000,400000,450000]]
 config.TRAIN.opt='adam'
-config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
+config.TRAIN.weight_decay_factor = 1.e-5                  ##l2 regular
 config.TRAIN.vis=False                                    ##check data flag
 config.TRAIN.mix_precision=False
 
@@ -59,7 +59,8 @@ config.DATA.use_int8_data=True
 config.DATA.use_int8_enlarge=255.           ### use uint8 for heatmap generate for less memory acc, to speed up
 config.DATA.max_objs=128
 config.DATA.cracy_crop=0.3
-
+config.DATA.alpha=0.45
+config.DATA.beta=0.45
 ##mobilenetv3 as basemodel
 config.MODEL = edict()
 config.MODEL.continue_train=False          ### revover from a trained model

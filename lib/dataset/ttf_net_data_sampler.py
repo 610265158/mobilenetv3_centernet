@@ -63,8 +63,8 @@ def torch_style_topK(matrix, K, axis=0):
 
 class CenternetDatasampler:
     def __init__(self,
-                 alpha=0.54,
-                 beta=0.54,
+                 alpha=cfg.DATA.alpha,
+                 beta=cfg.DATA.beta,
                  wh_agnostic=True,
                  wh_gaussian=True,
                  wh_area_process='log',

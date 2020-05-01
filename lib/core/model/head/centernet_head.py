@@ -6,11 +6,6 @@ import tensorflow.contrib.slim as slim
 from lib.core.model.net.arg_scope.resnet_args_cope import resnet_arg_scope
 from train_config import config as cfg
 
-from lib.core.model.net.mobilenetv3.mobilnet_v3 import hard_swish
-from tensorflow.python.ops.init_ops import Initializer
-
-import numpy as np
-import math
 
 
 class CenternetHead():
@@ -100,7 +95,7 @@ class CenternetHead():
 
         wh = _head_conv(split_fm, dim=64, child_scope='wh')
 
-        return kps,wh
+        return kps,wh*16
 
     def _complex_upsample(self,fm,input_dim,output_dim, scope='upsample'):
         with tf.variable_scope(scope):
@@ -122,7 +117,6 @@ class CenternetHead():
         upsampled_conv = slim.separable_conv2d(fm,
                                                dim,
                                                [k_size, k_size],
-                                               activation_fn=hard_swish,
                                                padding='SAME',
                                                scope=scope)
 
@@ -148,7 +142,6 @@ class CenternetHead():
                                                        dim//group,
                                                        [4, 4],
                                                        stride=2,
-                                                       activation_fn=hard_swish,
                                                        padding='SAME',
                                                        scope=scope+'group_%d'%i)
             deconv_fms.append(cur_upsampled_conv)
@@ -167,7 +160,6 @@ class CenternetHead():
                                                        out_dims // group,
                                                        k_size,
                                                        stride=stride,
-                                                       activation_fn=hard_swish,
                                                        padding='SAME',
                                                        scope=scope + 'group_%d' % i)
             conv_fms.append(cur_upsampled_conv)
@@ -277,7 +269,7 @@ class CenternetHeadLight():
 
 
 
-        return kps, wh
+        return kps, wh*16
 
 
 
@@ -287,14 +279,15 @@ class CenternetHeadLight():
             with tf.variable_scope(scope + child_scope):
                 x,y,z,l=fms
                 x = slim.max_pool2d(x, kernel_size=3, stride=1, padding='SAME')
-                x = slim.separable_conv2d(x, dim // 4, kernel_size=[3, 3], stride=1, scope='branchx_3x3_pre',
-                                          activation_fn=tf.nn.relu,
-                                          normalizer_fn=None,
-                                          biases_initializer=tf.initializers.constant(0.),
-                                          )
+                x = slim.conv2d(x, dim // 4, kernel_size=[1, 1], stride=1, scope='branchx_1x1_max',
+                                activation_fn=None,
+                                normalizer_fn=None,
+                                biases_initializer=tf.initializers.constant(0.),
+                                )
 
-                y = slim.conv2d(y, dim // 4, kernel_size=[1, 1], stride=1, scope='branchy_3x3_pre',
-                                activation_fn=tf.nn.relu,
+                y = slim.avg_pool2d(y, kernel_size=3, stride=1, padding='SAME')
+                y = slim.conv2d(y, dim // 4, kernel_size=[1, 1], stride=1, scope='branchy_1x1_avg',
+                                activation_fn=None,
                                 normalizer_fn=None,
                                 biases_initializer=tf.initializers.constant(0.),
                                 )
@@ -316,7 +309,7 @@ class CenternetHeadLight():
 
         split_fm = tf.split(fm, num_or_size_splits=4, axis=3)
 
-        pre_fm=_head_conv(split_fm,dim=32,child_scope='kps')
+        pre_fm=_head_conv(split_fm,dim=24,child_scope='prefm')
 
         return pre_fm
 
@@ -360,23 +353,54 @@ class CenternetHeadLight():
         deconv_fm= tf.concat(deconv_fms, axis=3)
 
         return deconv_fm
+    def _group_sep_conv(self,fm,out_dims,k_size,stride,group,scope):
 
+        sliced_fms = tf.split(fm, num_or_size_splits=group, axis=3)
+
+        conv_fms = []
+        for i in range(group):
+            cur_upsampled_conv = slim.separable_conv2d(sliced_fms[i],
+                                                       out_dims // group,
+                                                       k_size,
+                                                       stride=stride,
+                                                       padding='SAME',
+                                                       scope=scope + 'group_%d' % i)
+            conv_fms.append(cur_upsampled_conv)
+
+        conv_fm = tf.concat(conv_fms, axis=3)
+
+        return conv_fm
     def _unet_magic(self, fms, dim=64):
 
         c2, c3, c4, c5 = fms
 
         c5_upsample = self._complex_upsample(c5, input_dim=128, output_dim=64, scope='c5_upsample')
-        c4 = slim.conv2d(c4, 64, [1, 1], padding='SAME', scope='c4_1x1')
+        c4 = self._group_sep_conv(c4,
+                                  64,
+                                  [3, 3],
+                                  stride=1,
+                                  group=4,
+                                  scope='c4_1x1')
         p4 = c4+c5_upsample
 
 
         c4_upsample = self._complex_upsample(p4, input_dim=64 , output_dim=32, scope='c4_upsample')
-        c3 = slim.conv2d(c3, 32, [1, 1], padding='SAME', scope='c3_1x1')
+        c3 = self._group_sep_conv(c3,
+                                  32,
+                                  [3, 3],
+                                  stride=1,
+                                  group=4,
+                                  scope='c3_1x1')
         p3 = c3+c4_upsample
 
 
         c3_upsample = self._complex_upsample(p3, input_dim=32, output_dim=24, scope='c3_upsample')
-        c2 = slim.separable_conv2d(c2, 24, [3, 3], padding='SAME', scope='c2_1x1')
+        c2 = self._group_sep_conv(c2,
+                                  24,
+                                  [3, 3],
+                                  stride=1,
+                                  group=4,
+                                  scope='c2_1x1')
         p2 = c2+c3_upsample
 
         return p2

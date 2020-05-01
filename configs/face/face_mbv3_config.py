@@ -28,10 +28,10 @@ config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.001,0.0001,0.000001,0.00000
 config.TRAIN.lr_decay_every_step = [500,1000,60000,80000,100000]
 
 config.TRAIN.opt='adam'
-config.TRAIN.weight_decay_factor = 5.e-5                 ##l2 regular
+config.TRAIN.weight_decay_factor = 5.e-5                ##l2 regular
 config.TRAIN.vis=False                                    ##check data flag
 config.TRAIN.mix_precision=False
-config.TRAIN.gradient_clip=True
+config.TRAIN.gradient_clip=False
 
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
@@ -48,11 +48,11 @@ config.DATA.num_class = config.DATA.num_category       # +1 background
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
 
-config.DATA.hin = 416  # input size
-config.DATA.win = 416
+config.DATA.hin = 512  # input size
+config.DATA.win = 512
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
-config.DATA.cover_obj=4                        ###cover the small objs
+config.DATA.cover_obj=6                        ###cover the small objs
 config.DATA.max_objs=1333
 
 
@@ -61,7 +61,8 @@ config.DATA.scales=(320,640)
 config.DATA.use_int8_data=True            ### we use uint8 data to decrease memery access to speed up
 config.DATA.use_int8_enlarge=255.
 config.DATA.cracy_crop=0.3
-
+config.DATA.alpha=0.45*2
+config.DATA.beta=0.45
 ##mobilenetv3 as basemodel
 config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
