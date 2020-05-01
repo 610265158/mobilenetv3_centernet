@@ -105,13 +105,8 @@ class trainner():
                 training_flag = True
                 if cfg.TRAIN.frozen_stages>=0:
 
-                    if '%s/conv1'%cfg.MODEL.net_structure in v.name:
+                    if '%s/Conv/'%cfg.MODEL.net_structure in v.name:
                         training_flag=False
-
-                for i in range(1,1+cfg.TRAIN.frozen_stages):
-                    if '%s/block%d'%(cfg.MODEL.net_structure,i) in v.name:
-                        training_flag=False
-                        break
 
                 if training_flag:
                     variables_need_grads.append(v)
