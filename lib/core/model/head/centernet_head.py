@@ -173,31 +173,26 @@ class CenternetHead():
         c2, c3, c4, c5 = fms
 
         c5_upsample = self._complex_upsample(c5, input_dim=480,output_dim=dims[0], scope='c5_upsample')
-        c4 = self._group_sep_conv(c4,
-                                  dims[0],
-                                  [3, 3],
-                                  stride=1,
-                                  group=4,
-                                  scope='c4_1x1')
+        c4 = slim.conv2d(c4,
+                          dims[0],
+                          [1, 1],
+                          scope='c4_1x1')
         p4 = c4+c5_upsample
 
 
         c4_upsample = self._complex_upsample(p4, input_dim=dims[0], output_dim=dims[1], scope='c4_upsample')
-        c3 = self._group_sep_conv(c3,
-                                  dims[1],
-                                  [3, 3],
-                                  stride=1,
-                                  group=4,
-                                  scope='c3_1x1')
+        c3 = slim.conv2d(c3,
+                          dims[1],
+                          [1, 1],
+                          scope='c3_1x1')
         p3 =c3+c4_upsample
 
 
         c3_upsample = self._complex_upsample(p3,  input_dim=dims[1],output_dim=dims[2], scope='c3_upsample')
-        c2 = self._group_sep_conv(c2,
+        c2 =slim.separable_conv2d(c2,
                                   dims[2],
                                   [3, 3],
                                   stride=1,
-                                  group=4,
                                   scope='c2_3x3')
         p2 = c2+c3_upsample
 
@@ -333,26 +328,6 @@ class CenternetHeadLight():
 
         return upsampled_conv
 
-    def _upsample_group_deconv(self, fm,dim,group=4, scope='upsample'):
-        '''
-        group devonc
-
-        :param fm: input feature
-        :param dim: input dim , should be n*group
-        :param group:
-        :param scope:
-        :return:
-        '''
-        sliced_fms=tf.split(fm, num_or_size_splits=group, axis=3)
-
-        deconv_fms=[]
-        for i in range(group):
-            cur_upsampled_conv = slim.conv2d_transpose(sliced_fms[i], dim//group, [4, 4], stride=2, padding='SAME', scope=scope+'group_%d'%i)
-            deconv_fms.append(cur_upsampled_conv)
-
-        deconv_fm= tf.concat(deconv_fms, axis=3)
-
-        return deconv_fm
     def _group_sep_conv(self,fm,out_dims,k_size,stride,group,scope):
 
         sliced_fms = tf.split(fm, num_or_size_splits=group, axis=3)
