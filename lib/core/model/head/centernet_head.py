@@ -150,51 +150,21 @@ class CenternetHead():
 
         return deconv_fm
 
-    def _complex_conv(self,fm,out_dims,k_size,stride,group,scope):
-
-        sliced_fms = tf.split(fm, num_or_size_splits=group, axis=3)
-
-        conv_fms = []
-        for i in range(group):
-            cur_upsampled_conv = slim.separable_conv2d(sliced_fms[i],
-                                                       out_dims // group,
-                                                       k_size,
-                                                       stride=stride,
-                                                       padding='SAME',
-                                                       scope=scope + 'group_%d' % i)
-            conv_fms.append(cur_upsampled_conv)
-
-        conv_fm = tf.concat(conv_fms, axis=3)
-
-        return conv_fm
-
-    def _unet_magic(self, fms, dims=[64,48,48]):
+    def _unet_magic(self, fms, dims=[88,96,72]):
 
         c2, c3, c4, c5 = fms
 
         c5_upsample = self._complex_upsample(c5, input_dim=480,output_dim=dims[0], scope='c5_upsample')
-        c4 = slim.conv2d(c4,
-                          dims[0],
-                          [1, 1],
-                          scope='c4_1x1')
         p4 = tf.concat([c4,c5_upsample],axis=3)
-        p4 = self._shuffle(p4, 4)
+        p4 = self._shuffle(p4, 2)
 
-        c4_upsample = self._complex_upsample(p4, input_dim=dims[0], output_dim=dims[1], scope='c4_upsample')
-        c3 = slim.conv2d(c3,
-                          dims[1],
-                          [1, 1],
-                          scope='c3_1x1')
+        c4_upsample = self._complex_upsample(p4, input_dim=dims[0]*2, output_dim=dims[1], scope='c4_upsample')
         p3 = tf.concat([c3,c4_upsample],axis=3)
-        p3 = self._shuffle(p3, 4)
+        p3 = self._shuffle(p3, 2)
 
-        c3_upsample = self._complex_upsample(p3,  input_dim=dims[1],output_dim=dims[2], scope='c3_upsample')
-        c2 =slim.conv2d(c2,
-                      dims[2],
-                      [1, 1],
-                      scope='c2_1x1')
+        c3_upsample = self._complex_upsample(p3,  input_dim=dims[1]*2,output_dim=dims[2], scope='c3_upsample')
         p2 = tf.concat([c2,c3_upsample],axis=3)
-        p2 = self._shuffle(p2, 4)
+        p2 = self._shuffle(p2, 2)
 
         return p2
 

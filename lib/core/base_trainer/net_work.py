@@ -224,7 +224,7 @@ class trainner():
                                 if cfg.MODEL.deployee:
                                     images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.float32, [None, None,None, cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.float32, [None,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
                                 hm_ = tf.placeholder(tf.float32,
