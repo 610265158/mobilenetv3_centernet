@@ -5,6 +5,7 @@ import tensorflow.contrib.slim as slim
 from lib.core.anchor.box_utils import batch_decode,batch_decode_fix
 
 from lib.core.model.net.shufflenet.backbone import shufflenetv2_ssd
+from lib.core.model.net.shufflenet.shufflenetv2plus import ShufflenetV2Plus
 from lib.core.model.net.mobilenetv3.backbone import mobilenetv3_large_detection
 from lib.core.model.net.mobilenet.backbone import mobilenet_ssd
 from lib.core.model.net.resnet.backbone import resnet_ssd
@@ -20,7 +21,7 @@ class Centernet():
 
     def __init__(self,):
         if "ShufflenetV2"  in cfg.MODEL.net_structure:
-            self.backbone=shufflenetv2_ssd                 ### it is a func
+            self.backbone=ShufflenetV2Plus                 ### it is a func
         elif "MobilenetV2" in cfg.MODEL.net_structure:
             self.backbone = mobilenet_ssd
         elif "MobilenetV3" in cfg.MODEL.net_structure:

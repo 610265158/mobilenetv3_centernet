@@ -9,11 +9,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"          ##if u use muti gpu set them v
 config.TRAIN = edict()
 
 #### below are params for dataiter
-config.TRAIN.process_num = 4                      ### process_num for data provider
+config.TRAIN.process_num = 3                      ### process_num for data provider
 config.TRAIN.prefetch_size = 20                  ### prefect Q size for data provider
 
 config.TRAIN.num_gpu = 1                         ##match with   os.environ["CUDA_VISIBLE_DEVICES"]
-config.TRAIN.batch_size = 24                    ###A big batch size may achieve a better result, but the memory is a problem
+config.TRAIN.batch_size = 16                    ###A big batch size may achieve a better result, but the memory is a problem
 config.TRAIN.log_interval = 10
 config.TRAIN.epoch = 300                      ###just keep training , evaluation shoule be take care by yourself,
                                                ### generally 10,0000 iters is enough
@@ -25,12 +25,15 @@ config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.nu
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
 config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00025,0.000025,0.0000025,0.00000025]        ##warm up is used
-config.TRAIN.lr_decay_every_step = [500,1000,300000,400000,450000]
-config.TRAIN.lr_decay_every_step = [int(x//config.TRAIN.num_gpu) for x  in [500,1000,300000,400000,450000]]
+config.TRAIN.lr_decay_every_step = [200,400,200000,300000,400000]
+
+##we have no pretrained model so train it longer
+config.TRAIN.lr_decay_every_step = [int(x*3) for x in [500,1000,300000,400000,450000]]
+
 config.TRAIN.opt='adam'
-config.TRAIN.weight_decay_factor = 5.e-5                  ##l2 regular
-config.TRAIN.vis=True                                    ##check data flag
-config.TRAIN.mix_precision=False
+config.TRAIN.weight_decay_factor = 1.e-4                  ##l2 regular
+config.TRAIN.vis=False                                    ##check data flag
+config.TRAIN.mix_precision=True
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
 config.TRAIN.lock_basenet_bn=False
@@ -59,6 +62,9 @@ config.DATA.use_int8_data=True
 config.DATA.use_int8_enlarge=255.           ### use uint8 for heatmap generate for less memory acc, to speed up
 config.DATA.max_objs=128
 config.DATA.cracy_crop=0.3
+config.DATA.alpha=0.45
+config.DATA.beta=0.45
+
 
 ##mobilenetv3 as basemodel
 config.MODEL = edict()
