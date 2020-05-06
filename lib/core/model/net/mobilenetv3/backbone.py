@@ -32,8 +32,8 @@ def mobilenetv3_large_detection(image,is_training=True):
 
         print(extern_conv)
         mobilebet_fms = [endpoints['layer_5/expansion_output'],
-                         endpoints['layer_8/expansion_output'],
-                         endpoints['layer_14/expansion_output'],
+                         endpoints['layer_7/expansion_output'],
+                         endpoints['layer_13/output'],
                          extern_conv]
 
     return mobilebet_fms
