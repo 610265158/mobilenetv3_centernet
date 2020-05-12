@@ -27,12 +27,10 @@ config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config
 config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00025,0.000025,0.0000025,0.00000025]        ##warm up is used
 config.TRAIN.lr_decay_every_step = [200,400,200000,300000,400000]
 
-##we have no pretrained model so train it longer
-config.TRAIN.lr_decay_every_step = [int(x*3) for x in [500,1000,300000,400000,450000]]
 config.TRAIN.lr_decay='cos'
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 1.e-4                  ##l2 regular
-config.TRAIN.vis=True                                    ##check data flag
+config.TRAIN.vis=False                                    ##check data flag
 config.TRAIN.mix_precision=True
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
@@ -70,7 +68,7 @@ config.DATA.beta=0.45
 config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
-config.MODEL.net_structure='ShufflenetV2' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
+config.MODEL.net_structure='ShuffleNetV2_Plus' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
 config.MODEL.pretrained_model=None#'./v3-large_224_0.75_float/ema/model-220000'
 config.MODEL.task='mscoco'
 config.MODEL.min_overlap=0.7

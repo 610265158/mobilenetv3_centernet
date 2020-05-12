@@ -19,7 +19,7 @@ from lib.core.model.head.centernet_head import CenternetHeadLight
 class CenternetFace():
 
     def __init__(self,):
-        if "ShufflenetV2"  in cfg.MODEL.net_structure:
+        if "ShuffleNetV2_Plus"  in cfg.MODEL.net_structure:
             self.ssd_backbone=shufflenetv2_ssd                 ### it is a func
         elif "MobilenetV2" in cfg.MODEL.net_structure:
             self.ssd_backbone = mobilenet_ssd

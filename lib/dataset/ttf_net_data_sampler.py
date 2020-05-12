@@ -80,7 +80,7 @@ class CenternetDatasampler:
                  wh_agnostic=True,
                  wh_gaussian=True,
                  wh_area_process='log',
-                 down_ratio=4):
+                 down_ratio=cfg.MODEL.global_stride):
 
         assert wh_area_process in [None, 'norm', 'log', 'sqrt']
 

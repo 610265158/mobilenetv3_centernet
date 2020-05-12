@@ -20,7 +20,7 @@ from lib.core.model.head.centernet_head import CenternetHead
 class Centernet():
 
     def __init__(self,):
-        if "ShufflenetV2"  in cfg.MODEL.net_structure:
+        if "ShuffleNetV2_Plus"  in cfg.MODEL.net_structure:
             self.backbone=ShufflenetV2Plus                 ### it is a func
         elif "MobilenetV2" in cfg.MODEL.net_structure:
             self.backbone = mobilenet_ssd
@@ -39,7 +39,7 @@ class Centernet():
             hm_target,wh_target,weights_=self.process_label(hm_target,wh_target,weights_)
 
         ###preprocess
-        inputs=self.preprocess(inputs)
+        #inputs=self.preprocess(inputs)
 
         ### extract feature maps
         origin_fms=self.backbone(inputs,training_flag)
@@ -124,8 +124,6 @@ class Centernet():
             xmax = xs*cfg.MODEL.global_stride + wh[:,:, 2:3]
             ymax = ys*cfg.MODEL.global_stride + wh[:,:, 3:4]
 
-
-            ##mul by stride 4
             bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)
 
 
