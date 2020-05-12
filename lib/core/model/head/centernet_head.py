@@ -6,7 +6,7 @@ import tensorflow.contrib.slim as slim
 from lib.core.model.net.arg_scope.resnet_args_cope import resnet_arg_scope
 from train_config import config as cfg
 
-
+from lib.core.model.sqeeze_excitation.se import se
 
 class CenternetHead():
 
@@ -97,17 +97,17 @@ class CenternetHead():
 
         return kps,wh*16
 
-    def _complex_upsample(self,fm,input_dim,output_dim, scope='upsample'):
+    def _complex_upsample(self,fm,input_dim,output_dim,use_se=True, scope='upsample'):
         with tf.variable_scope(scope):
-            x = fm[:, :, :, :input_dim//2]
-            y = fm[:, :, :, input_dim // 2:]
 
-            x = self._upsample_resize(x, dim=output_dim // 2, k_size=3, scope='branch_x_upsample_resize')
-            y = self._upsample_group_deconv(y,dim=output_dim//2,group=8,scope='branch_y_upsample_deconv')
 
-            final=tf.concat([x,y],axis=3)
+            x = self._upsample_resize(fm, dim=output_dim , k_size=3, scope='branch_x_upsample_resize')
 
-            return final
+            if use_se:
+
+                x=se(x,output_dim)
+
+            return x
 
     def _upsample_resize(self, fm, k_size=5, dim=256, scope='upsample'):
 
@@ -147,14 +147,14 @@ class CenternetHead():
 
         return deconv_fm
 
-    def _unet_magic(self, fms, dims=[64, 64, 64], thickness=128):
+    def _unet_magic(self, fms, dims=[96, 64, 48], thickness=[192,128,96]):
 
         c2, c3, c4, c5 = fms
 
-        c5_upsample = self._complex_upsample(c5, input_dim=416, output_dim=dims[0], scope='c5_upsample')
+        c5_upsample = self._complex_upsample(c5, input_dim=480, output_dim=dims[0], scope='c5_upsample')
 
         c4 = slim.conv2d(c4,
-                         thickness - dims[0],
+                         thickness[0] - dims[0],
                          [1, 1],
                          padding='SAME',
                          scope='c41x1')
@@ -163,7 +163,7 @@ class CenternetHead():
 
         c4_upsample = self._complex_upsample(p4, input_dim=thickness, output_dim=dims[1], scope='c4_upsample')
         c3 = slim.conv2d(c3,
-                         thickness - dims[1],
+                         thickness[1] - dims[1],
                          [1, 1],
                          padding='SAME',
                          scope='c31x1')
@@ -172,7 +172,7 @@ class CenternetHead():
 
         c3_upsample = self._complex_upsample(p3, input_dim=thickness, output_dim=dims[2], scope='c3_upsample')
         c2 = slim.conv2d(c2,
-                         thickness - dims[2],
+                         thickness[2] - dims[2],
                          [1, 1],
                          padding='SAME',
                          scope='c21x1')

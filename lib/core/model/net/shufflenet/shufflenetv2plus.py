@@ -7,24 +7,26 @@ from lib.core.model.net.mobilenetv3.mobilnet_v3 import hard_swish
 
 
 
-def se(fm,input_dim):
+def se(fm,input_dim,scope='really_boring'):
     se=tf.reduce_mean(fm,axis=[1,2],keep_dims=True)
-    se = slim.conv2d(se,
-                     input_dim//4,
-                     [1, 1],
-                     stride=1,
-                     activation_fn=tf.nn.relu,
-                     biases_initializer=None,
-                     normalizer_fn=slim.batch_norm,
-                     scope='conv1x1_se_a')
-    se = slim.conv2d(se,
-                     input_dim,
-                     [1, 1],
-                     stride=1,
-                     activation_fn=None,
-                     normalizer_fn=None,
-                     biases_initializer=None,
-                     scope='conv1x1_se_b')
+
+    with tf.variable_scope(scope):
+        se = slim.conv2d(se,
+                         input_dim//4,
+                         [1, 1],
+                         stride=1,
+                         activation_fn=tf.nn.relu,
+                         biases_initializer=None,
+                         normalizer_fn=slim.batch_norm,
+                         scope='SE_opr/1')
+        se = slim.conv2d(se,
+                         input_dim,
+                         [1, 1],
+                         stride=1,
+                         activation_fn=None,
+                         normalizer_fn=None,
+                         biases_initializer=None,
+                         scope='SE_opr/4')
 
     se=tf.nn.relu6(se+3.)/6.
 
@@ -32,12 +34,34 @@ def se(fm,input_dim):
 
 
 def shuffle(z):
+    # with tf.name_scope('shuffle_split'):
+    #     shape = tf.shape(z)
+    #     batch_size = shape[0]
+    #     height, width = z.shape[1].value, z.shape[2].value
+    #
+    #     depth = z.shape[3].value
+    #
+    #     if cfg.MODEL.deployee:
+    #         z = tf.reshape(z, [ height, width, 2, depth//2])  # shape [batch_size, height, width, 2, depth]
+    #
+    #         z = tf.transpose(z, [0, 1, 3, 2])
+    #
+    #     else:
+    #         z = tf.reshape(z, [batch_size, height, width, 2, depth//2])# shape [batch_size, height, width, 2, depth]
+    #
+    #         z = tf.transpose(z, [0, 1, 2, 4, 3])
+    #
+    #     z = tf.reshape(z, [batch_size, height, width, depth])
+    #     x, y = tf.split(z, num_or_size_splits=2, axis=3)
+    #     return x, y
     with tf.name_scope('shuffle_split'):
+        z=tf.transpose(z,perm=[0,3,1,2])
+
         shape = tf.shape(z)
         batch_size = shape[0]
-        height, width = shape[1], shape[2]
+        height, width = z.shape[2].value, z.shape[3].value
 
-        depth = z.shape[3].value
+        depth = z.shape[1].value
 
         if cfg.MODEL.deployee:
             z = tf.reshape(z, [ height, width, 2, depth//2])  # shape [batch_size, height, width, 2, depth]
@@ -45,16 +69,103 @@ def shuffle(z):
             z = tf.transpose(z, [0, 1, 3, 2])
 
         else:
-            z = tf.reshape(z, [batch_size, height, width, 2, depth//2])# shape [batch_size, height, width, 2, depth]
+            z = tf.reshape(z, [batch_size*depth//2,2, height* width])# shape [batch_size, height, width, 2, depth]
 
-            z = tf.transpose(z, [0, 1, 2, 4, 3])
+            z = tf.transpose(z, [1,0,2])
+            z = tf.reshape(z, [2,-1, depth // 2, height , width])
 
-        z = tf.reshape(z, [batch_size, height, width, depth])
-        x, y = tf.split(z, num_or_size_splits=2, axis=3)
+        x, y = tf.split(z, num_or_size_splits=2, axis=0)
+
+
+        x=tf.transpose(x[0],perm=[0,2,3,1])
+        y = tf.transpose(y[0], perm=[0, 2, 3, 1])
+
         return x, y
+def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, useSE,scope_index=0):
 
-def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, useSE):
-    x_proj, x = shuffle(old_x)
+
+
+
+    main_scope_list=[['0','3','5'],
+                     ['0', '3', '5'],
+                     None,
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     ['0', '3', '5'],
+                     None,
+                     ['0', '3', '5'],
+                     ]
+
+
+
+    project_scope_list=[['0','2'],
+                        None,
+                        None,
+                        None,
+                        ['0', '2'],
+                        None,
+                        None,
+                        None,
+                        ['0', '2'],
+                        None,
+                        None,         #10
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        ['0', '2'],   #16
+                        None,
+                        None,
+                        None,
+                        ]
+
+
+    se_scope_list=[None,
+                   None,
+                   None,
+                   None,
+                   None,
+                   None,
+                   None,
+                   None,
+                   ['8'],
+                   ['8'],
+                   ['8'],
+                   ['8'],
+                   ['8'],
+                   ['8'],
+                   ['8'],
+                   ['8'],
+                   ['8'],
+                   ['8'],
+                   None,
+                   ['8'],
+                   ]
+    print('excuted here')
+    main_scope=main_scope_list[scope_index]
+    project_scope = project_scope_list[scope_index]
+    se_scope=se_scope_list[scope_index]
+
+
+    if stride==1:
+        x_proj, x = shuffle(old_x)
+    else:
+        x_proj = old_x
+        x = old_x
+
     base_mid_channel = base_mid_channels
 
     outputs = oup - inp
@@ -65,6 +176,7 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
     else:
         act_func = hard_swish
     ##branch main
+
     x = slim.conv2d(x,
                     base_mid_channel,
                     [1, 1],
@@ -72,7 +184,7 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
                     biases_initializer=None,
-                    scope='conv1x1_pw_before')
+                    scope='branch_main/'+main_scope[0])
 
     x = slim.separable_conv2d(x,
                               num_outputs=None,
@@ -80,7 +192,7 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
                               stride=stride,
                               activation_fn=None,
                               normalizer_fn=slim.batch_norm,
-                              scope='conv_dp_1')
+                              scope='branch_main/'+main_scope[1])
 
     x = slim.conv2d(x,
                     num_outputs=outputs,
@@ -88,9 +200,10 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
                     stride=1,
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
-                    scope='conv1x1_pw')
+                    scope='branch_main/'+main_scope[2])
+
     if useSE and activation != 'ReLU':
-        x=se(x,outputs)
+        x=se(x,outputs,scope='branch_main/'+se_scope[0])
 
     if stride == 2:
         x_proj = slim.separable_conv2d(x_proj,
@@ -99,7 +212,7 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
                                   stride=stride,
                                   activation_fn=None,
                                   normalizer_fn=slim.batch_norm,
-                                  scope='conv_dp_proj')
+                                  scope='branch_proj/'+project_scope[0])
 
         x_proj = slim.conv2d(x_proj,
                   num_outputs=inp,
@@ -107,15 +220,93 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
                   stride=1,
                   activation_fn=act_func,
                   normalizer_fn=slim.batch_norm,
-                  scope='conv1x1_pw_proj')
+                  scope='branch_proj/'+project_scope[1])
 
 
     res=tf.concat([x_proj,x],axis=3)
 
     return res
 
-def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, useSE):
-    x_proj, x = shuffle(old_x)
+def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, useSE,scope_index=0):
+    main_scope_list = [None,
+                       None,
+                       ['0', '2', '5','7','10','12'],
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       None,
+                       ['0', '2', '5','7','10','12'],
+                       ]
+
+    project_scope_list = [None,
+                           None,
+                          ['0', '2'],
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+                          None,
+
+                          ]
+
+    se_scope_list = [None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     None,
+                     ['15'],
+
+                     ]
+
+    main_scope = main_scope_list[scope_index]
+    project_scope = project_scope_list[scope_index]
+    se_scope = se_scope_list[scope_index]
+
+
+    print(se_scope)
+
+
+    print(scope_index)
+    if stride == 1:
+        x_proj, x = shuffle(old_x)
+    else:
+        x_proj = old_x
+        x = old_x
 
     base_mid_channel = base_mid_channels
     outputs = oup - inp
@@ -133,7 +324,7 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                               stride=stride,
                               activation_fn=None,
                               normalizer_fn=slim.batch_norm,
-                              scope='dp_conv3x3_first')
+                              scope='branch_main/'+main_scope[0])
 
     x = slim.conv2d(x,
                     base_mid_channel,
@@ -141,7 +332,7 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                     stride=1,
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
-                    scope='pw_conv1x1_first')
+                    scope='branch_main/'+main_scope[1])
 
     x = slim.separable_conv2d(x,
                               num_outputs=None,
@@ -149,7 +340,7 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                               stride=stride,
                               activation_fn=None,
                               normalizer_fn=slim.batch_norm,
-                              scope='dp_conv3x3_second')
+                              scope='branch_main/'+main_scope[2])
 
     x = slim.conv2d(x,
                     num_outputs=base_mid_channel,
@@ -157,7 +348,7 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                     stride=1,
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
-                    scope='pw_conv1x1_second')
+                    scope='branch_main/'+main_scope[3])
 
     x = slim.separable_conv2d(x,
                               num_outputs=None,
@@ -165,16 +356,16 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                               stride=stride,
                               activation_fn=None,
                               normalizer_fn=slim.batch_norm,
-                              scope='dp_conv3x3_third')
+                              scope='branch_main/'+main_scope[4])
     x = slim.conv2d(x,
                     num_outputs=outputs,
                     kernel_size=[1, 1],
                     stride=1,
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
-                    scope='pw_conv1x1_third')
+                    scope='branch_main/'+main_scope[5])
     if useSE and activation != 'ReLU':
-        x = se(x, outputs)
+        x = se(x, outputs,scope='branch_main/'+se_scope[0])
 
 
     if stride == 2:
@@ -194,8 +385,6 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                   normalizer_fn=slim.batch_norm,
                   scope='conv1x1_pw_proj')
 
-
-
     res=tf.concat([x_proj,x],axis=3)
 
     return res
@@ -204,7 +393,7 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
 
 
 def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
-                     batch_norm_decay=0.997,
+                     batch_norm_decay=0.9,
                      batch_norm_epsilon=1e-5,
                      batch_norm_scale=True,
                      use_batch_norm=True,
@@ -243,7 +432,7 @@ def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
       weights_initializer=slim.variance_scaling_initializer(),
       biases_initializer=None,
       normalizer_fn=slim.batch_norm if use_batch_norm else None,
-      normalizer_params=batch_norm_params):
+      normalizer_params=batch_norm_params,):
     with slim.arg_scope([slim.batch_norm], **batch_norm_params):
       # The following implies padding='SAME' for pool1, which makes feature
       # alignment easier for dense prediction tasks. This is also used in
@@ -261,7 +450,7 @@ def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
 
 
 
-def ShufflenetV2Plus(inputs,is_training=True,model_size='Small'):
+def ShufflenetV2Plus(inputs,is_training=True,model_size='Small',include_head=False):
 
     architecture = [0, 0, 3, 1, 1, 1, 0, 0, 2, 0, 2, 1, 1, 0, 2, 0, 2, 1, 3, 2]
 
@@ -280,14 +469,16 @@ def ShufflenetV2Plus(inputs,is_training=True,model_size='Small'):
     fms=[]
     arg_scope = shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor)
     with slim.arg_scope(arg_scope):
-        with slim.arg_scope([slim.batch_norm], is_training=is_training):
-            with tf.variable_scope('ShuffleNetV2Plus'):
+        with slim.arg_scope([slim.batch_norm,slim.dropout], is_training=is_training):
+            with tf.variable_scope('ShuffleNetV2_Plus'):
                 input_channel = stage_out_channels[1]
 
                 net = slim.conv2d(inputs, 16, [3, 3],stride=2, activation_fn=hard_swish,
-                                  normalizer_fn=slim.batch_norm, scope='init_conv')
+                                  normalizer_fn=slim.batch_norm, scope='first_conv/0')
 
                 archIndex=0
+
+                feature_cnt=0
                 for idxstage in range(len(stage_repeats)):
 
                     numrepeat = stage_repeats[idxstage]
@@ -297,7 +488,7 @@ def ShufflenetV2Plus(inputs,is_training=True,model_size='Small'):
                     useSE = 'True' if idxstage >= 2 else False
                     for i in range(numrepeat):
 
-                        with tf.variable_scope('stage_%d_repeat_%d'%(idxstage,i)):
+                        with tf.variable_scope('features/%d'%(feature_cnt)):
                             if i == 0:
                                 inp, outp, stride = input_channel, output_channel, 2
                             else:
@@ -308,32 +499,67 @@ def ShufflenetV2Plus(inputs,is_training=True,model_size='Small'):
                             if blockIndex == 0:
                                 print('Shuffle3x3')
                                 net=shufflenet(net,inp, outp, base_mid_channels=outp // 2, ksize=3, stride=stride,
-                                               activation=activation, useSE=useSE)
+                                               activation=activation, useSE=useSE,scope_index=feature_cnt)
                             elif blockIndex == 1:
                                 print('Shuffle5x5')
                                 net =shufflenet(net,inp, outp, base_mid_channels=outp // 2, ksize=5, stride=stride,
-                                               activation=activation, useSE=useSE)
+                                               activation=activation, useSE=useSE,scope_index=feature_cnt)
                             elif blockIndex == 2:
                                 print('Shuffle7x7')
                                 net=shufflenet(net,inp, outp, base_mid_channels=outp // 2, ksize=7, stride=stride,
-                                               activation=activation, useSE=useSE)
+                                               activation=activation, useSE=useSE,scope_index=feature_cnt)
                             elif blockIndex == 3:
                                 print('Xception')
                                 net=shufflenet_xception(net,inp, outp, base_mid_channels=outp // 2, stride=stride,
-                                                                      activation=activation, useSE=useSE)
+                                                                      activation=activation, useSE=useSE,scope_index=feature_cnt)
                             else:
                                 raise NotImplementedError
                             input_channel = output_channel
+                            feature_cnt+=1
                     fms.append(net)
+                for item in fms:
+                    print(item)
+
+                if not include_head:
+                    return fms
+
+                if include_head:
+                    x = slim.conv2d(net,
+                                    num_outputs=1280,
+                                    kernel_size=[1, 1],
+                                    stride=1,
+                                    activation_fn=hard_swish,
+                                    normalizer_fn=slim.batch_norm,
+                                    scope='conv_last/0')
+
+                    x=tf.reduce_mean(x,axis=[1,2],keep_dims=True)
+
+                    x=se(x,1280,scope='LastSE')
 
 
 
-        for item in fms:
-            print(item)
+                    x = slim.conv2d(x,
+                                    num_outputs=1280,
+                                    kernel_size=[1, 1],
+                                    stride=1,
+                                    activation_fn=hard_swish,
+                                    normalizer_fn=None,
+                                    scope='fc/0')
 
+                    x=slim.dropout(x,0.8,is_training=is_training)
 
+                    x=slim.conv2d(x,
+                                    num_outputs=cfg.MODEL.cls,
+                                    kernel_size=[1, 1],
+                                    stride=1,
+                                    activation_fn=None,
+                                    normalizer_fn=None,
+                                    scope='classifier/0')
 
-    return fms
+        x=tf.squeeze(x, axis=1)
+        x = tf.squeeze(x, axis=1)
+        x=tf.identity(x,name='cls_output')
+    return x
 
 
 

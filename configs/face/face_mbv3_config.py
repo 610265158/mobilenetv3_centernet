@@ -26,7 +26,7 @@ config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config
 
 config.TRAIN.lr_value_every_step = [0.0001,0.001,0.01,0.001,0.00001,0.0000025]        ##warm up is used
 config.TRAIN.lr_decay_every_step = [500,1000,40000,50000,60000]
-
+config.TRAIN.lr_decay='cos'
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 1.e-5                ##l2 regular
 config.TRAIN.vis=False                                    ##check data flag

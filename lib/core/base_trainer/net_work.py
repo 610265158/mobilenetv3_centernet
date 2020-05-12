@@ -46,10 +46,14 @@ class trainner():
                 initializer=tf.constant_initializer(0), dtype=tf.int32, trainable=False)
 
             # Decay the learning rate
-            lr = tf.train.piecewise_constant(global_step,
-                                             cfg.TRAIN.lr_decay_every_step,
-                                             cfg.TRAIN.lr_value_every_step
-                                             )
+            if cfg.TRAIN.lr_decay == 'cos':
+                lr = tf.train.cosine_decay(
+                    learning_rate=0.001, global_step=global_step, decay_steps=cfg.TRAIN.lr_decay_every_step[-1])
+            else:
+                lr = tf.train.piecewise_constant(global_step,
+                                                 cfg.TRAIN.lr_decay_every_step,
+                                                 cfg.TRAIN.lr_value_every_step
+                                                 )
             if 'sgd' in cfg.TRAIN.opt:
                 opt = tf.train.MomentumOptimizer(lr, momentum=0.9, use_nesterov=False)
             else:

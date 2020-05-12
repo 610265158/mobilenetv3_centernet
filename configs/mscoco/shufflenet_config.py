@@ -29,10 +29,10 @@ config.TRAIN.lr_decay_every_step = [200,400,200000,300000,400000]
 
 ##we have no pretrained model so train it longer
 config.TRAIN.lr_decay_every_step = [int(x*3) for x in [500,1000,300000,400000,450000]]
-
+config.TRAIN.lr_decay='cos'
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 1.e-4                  ##l2 regular
-config.TRAIN.vis=False                                    ##check data flag
+config.TRAIN.vis=True                                    ##check data flag
 config.TRAIN.mix_precision=True
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
