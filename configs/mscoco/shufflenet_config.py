@@ -31,7 +31,7 @@ config.TRAIN.lr_decay='cos'
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 1.e-4                  ##l2 regular
 config.TRAIN.vis=False                                    ##check data flag
-config.TRAIN.mix_precision=True
+config.TRAIN.mix_precision=False
 
 config.TRAIN.norm='BN'    ##'GN' OR 'BN'
 config.TRAIN.lock_basenet_bn=False
