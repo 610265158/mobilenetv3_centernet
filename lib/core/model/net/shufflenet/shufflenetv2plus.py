@@ -55,6 +55,7 @@ def shuffle(z):
     #     x, y = tf.split(z, num_or_size_splits=2, axis=3)
     #     return x, y
     with tf.name_scope('shuffle_split'):
+
         z=tf.transpose(z,perm=[0,3,1,2])
 
         shape = tf.shape(z)
@@ -64,21 +65,26 @@ def shuffle(z):
         depth = z.shape[1].value
 
         if cfg.MODEL.deployee:
-            z = tf.reshape(z, [ height, width, 2, depth//2])  # shape [batch_size, height, width, 2, depth]
+            z = tf.reshape(z,[batch_size * depth // 2, 2, height * width])  # shape [batch_size, height, width, 2, depth]
 
-            z = tf.transpose(z, [0, 1, 3, 2])
+            z = tf.transpose(z, [1, 0, 2])
+            z = tf.reshape(z, [batch_size*2,  depth // 2, height, width])
+
+            z = tf.transpose(z, perm=[0, 2, 3, 1])
+
+            x, y = tf.split(z, num_or_size_splits=2, axis=0)
+
 
         else:
             z = tf.reshape(z, [batch_size*depth//2,2, height* width])# shape [batch_size, height, width, 2, depth]
 
             z = tf.transpose(z, [1,0,2])
-            z = tf.reshape(z, [2,-1, depth // 2, height , width])
+            z = tf.reshape(z, [batch_size*2, depth // 2, height , width])
+            z = tf.transpose(z, perm=[0, 2, 3, 1])
+            x, y = tf.split(z, num_or_size_splits=2, axis=0)
 
-        x, y = tf.split(z, num_or_size_splits=2, axis=0)
 
 
-        x=tf.transpose(x[0],perm=[0,2,3,1])
-        y = tf.transpose(y[0], perm=[0, 2, 3, 1])
 
         return x, y
 def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, useSE,scope_index=0):
@@ -442,8 +448,6 @@ def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
       # slim.arg_scope([slim.max_pool2d], padding='VALID').
       with slim.arg_scope([slim.max_pool2d], padding='SAME') as arg_sc:
         return arg_sc
-
-
 
 
 
