@@ -5,7 +5,24 @@ from train_config import config as cfg
 from lib.core.model.net.mobilenetv3.mobilnet_v3 import hard_swish
 
 
+def torch_style_padding(inputs,kernel_size,rate=1):
 
+    '''
+    by default tensorflow use different padding method with pytorch,
+    so we need do explicit padding before we do conv or pool
+    :param inputs:
+    :param kernel_size:
+    :param rate:
+    :return:
+    '''
+    kernel_size_effective = kernel_size + (kernel_size - 1) * (rate - 1)
+    pad_total = kernel_size_effective - 1
+    pad_beg = pad_total // 2
+    pad_end = pad_total - pad_beg
+    inputs = tf.pad(inputs,
+                    [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
+
+    return inputs
 
 def se(fm,input_dim,scope='really_boring'):
     se=tf.reduce_mean(fm,axis=[1,2],keep_dims=True)
@@ -88,9 +105,6 @@ def shuffle(z):
 
         return x, y
 def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, useSE,scope_index=0):
-
-
-
 
     main_scope_list=[['0','3','5'],
                      ['0', '3', '5'],
@@ -187,15 +201,18 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
                     base_mid_channel,
                     [1, 1],
                     stride=1,
+                    padding='VALID',
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
                     biases_initializer=None,
                     scope='branch_main/'+main_scope[0])
 
+    x = torch_style_padding(x, ksize)
     x = slim.separable_conv2d(x,
                               num_outputs=None,
                               kernel_size=[ksize, ksize],
                               stride=stride,
+                              padding='VALID',
                               activation_fn=None,
                               normalizer_fn=slim.batch_norm,
                               scope='branch_main/'+main_scope[1])
@@ -204,6 +221,7 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
                     num_outputs=outputs,
                     kernel_size=[1, 1],
                     stride=1,
+                    padding='VALID',
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
                     scope='branch_main/'+main_scope[2])
@@ -212,21 +230,24 @@ def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, use
         x=se(x,outputs,scope='branch_main/'+se_scope[0])
 
     if stride == 2:
+        x_proj = torch_style_padding(x_proj, ksize)
         x_proj = slim.separable_conv2d(x_proj,
-                                  num_outputs=None,
-                                  kernel_size=[ksize, ksize],
-                                  stride=stride,
-                                  activation_fn=None,
-                                  normalizer_fn=slim.batch_norm,
-                                  scope='branch_proj/'+project_scope[0])
+                                       num_outputs=None,
+                                       kernel_size=[ksize, ksize],
+                                       stride=stride,
+                                       padding='VALID',
+                                       activation_fn=None,
+                                       normalizer_fn=slim.batch_norm,
+                                       scope='branch_proj/'+project_scope[0])
 
         x_proj = slim.conv2d(x_proj,
-                  num_outputs=inp,
-                  kernel_size=[1, 1],
-                  stride=1,
-                  activation_fn=act_func,
-                  normalizer_fn=slim.batch_norm,
-                  scope='branch_proj/'+project_scope[1])
+                             num_outputs=inp,
+                             kernel_size=[1, 1],
+                             stride=1,
+                             padding='VALID',
+                             activation_fn=act_func,
+                             normalizer_fn=slim.batch_norm,
+                             scope='branch_proj/'+project_scope[1])
 
 
     res=tf.concat([x_proj,x],axis=3)
@@ -256,7 +277,7 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                        ]
 
     project_scope_list = [None,
-                           None,
+                          None,
                           ['0', '2'],
                           None,
                           None,
@@ -322,12 +343,12 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
         act_func = hard_swish
     ##branch main
 
-
-
+    x = torch_style_padding(x, 3)
     x = slim.separable_conv2d(x,
                               num_outputs=None,
                               kernel_size=[3, 3],
                               stride=stride,
+                              padding='VALID',
                               activation_fn=None,
                               normalizer_fn=slim.batch_norm,
                               scope='branch_main/'+main_scope[0])
@@ -336,14 +357,17 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                     base_mid_channel,
                     [1, 1],
                     stride=1,
+                    padding='VALID',
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
                     scope='branch_main/'+main_scope[1])
 
+    x = torch_style_padding(x, 3)
     x = slim.separable_conv2d(x,
                               num_outputs=None,
                               kernel_size=[3, 3],
                               stride=stride,
+                              padding='VALID',
                               activation_fn=None,
                               normalizer_fn=slim.batch_norm,
                               scope='branch_main/'+main_scope[2])
@@ -352,14 +376,17 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                     num_outputs=base_mid_channel,
                     kernel_size=[1, 1],
                     stride=1,
+                    padding='VALID',
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
                     scope='branch_main/'+main_scope[3])
 
+    x = torch_style_padding(x, 3)
     x = slim.separable_conv2d(x,
                               num_outputs=None,
                               kernel_size=[3, 3],
                               stride=stride,
+                              padding='VALID',
                               activation_fn=None,
                               normalizer_fn=slim.batch_norm,
                               scope='branch_main/'+main_scope[4])
@@ -367,6 +394,7 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
                     num_outputs=outputs,
                     kernel_size=[1, 1],
                     stride=1,
+                    padding='VALID',
                     activation_fn=act_func,
                     normalizer_fn=slim.batch_norm,
                     scope='branch_main/'+main_scope[5])
@@ -375,21 +403,24 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
 
 
     if stride == 2:
+        x_proj = torch_style_padding(x_proj, 3)
         x_proj = slim.separable_conv2d(x_proj,
-                                      num_outputs=None,
-                                      kernel_size=[3, 3],
-                                      stride=stride,
-                                      activation_fn=None,
-                                      normalizer_fn=slim.batch_norm,
-                                      scope='conv_dp_proj')
+                                       num_outputs=None,
+                                       kernel_size=[3, 3],
+                                       stride=stride,
+                                       padding='VALID',
+                                       activation_fn=None,
+                                       normalizer_fn=slim.batch_norm,
+                                       scope='conv_dp_proj')
 
         x_proj = slim.conv2d(x_proj,
-                  num_outputs=inp,
-                  kernel_size=[1, 1],
-                  stride=1,
-                  activation_fn=act_func,
-                  normalizer_fn=slim.batch_norm,
-                  scope='conv1x1_pw_proj')
+                             num_outputs=inp,
+                             kernel_size=[1, 1],
+                             stride=1,
+                             padding='VALID',
+                             activation_fn=act_func,
+                             normalizer_fn=slim.batch_norm,
+                             scope='conv1x1_pw_proj')
 
     res=tf.concat([x_proj,x],axis=3)
 
@@ -399,7 +430,7 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
 
 
 def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
-                     batch_norm_decay=0.9,
+                     batch_norm_decay=0.97,
                      batch_norm_epsilon=1e-5,
                      batch_norm_scale=True,
                      use_batch_norm=True,
@@ -452,9 +483,7 @@ def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
 
 
 
-
-
-def ShufflenetV2Plus(inputs,is_training=True,model_size='Small',include_head=False):
+def ShufflenetV2Plus(inputs,is_training=True,model_size=cfg.MODEL.size,include_head=False):
 
     architecture = [0, 0, 3, 1, 1, 1, 0, 0, 2, 0, 2, 1, 1, 0, 2, 0, 2, 1, 3, 2]
 
@@ -477,8 +506,16 @@ def ShufflenetV2Plus(inputs,is_training=True,model_size='Small',include_head=Fal
             with tf.variable_scope('ShuffleNetV2_Plus'):
                 input_channel = stage_out_channels[1]
 
-                net = slim.conv2d(inputs, 16, [3, 3],stride=2, activation_fn=hard_swish,
-                                  normalizer_fn=slim.batch_norm, scope='first_conv/0')
+                inputs=torch_style_padding(inputs,3)
+
+                net = slim.conv2d(inputs,
+                                  16,
+                                  [3, 3],
+                                  stride=2,
+                                  padding='VALID',
+                                  activation_fn=hard_swish,
+                                  normalizer_fn=slim.batch_norm,
+                                  scope='first_conv/0')
 
                 archIndex=0
 
@@ -532,6 +569,7 @@ def ShufflenetV2Plus(inputs,is_training=True,model_size='Small',include_head=Fal
                                     num_outputs=1280,
                                     kernel_size=[1, 1],
                                     stride=1,
+                                    padding='VALID',
                                     activation_fn=hard_swish,
                                     normalizer_fn=slim.batch_norm,
                                     scope='conv_last/0')
@@ -546,6 +584,7 @@ def ShufflenetV2Plus(inputs,is_training=True,model_size='Small',include_head=Fal
                                     num_outputs=1280,
                                     kernel_size=[1, 1],
                                     stride=1,
+                                    padding='VALID',
                                     activation_fn=hard_swish,
                                     normalizer_fn=None,
                                     scope='fc/0')
@@ -556,6 +595,7 @@ def ShufflenetV2Plus(inputs,is_training=True,model_size='Small',include_head=Fal
                                     num_outputs=cfg.MODEL.cls,
                                     kernel_size=[1, 1],
                                     stride=1,
+                                    padding='VALID',
                                     activation_fn=None,
                                     normalizer_fn=None,
                                     scope='classifier/0')
