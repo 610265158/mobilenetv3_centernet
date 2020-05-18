@@ -30,7 +30,7 @@ class CenternetHead():
                                   activation_fn=None,
                                   normalizer_fn=None,
                                   weights_initializer=tf.initializers.random_normal(stddev=0.001),
-                                  biases_initializer=None,
+                                  biases_initializer=tf.initializers.constant(-2.19),
                                   scope='centernet_cls_output')
 
 
