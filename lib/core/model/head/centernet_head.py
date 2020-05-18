@@ -30,7 +30,7 @@ class CenternetHead():
                                   activation_fn=None,
                                   normalizer_fn=None,
                                   weights_initializer=tf.initializers.random_normal(stddev=0.001),
-                                  biases_initializer=tf.initializers.constant(-2.19),
+                                  biases_initializer=None,
                                   scope='centernet_cls_output')
 
 
@@ -38,7 +38,7 @@ class CenternetHead():
                                  4,
                                  [1, 1],
                                  stride=1,
-                                 activation_fn=None,
+                                 activation_fn=tf.nn.relu,
                                  normalizer_fn=None,
                                  weights_initializer=tf.initializers.random_normal(stddev=0.001),
                                  biases_initializer=None,
