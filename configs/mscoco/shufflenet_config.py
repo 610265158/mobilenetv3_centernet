@@ -52,14 +52,14 @@ config.DATA.hin = 512  # input size
 config.DATA.win = 512
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
-config.DATA.cover_obj=8                          ###cover the small objs
+config.DATA.cover_obj=4                          ###cover the small objs
 
 config.DATA.mutiscale=False                #if muti scale set False  then config.DATA.MAX_SIZE will be the inputsize
 config.DATA.scales=(320,640)
 config.DATA.use_int8_data=True
 config.DATA.use_int8_enlarge=255.           ### use uint8 for heatmap generate for less memory acc, to speed up
 config.DATA.max_objs=128
-config.DATA.cracy_crop=0.3
+config.DATA.cracy_crop=0.5
 config.DATA.alpha=0.45
 config.DATA.beta=0.45
 
@@ -69,7 +69,8 @@ config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='ShuffleNetV2_Plus' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
-config.MODEL.pretrained_model=None#'./v3-large_224_0.75_float/ema/model-220000'
+config.MODEL.size='Small'
+config.MODEL.pretrained_model='ShuffleNetV2+Small/ShuffleNetV2+Small.ckpt'
 config.MODEL.task='mscoco'
 config.MODEL.min_overlap=0.7
 config.MODEL.max_box= 100
