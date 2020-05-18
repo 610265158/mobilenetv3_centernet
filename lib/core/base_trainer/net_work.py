@@ -342,6 +342,9 @@ class trainner():
                 allow_soft_placement=True,
                 log_device_placement=False)
             tf_config.gpu_options.allow_growth = True
+            tf_config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1
+
+            tf_config.intra_op_parallelism_threads = 18
             self.sess = tf.Session(config=tf_config)
 
             ##init all variables
