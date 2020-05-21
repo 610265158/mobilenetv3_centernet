@@ -50,49 +50,42 @@ def se(fm,input_dim,scope='really_boring'):
     return fm*se
 
 
-def shuffle(z):
-    # with tf.name_scope('shuffle_split'):
-    #     shape = tf.shape(z)
-    #     batch_size = shape[0]
-    #     height, width = z.shape[1].value, z.shape[2].value
-    #
-    #     depth = z.shape[3].value
-    #
-    #     if cfg.MODEL.deployee:
-    #         z = tf.reshape(z, [ height, width, 2, depth//2])  # shape [batch_size, height, width, 2, depth]
-    #
-    #         z = tf.transpose(z, [0, 1, 3, 2])
-    #
-    #     else:
-    #         z = tf.reshape(z, [batch_size, height, width, 2, depth//2])# shape [batch_size, height, width, 2, depth]
-    #
-    #         z = tf.transpose(z, [0, 1, 2, 4, 3])
-    #
-    #     z = tf.reshape(z, [batch_size, height, width, depth])
-    #     x, y = tf.split(z, num_or_size_splits=2, axis=3)
-    #     return x, y
-    with tf.name_scope('shuffle_split'):
+def shuffle(z,torch_style_shuffle=False):
 
-        z=tf.transpose(z,perm=[0,3,1,2])
+    if not torch_style_shuffle:
+        with tf.name_scope('shuffle_split'):
+            shape = tf.shape(z)
+            batch_size = shape[0]
+            height, width = z.shape[1].value, z.shape[2].value
 
-        shape = tf.shape(z)
-        batch_size = shape[0]
-        height, width = z.shape[2].value, z.shape[3].value
+            depth = z.shape[3].value
 
-        depth = z.shape[1].value
+            if cfg.MODEL.deployee:
+                z = tf.reshape(z, [ height, width, 2, depth//2])  # shape [batch_size, height, width, 2, depth]
 
-        if cfg.MODEL.deployee:
-            z = tf.reshape(z,[batch_size * depth // 2, 2, height * width])  # shape [batch_size, height, width, 2, depth]
+                z = tf.transpose(z, [0, 1, 3, 2])
 
-            z = tf.transpose(z, [1, 0, 2])
-            z = tf.reshape(z, [batch_size*2,  depth // 2, height, width])
+            else:
+                z = tf.reshape(z, [batch_size, height, width, 2, depth//2])# shape [batch_size, height, width, 2, depth]
 
-            z = tf.transpose(z, perm=[0, 2, 3, 1])
+                z = tf.transpose(z, [0, 1, 2, 4, 3])
 
-            x, y = tf.split(z, num_or_size_splits=2, axis=0)
+            z = tf.reshape(z, [batch_size, height, width, depth])
+            x, y = tf.split(z, num_or_size_splits=2, axis=3)
+            return x, y
+
+    else:
+        with tf.name_scope('shuffle_split'):
+
+            z=tf.transpose(z,perm=[0,3,1,2])
+
+            shape = tf.shape(z)
+            batch_size = shape[0]
+            height, width = z.shape[2].value, z.shape[3].value
+
+            depth = z.shape[1].value
 
 
-        else:
             z = tf.reshape(z, [batch_size*depth//2,2, height* width])# shape [batch_size, height, width, 2, depth]
 
             z = tf.transpose(z, [1,0,2])
@@ -103,7 +96,7 @@ def shuffle(z):
 
 
 
-        return x, y
+            return x, y
 def shufflenet(old_x,inp, oup, base_mid_channels, ksize, stride, activation, useSE,scope_index=0):
 
     main_scope_list=[['0','3','5'],
@@ -426,11 +419,8 @@ def shufflenet_xception(old_x,inp, oup, base_mid_channels, stride, activation, u
 
     return res
 
-
-
-
 def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
-                     batch_norm_decay=0.97,
+                     batch_norm_decay=0.9,
                      batch_norm_epsilon=1e-5,
                      batch_norm_scale=True,
                      use_batch_norm=True,
