@@ -38,10 +38,11 @@ def loss(predicts,targets):
                                     dtype=tf.int32)
             shifts_y = tf.cast(shifts_y, dtype=tf.float32)
 
-            shift_y, shift_x = tf.meshgrid(shifts_y, shifts_x)
+            x_range, y_range = tf.meshgrid(shifts_x, shifts_y)
 
-            base_loc = tf.stack((shift_y, shift_x), axis=2)  # (2, h, w)
-            base_loc =tf.expand_dims(base_loc,axis=0)
+            base_loc = tf.stack((x_range, y_range), axis=2)  # (2, h, w)
+
+            base_loc = tf.expand_dims(base_loc, axis=0)
 
             pred_boxes = tf.concat((base_loc[:,:,:,0:1] - pred_wh[:,:,:, 0:1],
                                     base_loc[:,:,:,1:2] - pred_wh[:,:,:, 1:2],
