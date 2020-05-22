@@ -66,12 +66,14 @@ config.MODEL = edict()
 config.MODEL.continue_train=False          ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='MobilenetV3'
-config.MODEL.pretrained_model=None#'./v3-large_224_0.75_float/ema/model-220000'
+config.MODEL.size=0.75
+config.MODEL.pretrained_model='./v3-large_224_0.75_float/ema/model-220000'
 config.MODEL.task='mscoco'
 config.MODEL.min_overlap=0.7
 config.MODEL.max_box= 100
 
 config.MODEL.global_stride=4
+config.MODEL.head_dims=[64*3,64*3,32*3]
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:

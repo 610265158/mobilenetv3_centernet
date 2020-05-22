@@ -14,7 +14,7 @@ from train_config import config as cfg
 
 from lib.helper.logger import logger
 
-from lib.core.model.head.centernet_head import CenternetHeadLight
+from lib.core.model.head.centernet_head import CenternetHead
 
 class CenternetFace():
 
@@ -27,7 +27,7 @@ class CenternetFace():
             self.ssd_backbone = mobilenetv3_small_minimalistic
         elif "resnet_v2_50" in cfg.MODEL.net_structure:
             self.ssd_backbone = resnet_ssd
-        self.head=CenternetHeadLight()                         ### it is a class
+        self.head=CenternetHead()                         ### it is a class
 
         self.top_k_results_output=cfg.MODEL.max_box
     def forward(self,inputs,hm_target, wh_target,weights,l2_regulation,training_flag):

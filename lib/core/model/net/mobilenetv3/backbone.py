@@ -14,7 +14,7 @@ def mobilenetv3_large_detection(image,is_training=True):
     with tf.contrib.slim.arg_scope(arg_scope):
 
         _, endpoints = mobilnet_v3.large(image,
-                                        depth_multiplier=0.75,
+                                        depth_multiplier=cfg.MODEL.size,
                                         is_training=is_training,
                                         base_only=True,
                                         finegrain_classification_mode=False)

@@ -48,8 +48,8 @@ config.DATA.num_class = config.DATA.num_category
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
 
-config.DATA.hin = 520  # input size
-config.DATA.win = 520
+config.DATA.hin = 512  # input size
+config.DATA.win = 512
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
 config.DATA.cover_obj=4                          ###cover the small objs
@@ -68,15 +68,15 @@ config.DATA.beta=0.45
 config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
-config.MODEL.net_structure='ShuffleNetV2_Plus' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
-config.MODEL.size='Small'
-config.MODEL.pretrained_model=None#'ShuffleNetV2+Small/ShuffleNetV2+Small.ckpt'
+config.MODEL.net_structure='ShuffleNetV2_5x5' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
+config.MODEL.size='1.0x'
+config.MODEL.pretrained_model=None
 config.MODEL.task='mscoco'
 config.MODEL.min_overlap=0.7
 config.MODEL.max_box= 100
 config.MODEL.offset= True
 config.MODEL.global_stride=4
-config.MODEL.head_dims=[64*3,64*3,32*3]
+config.MODEL.head_dims=[64*3,48*3,32*3]
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:
