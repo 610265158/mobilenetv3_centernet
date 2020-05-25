@@ -55,9 +55,9 @@ class CenternetHead():
             with tf.variable_scope(scope + child_scope):
                 x, y= fms
 
-                x = slim.separable_conv2d(x,dim//2, kernel_size=[3, 3],stride=1,scope='branchx_3x3_pre')
+                x = slim.separable_conv2d(x,None, kernel_size=[3, 3],stride=1,activation_fn=None,scope='branchx_3x3_pre')
 
-                y = slim.separable_conv2d(y,dim//2,  kernel_size=[5, 5], stride=1,scope='branchy_5x5_pre')
+                y = slim.separable_conv2d(y,None,  kernel_size=[5, 5], stride=1,activation_fn=None,scope='branchy_5x5_pre')
 
             fm = tf.concat([x,y], axis=3)
 
