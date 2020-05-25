@@ -7,8 +7,7 @@ from configs.face.face_mbv3_config import config as face_config
 from configs.mscoco.shufflenet_config import config as shufflenet_config
 from configs.mscoco.shufflenet_5x5_config import config as shufflenet_5x5_config
 ##### the config for different task
-config=shufflenet_5x5_config
-
+config=mb3_config
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 config.TRAIN.num_gpu = 1

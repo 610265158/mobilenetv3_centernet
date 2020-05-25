@@ -21,28 +21,28 @@ class CenternetHead():
 
                 #####
 
-                #kps,wh = self._pre_head(deconv_feature, 'centernet_pre_feature')
+                kps,wh = self._pre_head(deconv_feature, 'centernet_pre_feature')
 
-                kps = slim.separable_conv2d(deconv_feature,
-                                          cfg.DATA.num_class,
-                                          [3, 3],
-                                          stride=1,
-                                          activation_fn=None,
-                                          normalizer_fn=None,
-                                          weights_initializer=tf.initializers.random_normal(stddev=0.001),
-                                          biases_initializer=tf.initializers.constant(-2.19),
-                                          scope='centernet_cls_output')
+                kps = slim.conv2d(kps,
+                                  cfg.DATA.num_class,
+                                  [1, 1],
+                                  stride=1,
+                                  activation_fn=None,
+                                  normalizer_fn=None,
+                                  weights_initializer=tf.initializers.random_normal(stddev=0.001),
+                                  biases_initializer=tf.initializers.constant(-2.19),
+                                  scope='centernet_cls_output')
 
 
-                wh = slim.separable_conv2d(deconv_feature,
-                                             4,
-                                             [3, 3],
-                                             stride=1,
-                                             activation_fn=None,
-                                             normalizer_fn=None,
-                                             weights_initializer=tf.initializers.random_normal(stddev=0.001),
-                                             biases_initializer=tf.initializers.constant(0),
-                                             scope='centernet_wh_output')
+                wh = slim.conv2d(wh,
+                                 4,
+                                 [1, 1],
+                                 stride=1,
+                                 activation_fn=None,
+                                 normalizer_fn=None,
+                                 weights_initializer=tf.initializers.random_normal(stddev=0.001),
+                                 biases_initializer=tf.initializers.constant(0),
+                                 scope='centernet_wh_output')
 
 
 
@@ -55,9 +55,9 @@ class CenternetHead():
             with tf.variable_scope(scope + child_scope):
                 x, y= fms
 
-                x = slim.separable_conv2d(x, None, kernel_size=[3, 3], stride=1, activation_fn=None,scope='branchx_3x3_pre')
+                x = slim.separable_conv2d(x,dim//2, kernel_size=[3, 3],stride=1,scope='branchx_3x3_pre')
 
-                y = slim.separable_conv2d(y, None, kernel_size=[5, 5], stride=1, activation_fn=None,scope='branchy_5x5_pre')
+                y = slim.separable_conv2d(y,dim//2,  kernel_size=[5, 5], stride=1,scope='branchy_5x5_pre')
 
             fm = tf.concat([x,y], axis=3)
 
@@ -65,9 +65,9 @@ class CenternetHead():
 
         split_fm = tf.split(fm, num_or_size_splits=2, axis=3)
 
-        kps = _head_conv(split_fm,dim=96,child_scope='kps')
+        kps = _head_conv(split_fm,dim=cfg.MODEL.prehead_dims[0],child_scope='kps')
 
-        wh  = _head_conv(split_fm, dim=48, child_scope='wh')
+        wh  = _head_conv(split_fm, dim=cfg.MODEL.prehead_dims[1], child_scope='wh')
 
         return kps,wh
 
@@ -97,7 +97,7 @@ class CenternetHead():
                                                padding='SAME',
                                                scope=scope)
 
-        upsampled_conv = tf.keras.layers.UpSampling2D(data_format='channels_last',size=(factor,factor))(upsampled_conv)
+        upsampled_conv = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear',size=(factor,factor))(upsampled_conv)
 
         return upsampled_conv
 
@@ -176,6 +176,7 @@ class CenternetHead():
         c3_upsample = self._complex_upsample(p3, input_dim=dims[1], output_dim=dims[2],factor=2, scope='c3_upsample')
         c2 = self.revers(c2,dims[2],k_size=7,scope='c2_reverse')
         p2 = c2+c3_upsample
+        p2 = self._shuffle(p2, 2)
 
         return p2
 

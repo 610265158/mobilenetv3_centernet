@@ -52,16 +52,13 @@ def inference(mnn_model_path,img_dir,thres=0.3):
         image_show=image.copy()
 
         image = image.astype(np.float32)
-        image = np.transpose(image,axes=[2,0,1])
 
-        #cv2 read shape is NHWC, Tensor's need is NCHW,transpose it
-        tmp_input = MNN.Tensor((1, 3,cfg.DATA.hin, cfg.DATA.win), MNN.Halide_Type_Float,\
-                        image, MNN.Tensor_DimensionType_Caffe)
+        tmp_input = MNN.Tensor((1, cfg.DATA.hin, cfg.DATA.win,3 ), MNN.Halide_Type_Float,\
+                        image, MNN.Tensor_DimensionType_Tensorflow)
         #construct tensor from np.ndarray
         input_tensor.copyFrom(tmp_input)
 
-        ### the model is nhwc   caution!!!!!!!!!!!!!!!!
-        interpreter.resizeTensor(input_tensor, (1, cfg.DATA.hin, cfg.DATA.win,3))
+        ### caution!!!!!!!!!!!!!!!! the model is nhwc
 
         interpreter.resizeSession(session)
         interpreter.runSession(session)

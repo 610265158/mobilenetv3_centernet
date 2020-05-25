@@ -292,16 +292,9 @@ def ShuffleNetV2_5x5(inputs,is_training=True,model_size=cfg.MODEL.size,include_h
                                   activation_fn=tf.nn.relu,
                                   normalizer_fn=slim.batch_norm,
                                   scope='first_conv/0')
-
                 net = torch_style_padding(net, 3)
-                net = slim.separable_conv2d(net,
-                                  24,
-                                  [3, 3],
-                                  stride=2,
-                                  padding='VALID',
-                                  activation_fn=tf.nn.relu,
-                                  normalizer_fn=slim.batch_norm,
-                                  scope='second_conv/0')
+
+                net = slim.max_pool2d(net,kernel_size=3,stride=2,padding='VALID')
 
                 fms = [net]
 

@@ -534,7 +534,7 @@ class DsfdDataIter():
             #
             #     boxes = np.concatenate([boxes_refine, klass_], axis=1)
             if is_training:
-                if random.uniform(0, 1) > 0.7:
+                if 1:
                     height, width = img.shape[0], img.shape[1]
                     c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
                     if 0:
@@ -594,63 +594,63 @@ class DsfdDataIter():
 
                     boxes = np.concatenate([boxes_refine, klass_], axis=1)
 
-                else:
-
-                    ##### different ratios
-                    sample_dice = random.uniform(0, 1)
-                    if sample_dice > 0.8 and sample_dice <= 1:
-                        image, boxes = Random_scale_withbbox(image, boxes, target_shape=[cfg.DATA.hin, cfg.DATA.win],
-                                                             jitter=0.5)
-
-                    elif sample_dice > 0.4 and sample_dice <= 0.8:
-                        boxes_ = boxes[:, 0:4]
-                        klass_ = boxes[:, 4:]
-
-                        image, boxes_, klass_ = dsfd_aug(image, boxes_, klass_)
-
-                        image = image.astype(np.uint8)
-                        boxes = np.concatenate([boxes_, klass_], axis=1)
-                    else:
-                        boxes_ = boxes[:, 0:4]
-                        klass_ = boxes[:, 4:]
-                        image, boxes_, klass_ = baidu_aug(image, boxes_, klass_)
-
-                        image = image.astype(np.uint8)
-                        boxes = np.concatenate([boxes_, klass_], axis=1)
-
-                    if random.uniform(0, 1) > 0.5:
-                        image, boxes = Random_flip(image, boxes)
-
-                    # if random.uniform(0, 1) > 0.3:
-                    #     boxes_ = boxes[:, 0:4]
-                    #     klass_ = boxes[:, 4:]
-                    #     angel = random.uniform(-45, 45)
-                    #     image, boxes_ = Rotate_with_box(image, angel, boxes_)
-                    #     boxes = np.concatenate([boxes_, klass_], axis=1)
-
-                    if random.uniform(0, 1) > 0.5:
-                        image = self.color_augmentor(image)
-                    # if random.uniform(0, 1) > 0.5:
-                    #     image = pixel_jitter(image, 15)
-
-                    boxes_ = boxes
-
-                    image, shift_x, shift_y = Fill_img(image, target_width=cfg.DATA.win, target_height=cfg.DATA.hin)
-                    boxes_[:, 0:4] = boxes_[:, 0:4] + np.array([shift_x, shift_y, shift_x, shift_y], dtype='float32')
-                    h, w, _ = image.shape
-                    boxes_[:, 0] /= w
-                    boxes_[:, 1] /= h
-                    boxes_[:, 2] /= w
-                    boxes_[:, 3] /= h
-                    image = image.astype(np.uint8)
-                    image = cv2.resize(image, (cfg.DATA.win, cfg.DATA.hin))
-
-                    boxes_[:, 0] *= cfg.DATA.win
-                    boxes_[:, 1] *= cfg.DATA.hin
-                    boxes_[:, 2] *= cfg.DATA.win
-                    boxes_[:, 3] *= cfg.DATA.hin
-                    image = image.astype(np.uint8)
-                    boxes = boxes_
+                # else:
+                #
+                #     ##### different ratios
+                #     sample_dice = random.uniform(0, 1)
+                #     if sample_dice > 0.8 and sample_dice <= 1:
+                #         image, boxes = Random_scale_withbbox(image, boxes, target_shape=[cfg.DATA.hin, cfg.DATA.win],
+                #                                              jitter=0.5)
+                #
+                #     elif sample_dice > 0.4 and sample_dice <= 0.8:
+                #         boxes_ = boxes[:, 0:4]
+                #         klass_ = boxes[:, 4:]
+                #
+                #         image, boxes_, klass_ = dsfd_aug(image, boxes_, klass_)
+                #
+                #         image = image.astype(np.uint8)
+                #         boxes = np.concatenate([boxes_, klass_], axis=1)
+                #     else:
+                #         boxes_ = boxes[:, 0:4]
+                #         klass_ = boxes[:, 4:]
+                #         image, boxes_, klass_ = baidu_aug(image, boxes_, klass_)
+                #
+                #         image = image.astype(np.uint8)
+                #         boxes = np.concatenate([boxes_, klass_], axis=1)
+                #
+                #     if random.uniform(0, 1) > 0.5:
+                #         image, boxes = Random_flip(image, boxes)
+                #
+                #     # if random.uniform(0, 1) > 0.3:
+                #     #     boxes_ = boxes[:, 0:4]
+                #     #     klass_ = boxes[:, 4:]
+                #     #     angel = random.uniform(-45, 45)
+                #     #     image, boxes_ = Rotate_with_box(image, angel, boxes_)
+                #     #     boxes = np.concatenate([boxes_, klass_], axis=1)
+                #
+                #     if random.uniform(0, 1) > 0.5:
+                #         image = self.color_augmentor(image)
+                #     # if random.uniform(0, 1) > 0.5:
+                #     #     image = pixel_jitter(image, 15)
+                #
+                #     boxes_ = boxes
+                #
+                #     image, shift_x, shift_y = Fill_img(image, target_width=cfg.DATA.win, target_height=cfg.DATA.hin)
+                #     boxes_[:, 0:4] = boxes_[:, 0:4] + np.array([shift_x, shift_y, shift_x, shift_y], dtype='float32')
+                #     h, w, _ = image.shape
+                #     boxes_[:, 0] /= w
+                #     boxes_[:, 1] /= h
+                #     boxes_[:, 2] /= w
+                #     boxes_[:, 3] /= h
+                #     image = image.astype(np.uint8)
+                #     image = cv2.resize(image, (cfg.DATA.win, cfg.DATA.hin))
+                #
+                #     boxes_[:, 0] *= cfg.DATA.win
+                #     boxes_[:, 1] *= cfg.DATA.hin
+                #     boxes_[:, 2] *= cfg.DATA.win
+                #     boxes_[:, 3] *= cfg.DATA.hin
+                #     image = image.astype(np.uint8)
+                #     boxes = boxes_
             else:
                 boxes_ = boxes[:, 0:4]
                 klass_ = boxes[:, 4:]
