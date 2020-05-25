@@ -75,6 +75,9 @@ config.MODEL.max_box= 1333
 
 config.MODEL.global_stride=4
 
+config.MODEL.head_dims=[32,32,32,32]
+config.MODEL.prehead_dims=[96,48]
+
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:
     config.TRAIN.batch_size = 1

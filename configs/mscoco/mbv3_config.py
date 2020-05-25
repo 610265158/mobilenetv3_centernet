@@ -9,8 +9,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"          ##if u use muti gpu set them v
 config.TRAIN = edict()
 
 #### below are params for dataiter
-config.TRAIN.process_num = 2                      ### process_num for data provider
-config.TRAIN.prefetch_size = 20                  ### prefect Q size for data provider
+config.TRAIN.process_num = 4                      ### process_num for data provider
+config.TRAIN.prefetch_size = 50                  ### prefect Q size for data provider
 
 config.TRAIN.num_gpu = 1                         ##match with   os.environ["CUDA_VISIBLE_DEVICES"]
 config.TRAIN.batch_size = 16                    ###A big batch size may achieve a better result, but the memory is a problem
@@ -74,8 +74,10 @@ config.MODEL.min_overlap=0.7
 config.MODEL.max_box= 100
 
 config.MODEL.global_stride=4
-config.MODEL.head_dims=[256,192,128]
-config.MODEL.prehead_dims=[128,64]
+config.MODEL.head_dims=[32,32,32,32]
+config.MODEL.prehead_dims=[96,48]
+
+
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:
     config.TRAIN.batch_size = 1
