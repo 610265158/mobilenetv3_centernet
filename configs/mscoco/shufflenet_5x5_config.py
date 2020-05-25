@@ -25,8 +25,9 @@ config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.nu
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
 config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.001,0.0001,0.00001,0.000001]        ##warm up is used
-config.TRAIN.lr_decay_every_step = [200,400,250000,350000,450000]
-config.TRAIN.lr_decay_every_step = [int(x//config.TRAIN.num_gpu) for x  in config.TRAIN.lr_value_every_step]
+config.TRAIN.lr_decay_every_step = [500,1000,300000,400000,450000]
+config.TRAIN.lr_decay_every_step = [int(x//config.TRAIN.num_gpu) for x  in config.TRAIN.lr_decay_every_step]
+
 
 config.TRAIN.lr_decay='step'
 config.TRAIN.opt='adam'
