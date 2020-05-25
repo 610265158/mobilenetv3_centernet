@@ -73,7 +73,7 @@ config.MODEL.min_overlap=0.7
 config.MODEL.max_box= 100
 
 config.MODEL.global_stride=4
-config.MODEL.head_dims=[64*3,64*3,32*3]
+config.MODEL.head_dims=[256,192,128]
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:

@@ -24,25 +24,25 @@ class CenternetHead():
                 #kps,wh = self._pre_head(deconv_feature, 'centernet_pre_feature')
 
                 kps = slim.separable_conv2d(deconv_feature,
-                                  cfg.DATA.num_class,
-                                  [3, 3],
-                                  stride=1,
-                                  activation_fn=None,
-                                  normalizer_fn=None,
-                                  weights_initializer=tf.initializers.random_normal(stddev=0.001),
-                                  biases_initializer=tf.initializers.constant(-2.19),
-                                  scope='centernet_cls_output')
+                                          cfg.DATA.num_class,
+                                          [3, 3],
+                                          stride=1,
+                                          activation_fn=None,
+                                          normalizer_fn=None,
+                                          weights_initializer=tf.initializers.random_normal(stddev=0.001),
+                                          biases_initializer=tf.initializers.constant(-2.19),
+                                          scope='centernet_cls_output')
 
 
                 wh = slim.separable_conv2d(deconv_feature,
-                                 4,
-                                 [3, 3],
-                                 stride=1,
-                                 activation_fn=None,
-                                 normalizer_fn=None,
-                                 weights_initializer=tf.initializers.random_normal(stddev=0.001),
-                                 biases_initializer=tf.initializers.constant(0),
-                                 scope='centernet_wh_output')
+                                             4,
+                                             [3, 3],
+                                             stride=1,
+                                             activation_fn=None,
+                                             normalizer_fn=None,
+                                             weights_initializer=tf.initializers.random_normal(stddev=0.001),
+                                             biases_initializer=tf.initializers.constant(0),
+                                             scope='centernet_wh_output')
 
 
 
@@ -132,6 +132,30 @@ class CenternetHead():
 
         return deconv_fm
 
+
+
+    def revers(self,fm,output_dim,k_size,refraction=4,scope='boring'):
+
+        input_channel = fm.shape[3].value
+
+        mid_channels=input_channel//refraction
+        with tf.variable_scope(scope):
+            fm_bypass = slim.conv2d(fm,
+                             mid_channels,
+                             [1, 1],
+                             padding='SAME',
+                             scope='1x1')
+
+            fm_bypass = slim.separable_conv2d(fm_bypass,
+                                              output_dim,
+                                              [k_size, k_size],
+                                              padding='SAME',
+                                              scope='3x3')
+
+
+            return fm_bypass
+
+
     def _unet_magic(self, fms, dims=cfg.MODEL.head_dims):
 
         c2, c3, c4, c5 = fms
@@ -139,44 +163,19 @@ class CenternetHead():
         ####24, 116, 232, 464,
 
         input_channel=c5.shape[3].value
-        c5_upsample = self._complex_upsample(c5, input_dim=input_channel, output_dim=dims[0]//3*2,factor=2, scope='c5_upsample')
-        c4 = slim.separable_conv2d(c4,
-                         dims[0]//3,
-                         [3, 3],
-                         padding='SAME',
-                         scope='c4_1x1')
+        c5_upsample = self._complex_upsample(c5, input_dim=input_channel, output_dim=dims[0],factor=2, scope='c5_upsample')
+        c4 = self.revers(c4,dims[0],k_size=5,scope='c4_reverse')
+        p4=c4+c5_upsample
+        p4=self._shuffle(p4,2)
 
-        p4=tf.concat([c4,c5_upsample],axis=3)
-        p4=self._shuffle(p4,3)
+        c4_upsample = self._complex_upsample(p4, input_dim=dims[0], output_dim=dims[1], factor=2,scope='c4_upsample')
+        c3 = self.revers(c3,dims[1],k_size=5,scope='c3_reverse')
+        p3 = c3+ c4_upsample
+        p3 = self._shuffle(p3, 2)
 
-
-
-
-        print('xxx',p4)
-        c4_upsample = self._complex_upsample(p4, input_dim=dims[0], output_dim=dims[1]//3*2, factor=2,scope='c4_upsample')
-        c3 = slim.separable_conv2d(c3,
-                         dims[1]//3,
-                         [3, 3],
-                         padding='SAME',
-                         scope='c3_1x1')
-
-        p3 = tf.concat([c3, c4_upsample], axis=3)
-
-        print('yyy', p3)
-        p3 = self._shuffle(p3, 3)
-
-
-
-        print('yyy',p3)
-
-        c3_upsample = self._complex_upsample(p3, input_dim=dims[1], output_dim=dims[2]//3*2,factor=2, scope='c3_upsample')
-        c2 = slim.separable_conv2d(c2,
-                         dims[2]//3,
-                         [3, 3],
-                         padding='SAME',
-                         scope='c2_1x1')
-
-        p2 = tf.concat([c2, c3_upsample], axis=3)
+        c3_upsample = self._complex_upsample(p3, input_dim=dims[1], output_dim=dims[2],factor=2, scope='c3_upsample')
+        c2 = self.revers(c2,dims[2],k_size=7,scope='c2_reverse')
+        p2 = c2+c3_upsample
 
         return p2
 
