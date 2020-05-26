@@ -145,14 +145,10 @@ class trainner():
         # Build the portion of the Graph calculating the losses. Note that we will
         # assemble the total_loss using a custom function below.
 
-        if cfg.MODEL.task=='face':
-            centernet = CenternetFace()
-        else:
-            centernet=Centernet()
-
+        centernet=Centernet()
 
         if cfg.TRAIN.lock_basenet_bn:
-            hm_loss,wh_loss=centernet.forward(images,kps_hm_, wh_,weights_, L2_reg, False)
+            hm_loss,wh_loss = centernet.forward(images,kps_hm_, wh_,weights_, L2_reg, False)
         else:
             hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_,L2_reg, training)
 

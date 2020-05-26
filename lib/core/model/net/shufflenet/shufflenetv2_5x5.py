@@ -204,7 +204,7 @@ def ShuffleV2Block(old_x,inp, oup, base_mid_channels, ksize, stride,scope_index=
 
 
 def shufflenet_arg_scope(weight_decay=cfg.TRAIN.weight_decay_factor,
-                     batch_norm_decay=0.9,
+                     batch_norm_decay=0.97,
                      batch_norm_epsilon=1e-5,
                      batch_norm_scale=True,
                      use_batch_norm=True,
