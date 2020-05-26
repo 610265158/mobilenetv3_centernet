@@ -1,6 +1,6 @@
 #-*-coding:utf-8-*-
 import tensorflow as tf
-
+import numpy as np
 
 def giou_loss(pred,
               target,
@@ -9,25 +9,20 @@ def giou_loss(pred,
     """GIoU loss.
     Computing the GIoU loss between a set of predicted bboxes and target bboxes.
     """
-
     pos_mask = weight > 0
-
-
-
     weight = tf.cast(weight[pos_mask],tf.float32)
-
     if avg_factor is None:
-        avg_factor = tf.reduce_sum(weight) + 1e-6
-    bboxes1 = tf.reshape(pred,(-1, 4))
-    bboxes2 = tf.reshape(target,(-1, 4))
+        avg_factor = tf.reduce_sum(pos_mask) + 1e-6
+    bboxes1 = tf.reshape(pred[pos_mask],(-1, 4))
+    bboxes2 =  tf.reshape(target[pos_mask],(-1, 4))
 
 
     lt = tf.maximum(bboxes1[:, :2], bboxes2[:, :2])  # [rows, 2]
     rb = tf.minimum(bboxes1[:, 2:], bboxes2[:, 2:])  # [rows, 2]
-    wh = tf.clip_by_value((rb - lt + 1),clip_value_min=0,clip_value_max=99999)  # [rows, 2]
+    wh = tf.maximum((rb - lt + 1),0)  # [rows, 2]
     enclose_x1y1 = tf.minimum(bboxes1[:, :2], bboxes2[:, :2])
     enclose_x2y2 = tf.maximum(bboxes1[:, 2:], bboxes2[:, 2:])
-    enclose_wh = tf.clip_by_value((enclose_x2y2 - enclose_x1y1 + 1),clip_value_min=0,clip_value_max=99999)
+    enclose_wh =  tf.maximum((enclose_x2y2 - enclose_x1y1 + 1),0)
 
     overlap = wh[:, 0] * wh[:, 1]
     ap = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)
@@ -38,22 +33,113 @@ def giou_loss(pred,
     u = ap + ag - overlap
     gious = ious - (enclose_area - u) / enclose_area
     iou_distances = 1 - gious
+    return tf.reduce_sum(iou_distances * weight) / avg_factor
 
-    shifts_x = tf.range(0, (10 - 1) * 4 + 1, 4,
-                       dtype=tf.int32)
-    shifts_x = tf.cast(shifts_x, dtype=tf.float32)
-    shifts_y = tf.range(0, (10 - 1) * 4 + 1, 4,
-                        dtype=tf.int32)
-    shifts_y = tf.cast(shifts_y, dtype=tf.float32)
+def diou_loss(pred,
+              target,
+              weight,
+              avg_factor=None):
+    """DIoU loss.
+    Computing the GIoU loss between a set of predicted bboxes and target bboxes.
+    """
+    pos_mask = weight > 0
+    weight = tf.cast(weight[pos_mask],tf.float32)
+    if avg_factor is None:
+        avg_factor = tf.reduce_sum(pos_mask) + 1e-6
+    bboxes1 = tf.reshape(pred[pos_mask],(-1, 4))
+    bboxes2 = tf.reshape(target[pos_mask],(-1, 4))
 
-    shift_y, shift_x = tf.meshgrid(shifts_y, shifts_x)
 
-    base_loc = tf.stack((shift_y, shift_x), axis=2)  # (2, h, w)
-    base_loc = tf.expand_dims(base_loc, axis=0)
+    lt = tf.maximum(bboxes1[:, :2], bboxes2[:, :2])  # [rows, 2]
+    rb = tf.minimum(bboxes1[:, 2:], bboxes2[:, 2:])  # [rows, 2]
+    wh = tf.maximum((rb - lt + 1),0)  # [rows, 2]
+    # enclose_x1y1 = tf.minimum(bboxes1[:, :2], bboxes2[:, :2])
+    # enclose_x2y2 = tf.maximum(bboxes1[:, 2:], bboxes2[:, 2:])
+    # enclose_wh =  tf.maximum((enclose_x2y2 - enclose_x1y1 + 1),0)
+
+    overlap = wh[:, 0] * wh[:, 1]
+    ap = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)
+    ag = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (bboxes2[:, 3] - bboxes2[:, 1] + 1)
+    ious = overlap / (ap + ag - overlap)
 
 
-    return tf.reduce_sum(iou_distances ),base_loc
+    # cal outer boxes
+    outer_left_up = tf.minimum(bboxes1[:, :2], bboxes2[:, :2])
+    outer_right_down = tf.maximum(bboxes1[:, 2:], bboxes2[:, 2:])
+    outer = tf.maximum(outer_right_down - outer_left_up, 0.0)
+    outer_diagonal_line = tf.square(outer[:, 0]) + tf.square(outer[:, 1])
 
+    boxes1_center = (bboxes1[:, :2] + bboxes1[:, 2:]+ 1) * 0.5
+    boxes2_center = (bboxes2[:, :2] + bboxes2[:, 2:]+ 1) * 0.5
+    center_dis = tf.square(boxes1_center[:, 0] - boxes2_center[:, 0]) + \
+                 tf.square(boxes1_center[:, 1] - boxes2_center[:, 1])
+
+    dious = ious - (center_dis / outer_diagonal_line)
+
+    iou_distances = 1-dious
+
+    return tf.reduce_sum(iou_distances * weight) / avg_factor
+def ciou_loss(pred,
+              target,
+              weight,
+              avg_factor=None):
+    """GIoU loss.
+    Computing the GIoU loss between a set of predicted bboxes and target bboxes.
+    """
+    pos_mask = weight > 0
+    weight = tf.cast(weight[pos_mask],tf.float32)
+    if avg_factor is None:
+        avg_factor = tf.reduce_sum(pos_mask) + 1e-6
+    bboxes1 = tf.reshape(pred[pos_mask],(-1, 4))
+    bboxes2 = tf.reshape(target[pos_mask],(-1, 4))
+
+
+    lt = tf.maximum(bboxes1[:, :2], bboxes2[:, :2])  # [rows, 2]
+    rb = tf.minimum(bboxes1[:, 2:], bboxes2[:, 2:])  # [rows, 2]
+    wh = tf.maximum((rb - lt + 1),0)  # [rows, 2]
+    # enclose_x1y1 = tf.minimum(bboxes1[:, :2], bboxes2[:, :2])
+    # enclose_x2y2 = tf.maximum(bboxes1[:, 2:], bboxes2[:, 2:])
+    # enclose_wh =  tf.maximum((enclose_x2y2 - enclose_x1y1 + 1),0)
+
+    overlap = wh[:, 0] * wh[:, 1]
+    ap = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)
+    ag = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (bboxes2[:, 3] - bboxes2[:, 1] + 1)
+    ious = overlap / (ap + ag - overlap)
+
+
+
+
+    # cal outer boxes
+    outer_left_up = tf.minimum(bboxes1[:, :2], bboxes2[:, :2])
+    outer_right_down = tf.maximum(bboxes1[:, 2:], bboxes2[:, 2:])
+    outer = tf.maximum(outer_right_down - outer_left_up, 0.0)
+    outer_diagonal_line = tf.square(outer[:, 0]) + tf.square(outer[:, 1])
+
+
+    boxes1_center = (bboxes1[:, :2] + bboxes1[:, 2:]+ 1) * 0.5
+    boxes2_center = (bboxes2[:, :2] + bboxes2[:, 2:]+ 1) * 0.5
+    center_dis = tf.square(boxes1_center[:, 0] - boxes2_center[:, 0]) + \
+                 tf.square(boxes1_center[:, 1] - boxes2_center[:, 1])
+
+
+
+
+
+    boxes1_size = tf.maximum(bboxes1[:,2:]-bboxes1[:,:2],0.0)
+    boxes2_size = tf.maximum(bboxes2[:, 2:] - bboxes2[:, :2], 0.0)
+
+    v = (4.0 / (np.pi**2)) * \
+        tf.square(tf.math.atan(boxes2_size[:, 0] / (boxes2_size[:, 1]+0.00001)) -
+                    tf.math.atan(boxes1_size[:, 0] / (boxes1_size[:, 1]+0.00001)))
+
+    S = tf.cast(tf.greater(ious , 0.5),dtype=tf.float32)
+    alpha = S * v / (1 - ious + v)
+
+    cious = ious - (center_dis / outer_diagonal_line)-alpha * v
+
+    cious = 1-cious
+
+    return tf.reduce_sum(cious * weight) / avg_factor
 
 
 

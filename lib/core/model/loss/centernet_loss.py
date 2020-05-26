@@ -1,11 +1,13 @@
 #-*-coding:utf-8-*-
 
-
+import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from tensorflow.python.ops import array_ops
 
 from train_config import config as cfg
+
+from lib.core.model.loss.iouloss import *
 
 def loss(predicts,targets):
     pred_hm, pred_wh=predicts
@@ -52,7 +54,7 @@ def loss(predicts,targets):
             # (batch, h, w, 4)
             boxes = wh_target#.permute(0, 2, 3, 1)
 
-            wh_loss = giou_loss(pred_boxes, boxes, mask, avg_factor=avg_factor)
+            wh_loss = ciou_loss(pred_boxes, boxes, mask, avg_factor=avg_factor)
 
         return hm_loss, wh_loss*5
 
@@ -70,40 +72,6 @@ def _reg_l1_loss(pred,
 
     loss=tf.reduce_mean(tf.abs(bboxes1-bboxes2),axis=1)
     return tf.reduce_sum(loss * weight) / avg_factor
-
-
-def giou_loss(pred,
-              target,
-              weight,
-              avg_factor=None):
-    """GIoU loss.
-    Computing the GIoU loss between a set of predicted bboxes and target bboxes.
-    """
-    pos_mask = weight > 0
-    weight = tf.cast(weight[pos_mask],tf.float32)
-    if avg_factor is None:
-        avg_factor = tf.reduce_sum(pos_mask) + 1e-6
-    bboxes1 = tf.reshape(pred[pos_mask],(-1, 4))
-    bboxes2 =  tf.reshape(target[pos_mask],(-1, 4))
-
-
-    lt = tf.maximum(bboxes1[:, :2], bboxes2[:, :2])  # [rows, 2]
-    rb = tf.minimum(bboxes1[:, 2:], bboxes2[:, 2:])  # [rows, 2]
-    wh = tf.maximum((rb - lt + 1),0)  # [rows, 2]
-    enclose_x1y1 = tf.minimum(bboxes1[:, :2], bboxes2[:, :2])
-    enclose_x2y2 = tf.maximum(bboxes1[:, 2:], bboxes2[:, 2:])
-    enclose_wh =  tf.maximum((enclose_x2y2 - enclose_x1y1 + 1),0)
-
-    overlap = wh[:, 0] * wh[:, 1]
-    ap = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)
-    ag = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (bboxes2[:, 3] - bboxes2[:, 1] + 1)
-    ious = overlap / (ap + ag - overlap)
-
-    enclose_area = enclose_wh[:, 0] * enclose_wh[:, 1]  # i.e. C in paper
-    u = ap + ag - overlap
-    gious = ious - (enclose_area - u) / enclose_area
-    iou_distances = 1 - gious
-    return tf.reduce_sum(iou_distances * weight) / avg_factor
 
 
 def classification_loss(predictions, targets):
@@ -293,6 +261,7 @@ def ohem_loss(logits, targets, weights):
     normalizer = tf.maximum(1., normalizer)
 
     return (neg_loss+pos_loss)/normalizer
+
 
 
 
