@@ -20,6 +20,6 @@ def se(fm,input_dim,refraction=4):
                      biases_initializer=None,
                      scope='conv1x1_se_b')
 
-    se=tf.nn.relu6(se+3.)/6.
+    se=tf.nn.sigmoid(se)
 
     return fm*se

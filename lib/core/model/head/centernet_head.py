@@ -21,11 +21,11 @@ class CenternetHead():
 
                 #####
 
-                kps,wh = self._pre_head(deconv_feature, 'centernet_pre_feature')
+                # kps,wh = self._pre_head(deconv_feature, 'centernet_pre_feature')
 
-                kps = slim.conv2d(kps,
+                kps = slim.separable_conv2d(deconv_feature,
                                   cfg.DATA.num_class,
-                                  [1, 1],
+                                  [3, 3],
                                   stride=1,
                                   activation_fn=None,
                                   normalizer_fn=None,
@@ -34,9 +34,9 @@ class CenternetHead():
                                   scope='centernet_cls_output')
 
 
-                wh = slim.conv2d(wh,
+                wh = slim.separable_conv2d(deconv_feature,
                                  4,
-                                 [1, 1],
+                                 [3, 3],
                                  stride=1,
                                  activation_fn=None,
                                  normalizer_fn=None,
@@ -64,25 +64,8 @@ class CenternetHead():
 
 
 
-                se = tf.reduce_mean(se, axis=[1, 2], keep_dims=True)
-                se = slim.conv2d(se,
-                                 dim // 4,
-                                 [1, 1],
-                                 stride=1,
-                                 activation_fn=tf.nn.relu,
-                                 biases_initializer=None,
-                                 normalizer_fn=slim.batch_norm,
-                                 scope='conv1x1_se_a')
-                se = slim.conv2d(se,
-                                 dim,
-                                 [1, 1],
-                                 stride=1,
-                                 activation_fn=tf.nn.sigmoid,
-                                 normalizer_fn=None,
-                                 biases_initializer=None,
-                                 scope='conv1x1_se_b')
 
-            fm = tf.concat([x,y,z], axis=3)*se
+            fm = tf.concat([x,y,z,se], axis=3)*se
 
             return fm
 
@@ -94,21 +77,22 @@ class CenternetHead():
 
         return kps,wh
 
-    def _complex_upsample(self,fm,input_dim,output_dim,use_se=False, factor=2,scope='upsample'):
+    def _complex_upsample(self,fm,input_dim,output_dim,use_se=True, factor=2,scope='upsample'):
         with tf.variable_scope(scope):
             x = fm[:, :, :, :input_dim // 2]
-            y = fm[:, :, :, input_dim // 2:]
+            y = fm[:, :, :, input_dim  // 2:]
 
             x = self._upsample_resize(x, dim=output_dim // 2, k_size=3,factor=factor, scope='branch_x_upsample_resize')
+            y = self._upsample_resize(y, dim=output_dim // 2, k_size=5, factor=factor, scope='branch_y_upsample_resize')
 
-            y = self._upsample_group_deconv(y, dim=output_dim // 2, group=2,factor=factor, scope='branch_y_upsample_deconv')
+            #y = self._upsample_group_deconv(y, dim=output_dim // 2, group=2,factor=factor, scope='branch_y_upsample_deconv')
 
             final = tf.concat([x, y],axis=3)
+            final = self._shuffle(final,group=2)
+
 
             if use_se:
-
                 final=se(final,output_dim)
-
 
             return final
 
@@ -155,8 +139,6 @@ class CenternetHead():
 
         return deconv_fm
 
-
-
     def revers_conv(self,fm,output_dim,k_size,refraction=4,scope='boring'):
 
         input_channel = fm.shape[3].value
@@ -184,25 +166,29 @@ class CenternetHead():
         c2, c3, c4, c5 = fms
 
         ####24, 116, 232, 464,
-        c5 = self.revers_conv(c5, 256, k_size=5, scope='c5_reverse')
+
         input_channel=c5.shape[3].value
-        c5_upsample = self._complex_upsample(c5, input_dim=input_channel, output_dim=dims[0],factor=8, scope='c5_upsample')
+        c5_upsample = self._complex_upsample(c5, input_dim=input_channel, output_dim= dims[0],factor=2, scope='c5_upsample')
 
-        c4 = self.revers_conv(c4, 192, k_size=5, scope='c4_reverse')
-        input_channel = c4.shape[3].value
-        c4_upsample = self._complex_upsample(c4, input_dim=input_channel, output_dim=dims[1], factor=4,scope='c4_upsample')
+        c4 = self.revers_conv(c4,  dims[0], k_size=5, scope='c4_reverse')
 
-        c3 = self.revers_conv(c3, 128, k_size=5, scope='c3_reverse')
-        input_channel = c4.shape[3].value
-        c3_upsample = self._complex_upsample(c3, input_dim=input_channel, output_dim=dims[2],factor=2, scope='c3_upsample')
+        p4=c4+c5_upsample
 
-        c2 = self.revers_conv(c2,dims[3],k_size=7,scope='c2_reverse')
+        input_channel = p4.shape[3].value
+        c4_upsample = self._complex_upsample(p4, input_dim=input_channel, output_dim= dims[1], factor=2,scope='c4_upsample')
 
-        combined=tf.concat([c2,c3_upsample,c4_upsample,c5_upsample],axis=3)
+        c3 = self.revers_conv(c3,  dims[1], k_size=5, scope='c3_reverse')
+        p3 = c3 + c4_upsample
 
-        combined=self._shuffle(combined,4)
+        input_channel = p3.shape[3].value
+        c3_upsample = self._complex_upsample(p3, input_dim=input_channel, output_dim= dims[2],factor=2, scope='c3_upsample')
 
-        return combined
+        c2 = self.revers_conv(c2, dims[2],k_size=7,scope='c2_reverse')
+
+        p2=c2+c3_upsample
+
+
+        return p2
 
     def _shuffle(self,z,group=2):
 

@@ -48,8 +48,8 @@ config.DATA.num_class = config.DATA.num_category       # +1 background
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
 
-config.DATA.hin = 512  # input size
-config.DATA.win = 512
+config.DATA.hin = 384  # input size
+config.DATA.win = 384
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
 config.DATA.cover_obj=6                        ###cover the small objs
@@ -76,8 +76,8 @@ config.MODEL.max_box= 1333
 
 config.MODEL.global_stride=4
 
-config.MODEL.head_dims=[8,8,8,8]
-config.MODEL.prehead_dims=[24,24]
+config.MODEL.head_dims=[96,48,32]
+config.MODEL.prehead_dims=[128,48]   ##no pre head
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:
