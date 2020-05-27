@@ -61,8 +61,8 @@ config.DATA.scales=(320,640)
 config.DATA.use_int8_data=True            ### we use uint8 data to decrease memery access to speed up
 config.DATA.use_int8_enlarge=255.
 config.DATA.cracy_crop=0.3
-config.DATA.alpha=0.45*2
-config.DATA.beta=0.45
+config.DATA.alpha=0.54*2
+config.DATA.beta=0.54
 ##mobilenetv3 as basemodel
 config.MODEL = edict()
 config.MODEL.continue_train=False ### revover from a trained model

@@ -60,8 +60,8 @@ config.DATA.use_int8_data=True
 config.DATA.use_int8_enlarge=255.           ### use uint8 for heatmap generate for less memory acc, to speed up
 config.DATA.max_objs=128
 config.DATA.cracy_crop=0.5
-config.DATA.alpha=0.45
-config.DATA.beta=0.45
+config.DATA.alpha=0.54
+config.DATA.beta=0.54
 
 
 ##mobilenetv3 as basemodel
