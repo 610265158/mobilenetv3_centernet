@@ -102,7 +102,7 @@ class FaceDetector:
 
 
 
-        self.stats_graph(self._sess.graph)
+        # self.stats_graph(self._sess.graph)
         return bboxes
 
 

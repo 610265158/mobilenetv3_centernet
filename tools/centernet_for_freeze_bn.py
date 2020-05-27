@@ -12,7 +12,6 @@ import cv2
 from lib.dataset.dataietr import DataIter
 
 from lib.core.model.centernet import Centernet
-from lib.core.model.centernet_face import CenternetFace
 from train_config import config as cfg
 
 from lib.helper.logger import logger

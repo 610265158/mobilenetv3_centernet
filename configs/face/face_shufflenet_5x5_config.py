@@ -50,7 +50,7 @@ config.DATA.PIXEL_STD = [127.]
 
 config.DATA.hin = 512  # input size
 config.DATA.win = 512
-config.DATA.channel = 1
+config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
 config.DATA.cover_obj=6                        ###cover the small objs
 config.DATA.max_objs=1333
@@ -69,7 +69,7 @@ config.MODEL.continue_train=False ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='ShuffleNetV2_5x5' ######'resnet_v1_50,resnet_v1_101,MobilenetV2
 config.MODEL.size='0.5x'
-config.MODEL.pretrained_model='./model/cls_for_convert.ckpt'#'./v3-small-minimalistic_224_1.0_float/ema/model-498000'
+config.MODEL.pretrained_model='./model/cls_for_convert.ckpt'
 config.MODEL.task='face'
 config.MODEL.min_overlap=0.6
 config.MODEL.max_box= 1333
@@ -77,7 +77,7 @@ config.MODEL.max_box= 1333
 config.MODEL.global_stride=4
 
 config.MODEL.head_dims=[8,8,8,8]
-config.MODEL.prehead_dims=[32,32]
+config.MODEL.prehead_dims=[24,24]
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
 if config.MODEL.deployee:
