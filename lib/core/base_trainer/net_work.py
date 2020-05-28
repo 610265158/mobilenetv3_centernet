@@ -221,15 +221,21 @@ class trainner():
                     with tf.device('/gpu:%d' % i):
                         with tf.name_scope('tower_%d' % (i)) as scope:
                             with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
+
+
+
+                                ###we set it as float16, but cast it into float32 in the model, to speedup
                                 if cfg.MODEL.deployee:
-                                    images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
+                                    images_ = tf.placeholder(tf.float16, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.float16, [cfg.TRAIN.batch_size,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
-                                hm_ = tf.placeholder(tf.float32,
+                                hm_ = tf.placeholder(tf.float16,
                                                          [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
                                                          name="heatmap_target")
+
+
                                 wh_=tf.placeholder(tf.float32,
                                                          [cfg.TRAIN.batch_size, None,None, 4],
                                                          name="wh_target")

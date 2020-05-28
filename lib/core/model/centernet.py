@@ -38,7 +38,7 @@ class Centernet():
 
         ## process the label
         if cfg.DATA.use_int8_data:
-            hm_target,wh_target,weights_=self.process_label(hm_target,wh_target,weights_)
+            inputs,hm_target,wh_target,weights_=self.process_label(inputs,hm_target,wh_target,weights_)
 
         ###preprocess
         #inputs=self.preprocess(inputs)
@@ -65,12 +65,13 @@ class Centernet():
 
             image=image/255.
         return image
-    def process_label(self,cls_hm,wh_target,weights_):
+    def process_label(self,inputs,cls_hm,wh_target,weights_):
 
+        inputs= tf.cast(inputs, tf.float32)
 
         cls_hm = tf.cast(cls_hm, tf.float32)/cfg.DATA.use_int8_enlarge
 
-        return cls_hm,wh_target,weights_
+        return inputs,cls_hm,wh_target,weights_
 
 
     def postprocess(self, keypoints,wh,max_size):
