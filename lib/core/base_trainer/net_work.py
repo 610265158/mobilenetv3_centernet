@@ -121,7 +121,7 @@ class trainner():
     def add_summary(self,event):
         self.summaries.append(event)
 
-    def tower_loss(self,scope, images, kps_hm_, wh_,weights_,L2_reg, training):
+    def tower_loss(self,scope, images, kps_hm_, wh_,weights_, training):
         """Calculate the total loss on a single tower running the model.
 
         Args:
@@ -140,9 +140,9 @@ class trainner():
         centernet=Centernet()
 
         if cfg.TRAIN.lock_basenet_bn:
-            hm_loss,wh_loss=centernet.forward(images,kps_hm_, wh_,weights_, L2_reg, False)
+            hm_loss,wh_loss=centernet.forward(images,kps_hm_, wh_,weights_, False)
         else:
-            hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_,L2_reg, training)
+            hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_, training)
 
         #reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
         regularization_losses = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES), name='l2_loss')
@@ -199,7 +199,6 @@ class trainner():
             opt, lr, global_step = self.get_opt()
 
             ##some global placeholder
-            L2_reg = tf.placeholder(tf.float32, name="L2_reg")
             training = tf.placeholder(tf.bool, name="training_flag")
 
             total_loss_to_show = 0.
@@ -213,7 +212,7 @@ class trainner():
             weights_initializer = slim.xavier_initializer()
             biases_initializer = tf.constant_initializer(0.)
             biases_regularizer = tf.no_regularizer
-            weights_regularizer = tf.contrib.layers.l2_regularizer(L2_reg)
+            weights_regularizer = tf.contrib.layers.l2_regularizer(cfg.TRAIN.weight_decay_factor)
 
             # Calculate the gradients for each model tower.
             tower_grads = []
@@ -225,7 +224,7 @@ class trainner():
                                 if cfg.MODEL.deployee:
                                     images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.float32, [None,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
                                 hm_ = tf.placeholder(tf.float32,
@@ -253,7 +252,7 @@ class trainner():
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
                                     hm_loss, wh_loss, l2_loss = self.tower_loss(
-                                        scope, images_, hm_, wh_,weight_, L2_reg, training)
+                                        scope, images_, hm_, wh_,weight_, training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
@@ -320,7 +319,6 @@ class trainner():
                            hm_gt_place_holder_list,
                            wh_gt_place_holder_list,
                            weights_place_holder_list,
-                           L2_reg,
                            training]
             self.outputs = [train_op,
                             total_loss_to_show,
@@ -444,8 +442,7 @@ class trainner():
                     self.train_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                     self.train_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
 
-                self.train_dict[self.inputs[4]] = cfg.TRAIN.weight_decay_factor
-                self.train_dict[self.inputs[5]] = True
+                self.train_dict[self.inputs[4]] = True
 
                 fetch_duration = time.time() - start_time
 
@@ -496,15 +493,13 @@ class trainner():
             feed_dict = {}
             examples = next(self.val_ds)
             for n in range(cfg.TRAIN.num_gpu):
-                
-                
+
                 feed_dict[self.inputs[0][n]] = examples[0][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
 
-            feed_dict[self.inputs[4]] = 0
-            feed_dict[self.inputs[5]] = False
+            feed_dict[self.inputs[4]] = False
 
             total_loss_value, hm_loss_value,wh_loss_value, l2_loss_value, lr_value = \
                 self.sess.run([*self.val_outputs],

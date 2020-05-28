@@ -23,7 +23,7 @@ def torch_style_padding(inputs,kernel_size,rate=1):
 
     return inputs
 
-def shuffle(z, torch_style_shuffle=True):
+def shuffle(z, torch_style_shuffle=False):
 
     if not torch_style_shuffle:
         with tf.name_scope('shuffle_split'):

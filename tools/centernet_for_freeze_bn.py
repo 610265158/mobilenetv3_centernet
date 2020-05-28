@@ -129,7 +129,7 @@ class trainner():
     def add_summary(self, event):
         self.summaries.append(event)
 
-    def tower_loss(self,scope, images, kps_hm_, wh_,weights_,L2_reg, training):
+    def tower_loss(self,scope, images, kps_hm_, wh_,weights_, training):
         """Calculate the total loss on a single tower running the model.
 
         Args:
@@ -147,9 +147,9 @@ class trainner():
         centernet=Centernet()
 
         if cfg.TRAIN.lock_basenet_bn:
-            hm_loss,wh_loss = centernet.forward(images,kps_hm_, wh_,weights_, L2_reg, False)
+            hm_loss,wh_loss = centernet.forward(images,kps_hm_, wh_,weights_, False)
         else:
-            hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_,L2_reg, training)
+            hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_, training)
 
         #reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
         regularization_losses = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES), name='l2_loss')
@@ -204,7 +204,6 @@ class trainner():
             opt, lr, global_step = self.get_opt()
 
             ##some global placeholder
-            L2_reg = tf.placeholder(tf.float32, name="L2_reg")
             training = tf.placeholder(tf.bool, name="training_flag")
 
             total_loss_to_show = 0.
@@ -213,12 +212,10 @@ class trainner():
             wh_gt_place_holder_list = []
             weights_place_holder_list = []
 
-
-
             weights_initializer = slim.xavier_initializer()
             biases_initializer = tf.constant_initializer(0.)
             biases_regularizer = tf.no_regularizer
-            weights_regularizer = tf.contrib.layers.l2_regularizer(L2_reg)
+            weights_regularizer = tf.contrib.layers.l2_regularizer(cfg.TRAIN.weight_decay_factor)
 
             # Calculate the gradients for each model tower.
             tower_grads = []
@@ -258,7 +255,7 @@ class trainner():
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
                                     hm_loss, wh_loss, l2_loss = self.tower_loss(
-                                        scope, images_, hm_, wh_,weight_, L2_reg, training)
+                                        scope, images_, hm_, wh_,weight_, training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
@@ -289,12 +286,8 @@ class trainner():
             # synchronization point across all towers.
             grads = self.average_gradients(tower_grads)
 
-            # Add a summary to track the learning rate.
-            self.add_summary(tf.summary.scalar('learning_rate', lr))
-            self.add_summary(tf.summary.scalar('total_loss', total_loss_to_show))
-            self.add_summary(tf.summary.scalar('hm_loss', hm_loss))
-            self.add_summary(tf.summary.scalar('wh_loss', wh_loss))
-            self.add_summary(tf.summary.scalar('l2_loss', l2_loss))
+
+
 
             # Add histograms for gradients.
             for grad, var in grads:
@@ -325,7 +318,6 @@ class trainner():
                            hm_gt_place_holder_list,
                            wh_gt_place_holder_list,
                            weights_place_holder_list,
-                           L2_reg,
                            training]
             self.outputs = [train_op,
                             total_loss_to_show,
@@ -360,7 +352,6 @@ class trainner():
         with self._graph.as_default():
             # Create a saver.
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
-
 
             logger.info('A tmp model  saved as %s \n' % saved_file)
 

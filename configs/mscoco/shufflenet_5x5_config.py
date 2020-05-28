@@ -13,7 +13,7 @@ config.TRAIN.process_num = 3                      ### process_num for data provi
 config.TRAIN.prefetch_size = 50                  ### prefect Q size for data provider
 
 config.TRAIN.num_gpu = 1                         ##match with   os.environ["CUDA_VISIBLE_DEVICES"]
-config.TRAIN.batch_size = 32                    ###A big batch size may achieve a better result, but the memory is a problem
+config.TRAIN.batch_size = 16                    ###A big batch size may achieve a better result, but the memory is a problem
 config.TRAIN.log_interval = 10
 config.TRAIN.epoch = 300                      ###just keep training , evaluation shoule be take care by yourself,
                                                ### generally 10,0000 iters is enough
@@ -25,7 +25,7 @@ config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.nu
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
 config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.001,0.0001,0.00001,0.000001]        ##warm up is used
-config.TRAIN.lr_decay_every_step = [500,1000,150000,200000,250000]
+config.TRAIN.lr_decay_every_step = [500,1000,300000,400000,500000]
 config.TRAIN.lr_decay_every_step = [int(x//config.TRAIN.num_gpu) for x  in config.TRAIN.lr_decay_every_step]
 
 
@@ -51,8 +51,8 @@ config.DATA.num_class = config.DATA.num_category
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
 
-config.DATA.hin = 384  # input size
-config.DATA.win = 384
+config.DATA.hin = 512  # input size
+config.DATA.win = 512
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
 config.DATA.cover_obj=4                          ###cover the small objs
@@ -80,7 +80,7 @@ config.MODEL.max_box= 100
 config.MODEL.offset= True
 config.MODEL.global_stride=4
 
-config.MODEL.head_dims=[256,192,128]
+config.MODEL.head_dims=[232,116,96]
 config.MODEL.prehead_dims=[128,48]   ##no pre head
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml

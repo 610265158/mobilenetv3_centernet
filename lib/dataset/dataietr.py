@@ -685,10 +685,9 @@ class DsfdDataIter():
         except:
             logger.warn('there is an err with %s' % fname)
             traceback.print_exc()
-            image = np.zeros(shape=(cfg.DATA.hin, cfg.DATA.win, 3), dtype=np.float32)
+            image = np.zeros(shape=(cfg.DATA.hin, cfg.DATA.win, 3), dtype=np.uint8)
             boxes_ = np.array([[0, 0, -1, -1]])
             klass_ = np.array([0])
-
 
         return image, boxes_, klass_
 

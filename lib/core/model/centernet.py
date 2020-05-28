@@ -34,7 +34,7 @@ class Centernet():
 
         self.top_k_results_output=cfg.MODEL.max_box
 
-    def forward(self,inputs,hm_target, wh_target,weights_,l2_regulation,training_flag):
+    def forward(self,inputs,hm_target, wh_target,weights_,training_flag):
 
         ## process the label
         if cfg.DATA.use_int8_data:
@@ -46,7 +46,7 @@ class Centernet():
         ### extract feature maps
         origin_fms=self.backbone(inputs,training_flag)
 
-        kps_predicts,wh_predicts = self.head(origin_fms, l2_regulation, training_flag)
+        kps_predicts,wh_predicts = self.head(origin_fms, training_flag)
         kps_predicts= tf.nn.sigmoid(kps_predicts)
         ### calculate loss
         hm_loss,wh_loss = loss(predicts=[kps_predicts,wh_predicts] ,targets=[hm_target,wh_target,weights_])
