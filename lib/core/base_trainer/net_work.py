@@ -372,8 +372,7 @@ class trainner():
 
             self.summary_writer = tf.summary.FileWriter(cfg.MODEL.model_path, self.sess.graph)
 
-
-
+            self.sess.graph.finalize()
             for epoch in range(cfg.TRAIN.epoch):
                 self._train(epoch)
                 val_loss=self._val(epoch)
