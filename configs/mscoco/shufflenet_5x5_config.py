@@ -32,7 +32,7 @@ config.TRAIN.lr_decay_every_step = [int(x//config.TRAIN.num_gpu) for x  in confi
 config.TRAIN.lr_decay='step'
 config.TRAIN.opt='adam'
 config.TRAIN.weight_decay_factor = 1.e-5                  ##l2 regular
-config.TRAIN.vis=False
+config.TRAIN.vis=True
 ##check data flag
 config.TRAIN.mix_precision=False
 
@@ -51,8 +51,8 @@ config.DATA.num_class = config.DATA.num_category
 config.DATA.PIXEL_MEAN = [127.]                 ###rgb
 config.DATA.PIXEL_STD = [127.]
 
-config.DATA.hin = 512  # input size
-config.DATA.win = 512
+config.DATA.hin = 416  # input size
+config.DATA.win = 416
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
 config.DATA.cover_obj=4                          ###cover the small objs
@@ -80,7 +80,7 @@ config.MODEL.max_box= 100
 config.MODEL.offset= True
 config.MODEL.global_stride=4
 
-config.MODEL.head_dims=[232,116,96]
+config.MODEL.head_dims=[192,160,128]
 config.MODEL.prehead_dims=[128,48]   ##no pre head
 
 config.MODEL.deployee= False    ### tensorflow, mnn, coreml
