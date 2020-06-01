@@ -20,7 +20,7 @@ So there is an easy project contains model training and model converter.
 no test time augmentation,
 | model                     |input_size |map      | map@0.5|map@0.75|
 | :------:                  |:------:   |:------:  |:------:  |:------:  |
-|[mbv3-large-0.75-modified_head](https://drive.google.com/open?id=1pUXyMEE3NPczfQ4jBcIFzzURIaqroVde)  |512x512     | 0.225    | 0.401|0.224  |
+|[mbv3-large-0.75-modified_head](https://drive.google.com/open?id=1pUXyMEE3NPczfQ4jBcIFzzURIaqroVde)  |512x512     | 0.223    | 0.384|0.226  |
 
 
 ### fddb

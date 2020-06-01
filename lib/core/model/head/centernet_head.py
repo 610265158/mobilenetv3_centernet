@@ -21,8 +21,6 @@ class CenternetHead():
 
                 #####
 
-                # kps,wh = self._pre_head(deconv_feature, 'centernet_pre_feature')
-
                 kps = slim.separable_conv2d(deconv_feature,
                                   cfg.DATA.num_class,
                                   [3, 3],
@@ -48,35 +46,6 @@ class CenternetHead():
 
         return kps, wh*16
 
-
-    def _pre_head(self, fm, scope):
-
-        def _head_conv(fms,dim,child_scope):
-            with tf.variable_scope(scope + child_scope):
-                x, y,z,se= fms
-
-
-                x = slim.conv2d(y,dim//3, kernel_size=[1, 1],stride=1,scope='branchx_3x3_pre')
-
-                y = slim.separable_conv2d(y,dim//3, kernel_size=[3, 3],stride=1,scope='branchy_3x3_pre')
-
-                z = slim.separable_conv2d(z,dim//3,  kernel_size=[5, 5], stride=1,scope='branchz_5x5_pre')
-
-
-
-
-            fm = tf.concat([x,y,z,se], axis=3)*se
-
-            return fm
-
-        split_fm = tf.split(fm, num_or_size_splits=4, axis=3)
-
-        kps = _head_conv(split_fm,dim=cfg.MODEL.prehead_dims[0],child_scope='kps')
-
-        wh  = _head_conv(split_fm, dim=cfg.MODEL.prehead_dims[1], child_scope='wh')
-
-        return kps,wh
-
     def _complex_upsample(self,fm,output_dim, factor=2,scope='upsample'):
         with tf.variable_scope(scope):
 
@@ -99,19 +68,6 @@ class CenternetHead():
 
             return final
 
-    def _upsample_resize(self, fm, k_size=5, dim=256, factor=2,scope='upsample'):
-
-
-        upsampled_conv = slim.separable_conv2d(fm,
-                                               dim,
-                                               [k_size, k_size],
-                                               activation_fn=None,
-                                               padding='SAME',
-                                               scope=scope)
-
-        upsampled_conv = tf.keras.layers.UpSampling2D(data_format='channels_last',interpolation='bilinear',size=(factor,factor))(upsampled_conv)
-
-        return upsampled_conv
 
     def _upsample_group_deconv(self, fm,dim,group=4,factor=2, scope='upsample'):
         '''

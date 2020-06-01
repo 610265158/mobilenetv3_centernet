@@ -66,23 +66,23 @@ class FaceDetector:
 
         bboxes=outputs[0]
 
-        print(kps.shape)
-        kps=kps[0][:,:,0]
-
-        label =kps
-        #label = (label / np.max(label) * 255).astype(np.uint8)
-        cv2.namedWindow('label', 0)
-        cv2.imshow('label', label)
-
-        wh = wh[0][:, :, 0]
-
-        print(np.min(wh))
-        print(np.max(wh))
-        wh = wh / np.max(wh)
-        wh = wh
-        # label = (label / np.max(label) * 255).astype(np.uint8)
-        cv2.namedWindow('wh', 0)
-        cv2.imshow('wh', wh)
+        # print(kps.shape)
+        # kps=kps[0][:,:,0]
+        #
+        # label =kps
+        # #label = (label / np.max(label) * 255).astype(np.uint8)
+        # cv2.namedWindow('label', 0)
+        # cv2.imshow('label', label)
+        #
+        # wh = wh[0][:, :, 0]
+        #
+        # print(np.min(wh))
+        # print(np.max(wh))
+        # wh = wh / np.max(wh)
+        # wh = wh
+        # # label = (label / np.max(label) * 255).astype(np.uint8)
+        # cv2.namedWindow('wh', 0)
+        # cv2.imshow('wh', wh)
 
 
         bboxes = self.py_nms(np.array(bboxes), iou_thres=None, score_thres=score_threshold,max_boxes=max_boxes)
@@ -102,7 +102,7 @@ class FaceDetector:
 
 
 
-        self.stats_graph(self._sess.graph)
+        # self.stats_graph(self._sess.graph)
         return bboxes
 
 
