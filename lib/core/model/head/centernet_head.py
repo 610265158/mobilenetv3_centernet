@@ -42,8 +42,6 @@ class CenternetHead():
                                  biases_initializer=tf.initializers.constant(0),
                                  scope='centernet_wh_output')
 
-
-
         return kps, wh*16
 
     def _complex_upsample(self,fm,output_dim, factor=2,scope='upsample'):

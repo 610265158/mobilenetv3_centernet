@@ -17,10 +17,12 @@ So there is an easy project contains model training and model converter.
 
 ### mscoco
 
-no test time augmentation,
+no test time augmentation, and better result can get with a heavy head, the best is 0.24map, 0.4map@0.5 
+
 | model                     |input_size |map      | map@0.5|map@0.75|
 | :------:                  |:------:   |:------:  |:------:  |:------:  |
 |[mbv3-large-0.75-modified_head](https://drive.google.com/open?id=1pUXyMEE3NPczfQ4jBcIFzzURIaqroVde)  |512x512     | 0.223    | 0.384|0.226  |
+|[shufflenet_5x5-modified_head](https://drive.google.com/open?id=1pUXyMEE3NPczfQ4jBcIFzzURIaqroVde)   |416x416     | 0.194    | 0.328|0.194  |
 
 
 ### fddb
