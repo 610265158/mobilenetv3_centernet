@@ -21,7 +21,7 @@ no test time augmentation, and better result can get with a heavy head,
 
 | model                     |input_size |map      | map@0.5|map@0.75|
 | :------:                  |:------:   |:------:  |:------:  |:------:  |
-|[mbv3-large-0.75-modified_head](hhttps://drive.google.com/drive/folders/13zvokhOmfSexXNt6fDeFvjedllvLMJfZ?usp=sharing)  |512x512     | 0.240| 0.408|0.243  |
+|[mbv3-large-0.75-modified_head](https://drive.google.com/drive/folders/13zvokhOmfSexXNt6fDeFvjedllvLMJfZ?usp=sharing)  |512x512     | 0.240| 0.408|0.243  |
 
 
 ## requirment
