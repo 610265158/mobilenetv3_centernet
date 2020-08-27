@@ -1,4 +1,4 @@
-# mobile_centernet
+# mobilenetv3_centernet
 
 ## introduction
 
@@ -17,24 +17,11 @@ So there is an easy project contains model training and model converter.
 
 ### mscoco
 
-no test time augmentation, and better result can get with a heavy head, the best is 0.24map, 0.4map@0.5 
+no test time augmentation, and better result can get with a heavy head,
 
 | model                     |input_size |map      | map@0.5|map@0.75|
 | :------:                  |:------:   |:------:  |:------:  |:------:  |
-|[mbv3-large-0.75-modified_head](https://drive.google.com/open?id=1pUXyMEE3NPczfQ4jBcIFzzURIaqroVde)  |512x512     | 0.223    | 0.384|0.226  |
-|[shufflenet_5x5-modified_head](https://drive.google.com/open?id=1pUXyMEE3NPczfQ4jBcIFzzURIaqroVde)   |416x416     | 0.194    | 0.328|0.194  |
-
-
-### fddb
-| model                     |input_size |fddb      |
-| :------:                  |:------:   |:------:  |
-|  mbv3-small-minimalistic_modified  |512x512     | 0.947    |
-
-
-### widerface
-| model         |input_size  |wider easy|wider medium |wider hard |
-| :------:      |:------:     |:------:  | :------:  | :------:  | 
-|mbv3-small-minimalistic_modified |512x512      | 0.841    |0.803     |0.488    |
+|[mbv3-large-0.75-modified_head](hhttps://drive.google.com/drive/folders/13zvokhOmfSexXNt6fDeFvjedllvLMJfZ?usp=sharing)  |512x512     | 0.240| 0.408|0.243  |
 
 
 ## requirment
@@ -89,57 +76,6 @@ python model_eval/custome_eval.py --model model/detector.pb
 ps, no test time augmentation is used.
 ```
 
-###  FACE
-
-#### train
-1. download widerface data from http://shuoyang1213.me/WIDERFACE/,
- and release the WIDER_train, WIDER_val and wider_face_split into ./WIDER,
-  then run python prepare_wider_data.py
-
-2. download pretrained model from [mbv3-small-minimalistic](https://storage.googleapis.com/mobilenet_v3/checkpoints/v3-small-minimalistic_224_1.0_float.tgz)
-release it in current dir
-
-3. then, modify in config=face_config in train_config.py,  then run:
-
-   ```python train.py```
-
-   and if u want to check the data when training, u could set vis in confifs/mscoco/mbv3_config.py as True
-
-4. After training, freeze the model as .pb  by
-
-    ` python tools/auto_freeze.py --pretrained_mobile ./model/yourmodel.ckpt`
-
-    it will produce a detector.pb
-
-
-#### evaluation
-
-** fddb **
-```
-    python model_eval/fddb.py [--model [TRAINED_MODEL]] [--data_dir [DATA_DIR]]
-                          [--split_dir [SPLIT_DIR]] [--result [RESULT_DIR]]
-    --model              Path of the saved model,default ./model/detector.pb
-    --data_dir           Path of fddb all images
-    --split_dir          Path of fddb folds
-    --result             Path to save fddb results
- ```
-    
-example `python model_eval/fddb.py --model model/detector.pb 
-                                    --data_dir 'fddb/img/' 
-                                    --split_dir fddb/FDDB-folds/ 
-                                    --result 'result/' `
-                                    
-** widerface **
-```
-    python model_eval/wider.py [--model [TRAINED_MODEL]] [--data_dir [DATA_DIR]]
-                           [--result [RESULT_DIR]]
-    --model              Path of the saved model,default ./model/detector.pb
-    --data_dir           Path of WIDER
-    --result             Path to save WIDERface results
- ```
-example `python model_eval/wider.py --model model/detector.pb 
-                                    --data_dir 'WIDER/WIDER_val/' 
-                                    --result 'result/' `
 
 ### finetune
 1. download the trained model,

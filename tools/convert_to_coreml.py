@@ -15,7 +15,7 @@ output_tensors = ["tower_0/detections"]
 
 centernet_model=tfcoreml.convert(tf_model_path='./model/detector.pb',
                              mlmodel_path='./model/my_model.mlmodel',
-                             #image_input_names=input_tensor,
+                             image_input_names=input_tensor,
                              output_feature_names=output_tensors,
                              input_name_shape_dict={'tower_0/images': [1, cfg.DATA.hin, cfg.DATA.win, cfg.DATA.channel]},  # map from input tensor name (placeholder op in the graph) to shape
                              minimum_ios_deployment_target='13',
@@ -23,32 +23,6 @@ centernet_model=tfcoreml.convert(tf_model_path='./model/detector.pb',
 
 spec = centernet_model.get_spec()
 tfcoreml.optimize_nn_spec(spec)
-
-#
-#####clean the name of the model
-print(spec.description)
-spec.description.input[0].name = "image"
-spec.description.input[0].shortDescription = "Input image"
-spec.description.output[0].name = "detections"
-spec.description.output[0].shortDescription = "Predicted coordinates for each bounding box"
-#
-# # #
-# # #
-# ##rename the tensor name
-for i in range(len(spec.neuralNetwork.layers)):
-
-    try:
-        if spec.neuralNetwork.layers[i].input[0] == input_tensor:
-            spec.neuralNetwork.layers[i].input[0] = "image"
-
-        if spec.neuralNetwork.layers[i].output[0]==output_tensors[0]:
-            spec.neuralNetwork.layers[i].output[0] = "detections"
-
-    except:
-        continue
-
-
-
 
 from coremltools.models.neural_network import  flexible_shape_utils
 #

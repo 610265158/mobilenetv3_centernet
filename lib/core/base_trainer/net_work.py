@@ -226,12 +226,12 @@ class trainner():
 
                                 ###we set it as float16, but cast it into float32 in the model, to speedup
                                 if cfg.MODEL.deployee:
-                                    images_ = tf.placeholder(tf.float16, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
+                                    images_ = tf.placeholder(tf.uint8, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.float16, [cfg.TRAIN.batch_size,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.uint8, [cfg.TRAIN.batch_size,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
-                                hm_ = tf.placeholder(tf.float16,
+                                hm_ = tf.placeholder(tf.uint8,
                                                          [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
                                                          name="heatmap_target")
 

@@ -66,38 +66,6 @@ class CenternetHead():
 
             return final
 
-
-    def _upsample_group_deconv(self, fm,dim,group=4,factor=2, scope='upsample'):
-        '''
-        group deconv
-
-        :param fm: input feature
-        :param dim: input dim , should be n*group
-        :param group:
-        :param scope:
-        :return:
-        '''
-        sliced_fms=tf.split(fm, num_or_size_splits=group, axis=3)
-
-        deconv_fms=[]
-        for i in range(group):
-            cur_upsampled_conv = slim.conv2d_transpose(sliced_fms[i],
-                                                       dim//group,
-                                                       [4, 4],
-                                                       stride=2,
-                                                       padding='SAME',
-                                                       scope=scope+'group_%d'%i)
-            deconv_fms.append(cur_upsampled_conv)
-
-        deconv_fm= tf.concat(deconv_fms, axis=3)
-
-
-        if factor//2!=1:
-            deconv_fm = tf.keras.layers.UpSampling2D(data_format='channels_last', size=(factor//2, factor//2))(
-                deconv_fm)
-
-        return deconv_fm
-
     def revers_conv(self,fm,output_dim,k_size,refraction=4,scope='boring'):
 
         input_channel = fm.shape[3].value
@@ -142,26 +110,3 @@ class CenternetHead():
 
         return final
 
-    def _shuffle(self,z,group=2):
-
-        with tf.name_scope('shuffle'):
-            shape = tf.shape(z)
-            batch_size = shape[0]
-            height, width = shape[1], shape[2]
-
-            depth = z.shape[3].value//group
-
-            if cfg.MODEL.deployee:
-                z = tf.reshape(z, [height, width, group, depth])  # shape [batch_size, height, width, 2, depth]
-
-                z = tf.transpose(z, [0, 1, 3, 2])
-
-            else:
-                z = tf.reshape(z,
-                               [batch_size, height, width, group, depth])  # shape [batch_size, height, width, 2, depth]
-
-                z = tf.transpose(z, [0, 1, 2, 4, 3])
-
-            z = tf.reshape(z, [batch_size, height, width, group * depth])
-
-            return z
