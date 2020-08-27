@@ -17,7 +17,7 @@ So there is an easy project contains model training and model converter.
 
 ### mscoco
 
-no test time augmentation, and better result can get with a heavy head,
+no test time augmentation, and better result can be achieved with a heavy head,
 
 | model                     |input_size |map      | map@0.5|map@0.75|
 | :------:                  |:------:   |:------:  |:------:  |:------:  |
