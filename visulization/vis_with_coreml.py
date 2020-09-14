@@ -9,7 +9,7 @@ import coremltools
 import cv2
 import numpy as np
 import os
-
+import PIL.Image
 from visulization.coco_id_map import coco_map
 from train_config import config as cfg
 
@@ -46,18 +46,17 @@ def inference(model_path,img_dir,thres=0.3):
         image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
 
         image,_,_,_,_ = preprocess(image,target_height=cfg.DATA.hin,target_width=cfg.DATA.win)
+
         image_show=image.copy()
 
+        image = image.astype(np.uint8)
+        pil_img = PIL.Image.fromarray(image)
 
-        image = image.astype(np.float32)
+        coreml_inputs = {'tower_0/images': pil_img}
 
-        image=np.expand_dims(image,axis=0)
-        coreml_inputs = {'image': image}
-        coreml_outputs = centernet_model.predict(coreml_inputs, useCPUOnly=False)
+        coreml_outputs = centernet_model.predict(coreml_inputs, useCPUOnly=True)
 
-
-
-        boxes=coreml_outputs['detections']
+        boxes=coreml_outputs['tower_0/detections']
 
         boxes=boxes[0]
 
@@ -68,7 +67,6 @@ def inference(model_path,img_dir,thres=0.3):
 
                 cv2.rectangle(image_show, (int(bbox[0]), int(bbox[1])),
                               (int(bbox[2]), int(bbox[3])), (255, 0, 0), 4)
-
 
                 str_draw = '%s:%.2f' % (coco_map[int(bbox[5])%80][1], bbox[4])
                 cv2.putText(image_show, str_draw, (int(bbox[0]), int(bbox[1])), cv2.FONT_HERSHEY_SIMPLEX, 2,
