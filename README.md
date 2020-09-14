@@ -3,7 +3,7 @@
 ## introduction
 
 This is a tensorflow implement mobilenetv3-centernet framework,
-which can be easily deployeed on both Android(MNN) and IOS(CoreML) mobile devices end to end.
+which can be easily deployeed on Android(MNN) and IOS(CoreML) mobile devices, end to end.
 
 Purpose: Light detection algorithms that work on mobile devices is widely used, 
 such as face detection.
@@ -17,8 +17,7 @@ So there is an easy project contains model training and model converter.
 
 ### mscoco
 
-no test time augmentation, and better result can be achieved with a heavy head,
-
+no test time augmentation.
 | model                     |input_size |map      | map@0.5|map@0.75|
 | :------:                  |:------:   |:------:  |:------:  |:------:  |
 |[mbv3-large-0.75-modified_head](https://drive.google.com/drive/folders/13zvokhOmfSexXNt6fDeFvjedllvLMJfZ?usp=sharing)  |512x512     | 0.251| 0.423|0.258  |
@@ -36,7 +35,7 @@ no test time augmentation, and better result can be achieved with a heavy head,
 
 + MNNConverter
 
-+ tfcoreml
++ coremltools
 
 ## useage
 
