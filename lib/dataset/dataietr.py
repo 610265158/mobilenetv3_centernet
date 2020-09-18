@@ -33,7 +33,7 @@ from train_config import config as cfg
 
 
 import math
-
+import albumentations as A
 
 class data_info():
     def __init__(self,img_root,txt):
@@ -333,7 +333,21 @@ class DsfdDataIter():
 
         self.shuffle = shuffle
 
-        self.space_augmentor = Sequence([RandomShear()])
+        self.train_trans = A.Compose([
+                                      A.RandomBrightnessContrast(p=0.75, brightness_limit=0.1, contrast_limit=0.2),
+
+                                      A.CLAHE(clip_limit=4.0, p=0.7),
+                                      A.HueSaturationValue(hue_shift_limit=10, sat_shift_limit=20,
+                                                           val_shift_limit=10, p=0.5),
+
+                                      A.OneOf([
+                                          A.MotionBlur(blur_limit=5),
+                                          A.MedianBlur(blur_limit=5),
+                                          A.GaussianBlur(blur_limit=5),
+                                          A.GaussNoise(var_limit=(5.0, 30.0)),
+                                      ], p=0.7)
+                                      ])
+
     def __iter__(self):
         idxs = np.arange(len(self.lst))
 
@@ -357,98 +371,6 @@ class DsfdDataIter():
 
         return all_samples
 
-    def _map_func_raw(self,dp,is_training):
-        """Data augmentation function."""
-        ####customed here
-        try:
-            fname, annos = dp
-            image = cv2.imread(fname, cv2.IMREAD_COLOR)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            labels = annos.split(' ')
-            boxes = []
-
-
-            for label in labels:
-                bbox = np.array(label.split(','), dtype=np.float)
-                boxes.append([bbox[0], bbox[1], bbox[2], bbox[3], bbox[4]])
-
-            boxes = np.array(boxes, dtype=np.float)
-
-
-            if is_training:
-
-                sample_dice = random.uniform(0, 1)
-                if sample_dice <= 0.3:
-
-                    ###随机crop
-                    image, boxes = Random_scale_withbbox(image, boxes, target_shape=[cfg.DATA.hin, cfg.DATA.win],
-                                                         jitter=0.5)
-                    #image, boxes =self.space_augmentor(image.copy(),boxes.copy())
-
-                else:
-                    ### 不crop
-                    image = image.astype(np.uint8)
-                    boxes = boxes
-
-
-                if random.uniform(0, 1) > 0.5:
-                    image, boxes = Random_flip(image, boxes)
-
-                # if random.uniform(0, 1) > 0.5:
-                #     boxes_ = boxes[:, 0:4]
-                #     klass_ = boxes[:, 4:]
-                #     angel=random.uniform(-5,5)
-                #     image, boxes_ = Rotate_with_box(image,angel, boxes_)
-                #     boxes = np.concatenate([boxes_, klass_], axis=1)
-
-
-                if random.uniform(0, 1) > 0.5:
-                    image =self.color_augmentor(image)
-                # if random.uniform(0, 1) > 0.5:
-                #     image =pixel_jitter(image,15)
-
-            else:
-                boxes_ = boxes[:, 0:4]
-                klass_ = boxes[:, 4:]
-                image, shift_x, shift_y = Fill_img(image, target_width=cfg.DATA.win, target_height=cfg.DATA.hin)
-                boxes_[:, 0:4] = boxes_[:, 0:4] + np.array([shift_x, shift_y, shift_x, shift_y], dtype='float32')
-                h, w, _ = image.shape
-                boxes_[:, 0] /= w
-                boxes_[:, 1] /= h
-                boxes_[:, 2] /= w
-                boxes_[:, 3] /= h
-                image = image.astype(np.uint8)
-                image = cv2.resize(image, (cfg.DATA.win, cfg.DATA.hin))
-
-                boxes_[:, 0] *= cfg.DATA.win
-                boxes_[:, 1] *= cfg.DATA.hin
-                boxes_[:, 2] *= cfg.DATA.win
-                boxes_[:, 3] *= cfg.DATA.hin
-                image = image.astype(np.uint8)
-                boxes = np.concatenate([boxes_, klass_], axis=1)
-
-
-
-
-            if boxes.shape[0] == 0 or np.sum(image) == 0:
-                boxes_ = np.array([[0, 0, 100, 100]])
-                klass_ = np.array([0])
-            else:
-                boxes_ = np.array(boxes[:, 0:4], dtype=np.float32)
-                klass_ = np.array(boxes[:, 4], dtype=np.int64)
-
-
-
-
-        except:
-            logger.warn('there is an err with %s' % fname)
-            traceback.print_exc()
-            image = np.zeros(shape=(cfg.DATA.hin, cfg.DATA.win, 3), dtype=np.float32)
-            boxes_ = np.array([[0, 0, 100, 100]])
-            klass_ = np.array([0])
-
-
-        return image, boxes_, klass_
     def _map_func(self,dp,is_training):
         """Data augmentation function."""
         ####customed here
@@ -468,189 +390,71 @@ class DsfdDataIter():
 
             img=image
 
-            # if is_training:
-            #
-            #     height, width = img.shape[0], img.shape[1]
-            #     c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
-            #     if 0:
-            #         input_h = (height | self.opt.pad) + 1
-            #         input_w = (width | self.opt.pad) + 1
-            #         s = np.array([input_w, input_h], dtype=np.float32)
-            #     else:
-            #         s = max(img.shape[0], img.shape[1]) * 1.0
-            #         input_h, input_w = cfg.DATA.hin, cfg.DATA.win
-            #
-            #
-            #
-            #     flipped=False
-            #     if 1:
-            #         if 1:
-            #             s = s * np.random.choice(np.arange(0.6, 1.4, 0.1))
-            #             w_border = self._get_border(128, img.shape[1])
-            #             h_border = self._get_border(128, img.shape[0])
-            #             c[0] = np.random.randint(low=w_border, high=img.shape[1] - w_border)
-            #             c[1] = np.random.randint(low=h_border, high=img.shape[0] - h_border)
-            #
-            #         if np.random.random() < 0.5:
-            #             flipped=True
-            #             img = img[:, ::-1, :]
-            #             c[0] = width - c[0] - 1
-            #
-            #
-            #     trans_output = get_affine_transform(c, s, 0, [input_w, input_h])
-            #
-            #
-            #     inp = cv2.warpAffine(img, trans_output,
-            #                          (input_w, input_h),
-            #                          flags=cv2.INTER_LINEAR)
-            #
-            #     boxes_ = boxes[:,:4]
-            #     klass_ = boxes[:,4:5]
-            #
-            #
-            #     boxes_refine=[]
-            #     for k in range(boxes_.shape[0]):
-            #         bbox = boxes_[k]
-            #
-            #         cls_id = klass_[k]
-            #         if flipped:
-            #             bbox[[0, 2]] = width - bbox[[2, 0]] - 1
-            #         bbox[:2] = affine_transform(bbox[:2], trans_output)
-            #         bbox[2:] = affine_transform(bbox[2:], trans_output)
-            #         bbox[[0, 2]] = np.clip(bbox[[0, 2]], 0, input_w - 1)
-            #         bbox[[1, 3]] = np.clip(bbox[[1, 3]], 0, input_h - 1)
-            #
-            #         boxes_refine.append(bbox)
-            #
-            #     boxes_refine=np.array(boxes_refine)
-            #
-            #     image = inp.astype(np.uint8)
-            #
-            #     if random.uniform(0, 1) > 0.5:
-            #         image =self.color_augmentor(image)
-            #     # if random.uniform(0, 1) > 0.5:
-            #     #     image =pixel_jitter(image,15)
-            #     image = image.astype(np.uint8)
-            #
-            #     boxes = np.concatenate([boxes_refine, klass_], axis=1)
             if is_training:
+
+
+
+
+
+                ###random crop and flip
+                height, width = img.shape[0], img.shape[1]
+                c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
+                if 0:
+                    input_h = (height | self.opt.pad) + 1
+                    input_w = (width | self.opt.pad) + 1
+                    s = np.array([input_w, input_h], dtype=np.float32)
+                else:
+                    s = max(img.shape[0], img.shape[1]) * 1.0
+                    input_h, input_w = cfg.DATA.hin, cfg.DATA.win
+
+                flipped = False
                 if 1:
-                    height, width = img.shape[0], img.shape[1]
-                    c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
-                    if 0:
-                        input_h = (height | self.opt.pad) + 1
-                        input_w = (width | self.opt.pad) + 1
-                        s = np.array([input_w, input_h], dtype=np.float32)
-                    else:
-                        s = max(img.shape[0], img.shape[1]) * 1.0
-                        input_h, input_w = cfg.DATA.hin, cfg.DATA.win
-
-                    flipped = False
                     if 1:
-                        if 1:
-                            s = s * np.random.choice(np.arange(0.6, 1.4, 0.1))
-                            w_border = self._get_border(128, img.shape[1])
-                            h_border = self._get_border(128, img.shape[0])
-                            c[0] = np.random.randint(low=w_border, high=img.shape[1] - w_border)
-                            c[1] = np.random.randint(low=h_border, high=img.shape[0] - h_border)
+                        s = s * np.random.choice(np.arange(0.6, 1.4, 0.1))
+                        w_border = self._get_border(128, img.shape[1])
+                        h_border = self._get_border(128, img.shape[0])
+                        c[0] = np.random.randint(low=w_border, high=img.shape[1] - w_border)
+                        c[1] = np.random.randint(low=h_border, high=img.shape[0] - h_border)
 
-                        if np.random.random() < 0.5:
-                            flipped = True
-                            img = img[:, ::-1, :]
-                            c[0] = width - c[0] - 1
+                    if np.random.random() < 0.5:
+                        flipped = True
+                        img = img[:, ::-1, :]
+                        c[0] = width - c[0] - 1
 
-                    trans_output = get_affine_transform(c, s, 0, [input_w, input_h])
+                trans_output = get_affine_transform(c, s, 0, [input_w, input_h])
 
-                    inp = cv2.warpAffine(img, trans_output,
-                                         (input_w, input_h),
-                                         flags=cv2.INTER_LINEAR)
+                inp = cv2.warpAffine(img, trans_output,
+                                     (input_w, input_h),
+                                     flags=cv2.INTER_LINEAR)
 
-                    boxes_ = boxes[:, :4]
-                    klass_ = boxes[:, 4:5]
+                boxes_ = boxes[:, :4]
+                klass_ = boxes[:, 4:5]
 
-                    boxes_refine = []
-                    for k in range(boxes_.shape[0]):
-                        bbox = boxes_[k]
+                boxes_refine = []
+                for k in range(boxes_.shape[0]):
+                    bbox = boxes_[k]
 
-                        cls_id = klass_[k]
-                        if flipped:
-                            bbox[[0, 2]] = width - bbox[[2, 0]] - 1
-                        bbox[:2] = affine_transform(bbox[:2], trans_output)
-                        bbox[2:] = affine_transform(bbox[2:], trans_output)
-                        bbox[[0, 2]] = np.clip(bbox[[0, 2]], 0, input_w - 1)
-                        bbox[[1, 3]] = np.clip(bbox[[1, 3]], 0, input_h - 1)
+                    cls_id = klass_[k]
+                    if flipped:
+                        bbox[[0, 2]] = width - bbox[[2, 0]] - 1
+                    bbox[:2] = affine_transform(bbox[:2], trans_output)
+                    bbox[2:] = affine_transform(bbox[2:], trans_output)
+                    bbox[[0, 2]] = np.clip(bbox[[0, 2]], 0, input_w - 1)
+                    bbox[[1, 3]] = np.clip(bbox[[1, 3]], 0, input_h - 1)
 
-                        boxes_refine.append(bbox)
+                    boxes_refine.append(bbox)
 
-                    boxes_refine = np.array(boxes_refine)
+                boxes_refine = np.array(boxes_refine)
+                image = inp.astype(np.uint8)
+                boxes = np.concatenate([boxes_refine, klass_], axis=1)
 
-                    image = inp.astype(np.uint8)
+                ####random crop and flip
+                #### pixel level aug
 
-                    if random.uniform(0, 1) > 0.5:
-                        image = self.color_augmentor(image)
-                    # if random.uniform(0, 1) > 0.5:
-                    #     image =pixel_jitter(image,15)
-                    image = image.astype(np.uint8)
+                image=self.train_trans(image=image)['image']
 
-                    boxes = np.concatenate([boxes_refine, klass_], axis=1)
+                ####
 
-                # else:
-                #
-                #     ##### different ratios
-                #     sample_dice = random.uniform(0, 1)
-                #     if sample_dice > 0.8 and sample_dice <= 1:
-                #         image, boxes = Random_scale_withbbox(image, boxes, target_shape=[cfg.DATA.hin, cfg.DATA.win],
-                #                                              jitter=0.5)
-                #
-                #     elif sample_dice > 0.4 and sample_dice <= 0.8:
-                #         boxes_ = boxes[:, 0:4]
-                #         klass_ = boxes[:, 4:]
-                #
-                #         image, boxes_, klass_ = dsfd_aug(image, boxes_, klass_)
-                #
-                #         image = image.astype(np.uint8)
-                #         boxes = np.concatenate([boxes_, klass_], axis=1)
-                #     else:
-                #         boxes_ = boxes[:, 0:4]
-                #         klass_ = boxes[:, 4:]
-                #         image, boxes_, klass_ = baidu_aug(image, boxes_, klass_)
-                #
-                #         image = image.astype(np.uint8)
-                #         boxes = np.concatenate([boxes_, klass_], axis=1)
-                #
-                #     if random.uniform(0, 1) > 0.5:
-                #         image, boxes = Random_flip(image, boxes)
-                #
-                #     # if random.uniform(0, 1) > 0.3:
-                #     #     boxes_ = boxes[:, 0:4]
-                #     #     klass_ = boxes[:, 4:]
-                #     #     angel = random.uniform(-45, 45)
-                #     #     image, boxes_ = Rotate_with_box(image, angel, boxes_)
-                #     #     boxes = np.concatenate([boxes_, klass_], axis=1)
-                #
-                #     if random.uniform(0, 1) > 0.5:
-                #         image = self.color_augmentor(image)
-                #     # if random.uniform(0, 1) > 0.5:
-                #     #     image = pixel_jitter(image, 15)
-                #
-                #     boxes_ = boxes
-                #
-                #     image, shift_x, shift_y = Fill_img(image, target_width=cfg.DATA.win, target_height=cfg.DATA.hin)
-                #     boxes_[:, 0:4] = boxes_[:, 0:4] + np.array([shift_x, shift_y, shift_x, shift_y], dtype='float32')
-                #     h, w, _ = image.shape
-                #     boxes_[:, 0] /= w
-                #     boxes_[:, 1] /= h
-                #     boxes_[:, 2] /= w
-                #     boxes_[:, 3] /= h
-                #     image = image.astype(np.uint8)
-                #     image = cv2.resize(image, (cfg.DATA.win, cfg.DATA.hin))
-                #
-                #     boxes_[:, 0] *= cfg.DATA.win
-                #     boxes_[:, 1] *= cfg.DATA.hin
-                #     boxes_[:, 2] *= cfg.DATA.win
-                #     boxes_[:, 3] *= cfg.DATA.hin
-                #     image = image.astype(np.uint8)
-                #     boxes = boxes_
             else:
                 boxes_ = boxes[:, 0:4]
                 klass_ = boxes[:, 4:]
@@ -670,9 +474,6 @@ class DsfdDataIter():
                 boxes_[:, 3] *= cfg.DATA.hin
                 image = image.astype(np.uint8)
                 boxes = np.concatenate([boxes_, klass_], axis=1)
-
-
-
 
             if boxes.shape[0] == 0 or np.sum(image) == 0:
                 boxes_ = np.array([[0, 0, -1, -1]])
