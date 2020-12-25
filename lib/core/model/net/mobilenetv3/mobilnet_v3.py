@@ -172,13 +172,13 @@ V3_LARGE_MINIMALISTIC = dict(
         mbv3_op(ef=6, n=160, k=3, s=2),
         mbv3_op(ef=6, n=160, k=3, s=1),
         mbv3_op(ef=6, n=160, k=3, s=1),
-        op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=960),
-        op(reduce_to_1x1, default_size=7, stride=1, padding='VALID'),
-        op(slim.conv2d,
-           stride=1,
-           kernel_size=[1, 1],
-           num_outputs=1280,
-           normalizer_fn=None)
+        # op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=960),
+        # op(reduce_to_1x1, default_size=7, stride=1, padding='VALID'),
+        # op(slim.conv2d,
+        #    stride=1,
+        #    kernel_size=[1, 1],
+        #    num_outputs=1280,
+        #    normalizer_fn=None)
     ]))
 
 # Compatible run: http://mldash/2023283040014348118#scalars

@@ -67,6 +67,7 @@ config.MODEL = edict()
 config.MODEL.continue_train=False          ### revover from a trained model
 config.MODEL.model_path = './model/'  # save directory
 config.MODEL.net_structure='MobilenetV3'
+config.MODEL.minimalistic=False
 config.MODEL.size=0.75
 config.MODEL.pretrained_model='./v3-large_224_0.75_float/ema/model-220000'
 config.MODEL.task='mscoco'
