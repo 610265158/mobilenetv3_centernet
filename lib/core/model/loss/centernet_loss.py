@@ -11,6 +11,8 @@ from lib.core.model.loss.iouloss import *
 
 def loss(predicts,targets):
     pred_hm, pred_wh=predicts
+    pred_hm=tf.nn.sigmoid(pred_hm)
+
     hm_target, wh_target,weights_=targets
 
     with tf.name_scope('losses'):
