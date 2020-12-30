@@ -290,23 +290,23 @@ class trainner():
             grads = self.average_gradients(tower_grads)
 
             # Add a summary to track the learning rate.
-            self.add_summary(tf.summary.scalar('learning_rate', lr))
-            self.add_summary(tf.summary.scalar('total_loss', total_loss_to_show))
-            self.add_summary(tf.summary.scalar('hm_loss', hm_loss))
-            self.add_summary(tf.summary.scalar('wh_loss', wh_loss))
-            self.add_summary(tf.summary.scalar('l2_loss', l2_loss))
+            # self.add_summary(tf.summary.scalar('learning_rate', lr))
+            # self.add_summary(tf.summary.scalar('total_loss', total_loss_to_show))
+            # self.add_summary(tf.summary.scalar('hm_loss', hm_loss))
+            # self.add_summary(tf.summary.scalar('wh_loss', wh_loss))
+            # self.add_summary(tf.summary.scalar('l2_loss', l2_loss))
 
             # Add histograms for gradients.
-            for grad, var in grads:
-                if grad is not None:
-                    self.add_summary(tf.summary.histogram(var.op.name + '/gradients', grad))
+            # for grad, var in grads:
+            #     if grad is not None:
+            #         self.add_summary(tf.summary.histogram(var.op.name + '/gradients', grad))
 
             # Apply the gradients to adjust the shared variables.
             apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
 
             # Add histograms for trainable variables.
-            for var in tf.trainable_variables():
-                self.add_summary(tf.summary.histogram(var.op.name, var))
+            # for var in tf.trainable_variables():
+            #     self.add_summary(tf.summary.histogram(var.op.name, var))
 
             if self.ema_weights:
                 # Track the moving averages of all trainable variables.
@@ -372,11 +372,12 @@ class trainner():
 
 
             # Build the summary operation from the last tower summaries.
-            self.summary_op = tf.summary.merge(self.summaries)
+            # self.summary_op = tf.summary.merge(self.summaries)
 
-            self.summary_writer = tf.summary.FileWriter(cfg.MODEL.model_path, self.sess.graph)
+            # self.summary_writer = tf.summary.FileWriter(cfg.MODEL.model_path, self.sess.graph)
 
             self.sess.graph.finalize()
+
             for epoch in range(cfg.TRAIN.epoch):
                 self._train(epoch)
                 val_loss=self._val(epoch)
@@ -488,9 +489,9 @@ class trainner():
                                               fetch_duration,
                                               run_duration))
 
-                if self.ite_num % 100 == 0:
-                    summary_str = self.sess.run(self.summary_op, feed_dict=self.train_dict)
-                    self.summary_writer.add_summary(summary_str, self.ite_num)
+                # if self.ite_num % 100 == 0:
+                #     summary_str = self.sess.run(self.summary_op, feed_dict=self.train_dict)
+                #     self.summary_writer.add_summary(summary_str, self.ite_num)
     def _val(self,_epoch):
 
         all_total_loss=0
