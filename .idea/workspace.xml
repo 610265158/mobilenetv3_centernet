@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="2b175355-3a8a-4497-837b-d0bae52f0cf2" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/configs/mscoco/mbv3_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/mscoco/mbv3_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/api/face_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/api/face_detector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/base_trainer/net_work.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/base_trainer/net_work.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/centernet.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/centernet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/fpn/seperateconv_fpn.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/fpn/seperateconv_fpn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/head/centernet_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/loss/centernet_loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/loss/centernet_loss.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/backbone.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/model/net/mobilenetv3/backbone.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/dataset/dataietr.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dataset/dataietr.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/dataset/ttf_net_data_sampler.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dataset/ttf_net_data_sampler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/centernet_for_freeze_bn.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/centernet_for_freeze_bn.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IgnoredFileRootStore">
+    <option name="generatedRoots">
+      <set>
+        <option value="$PROJECT_DIR$/.idea" />
+      </set>
+    </option>
+  </component>
+  <component name="ProjectId" id="1klsbu3J7E5JZlDWuno6FbFgdmM" />
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lib/core/model/net" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2b175355-3a8a-4497-837b-d0bae52f0cf2" name="Default Changelist" comment="" />
+      <created>1606286586634</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1606286586634</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

@@ -13,7 +13,7 @@ from lib.helper.logger import logger
 
 from lib.core.model.head.centernet_head import CenternetHead
 
-
+from lib.core.model.fpn.seperateconv_fpn import create_fpn_net
 class Centernet():
 
     def __init__(self, ):
@@ -31,26 +31,40 @@ class Centernet():
 
         self.top_k_results_output = cfg.MODEL.max_box
 
-    def forward(self, inputs, hm_target, wh_target, weights_, training_flag):
+    def forward(self, inputs, targets, training_flag):
 
         ## process the label
         if cfg.DATA.use_int8_data:
-            inputs, hm_target, wh_target, weights_ = self.process_label(inputs, hm_target, wh_target, weights_)
+            inputs, targets = self.process_label(inputs, targets)
 
         ### extract feature maps
         origin_fms = self.backbone(inputs, training_flag)
 
-        kps_predicts, wh_predicts = self.head(origin_fms, training_flag)
+        fpn_fms=create_fpn_net(origin_fms)
 
-        kps_predicts = tf.identity(kps_predicts, name='keypoints')
-        wh_predicts = tf.identity(wh_predicts, name='wh')
-        ### calculate loss
-        hm_loss, wh_loss = loss(predicts=[kps_predicts, wh_predicts], targets=[hm_target, wh_target, weights_])
+        predictions = self.head(fpn_fms, training_flag)
 
+        total_hm_loss=0
+        total_wh_loss=0
+        for i in range(3):
 
-        self.postprocess(kps_predicts, wh_predicts, self.top_k_results_output)
+            ### calculate loss
+            hm_loss, wh_loss = loss(predicts=predictions[i], targets=targets[i],base_step=2**(3+i))
+            total_hm_loss+=hm_loss
+            total_wh_loss+=wh_loss
 
-        return hm_loss, wh_loss
+        detections=[]
+
+        for i in range(3):
+            cur_res=self.postprocess(predictions[i][0], predictions[i][1],
+                                     self.top_k_results_output,2**(3+i))
+
+            detections.append(cur_res)
+
+        result=tf.concat(detections,axis=1)
+
+        result = tf.identity(result, name='detections')
+        return total_hm_loss/3., total_wh_loss/3.
 
     def preprocess(self, image):
         with tf.name_scope('image_preprocess'):
@@ -60,15 +74,18 @@ class Centernet():
             image = image / 255.
         return image
 
-    def process_label(self, inputs, cls_hm, wh_target, weights_):
+    def process_label(self, inputs, targets):
 
         inputs = tf.cast(inputs, tf.float32)
 
-        cls_hm = tf.cast(cls_hm, tf.float32) / cfg.DATA.use_int8_enlarge
 
-        return inputs, cls_hm, wh_target, weights_
+        for i in range(3):
 
-    def postprocess(self, keypoints, wh, max_size):
+            targets[i][0] = tf.cast(targets[i][0], tf.float32) / cfg.DATA.use_int8_enlarge
+
+        return inputs, targets
+
+    def postprocess(self, keypoints, wh, max_size,stride=4):
         """Postprocess outputs of the network.
 
         Returns:
@@ -105,7 +122,7 @@ class Centernet():
 
             return topk_scores, topk_inds, topk_clses, topk_ys, topk_xs
 
-        def decode(heat, wh, K=100):
+        def decode(heat, wh,stride, K=100):
             batch, height, width, cat = tf.shape(heat)[0], tf.shape(heat)[1], tf.shape(heat)[2], tf.shape(heat)[3]
             score_map, label_map = nms(heat)
             scores, inds, clses, ys, xs = topk(score_map, label_map, K=K)
@@ -121,20 +138,22 @@ class Centernet():
             clses = tf.cast(tf.expand_dims(clses, axis=-1), tf.float32)
             scores = tf.expand_dims(scores, axis=-1)
 
-            xmin = xs * cfg.MODEL.global_stride - wh[:, :, 0:1]
-            ymin = ys * cfg.MODEL.global_stride - wh[:, :, 1:2]
-            xmax = xs * cfg.MODEL.global_stride + wh[:, :, 2:3]
-            ymax = ys * cfg.MODEL.global_stride + wh[:, :, 3:4]
+            xmin = xs * stride - wh[:, :, 0:1]
+            ymin = ys * stride - wh[:, :, 1:2]
+            xmax = xs * stride + wh[:, :, 2:3]
+            ymax = ys * stride + wh[:, :, 3:4]
 
             bboxes = tf.concat([xmin, ymin, xmax, ymax], axis=-1)
 
             # [b,k,6]
             detections = tf.concat([bboxes, scores, clses], axis=-1)
-            detections = tf.identity(detections, name='detections')
+            # detections = tf.identity(detections, name='detections')
 
             return detections
 
-        decode(keypoints, wh, max_size)
+        res=decode(keypoints, wh,stride, max_size)
+
+        return res
 
 
 

@@ -129,7 +129,7 @@ class trainner():
     def add_summary(self, event):
         self.summaries.append(event)
 
-    def tower_loss(self,scope, images, kps_hm_, wh_,weights_, training):
+    def tower_loss(self, scope, images, targets, training):
         """Calculate the total loss on a single tower running the model.
 
         Args:
@@ -144,17 +144,17 @@ class trainner():
         # Build the portion of the Graph calculating the losses. Note that we will
         # assemble the total_loss using a custom function below.
 
-        centernet=Centernet()
+        centernet = Centernet()
 
         if cfg.TRAIN.lock_basenet_bn:
-            hm_loss,wh_loss = centernet.forward(images,kps_hm_, wh_,weights_, False)
+            hm_loss, wh_loss = centernet.forward(images, targets, False)
         else:
-            hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_, training)
+            hm_loss, wh_loss = centernet.forward(images, targets, training)
 
-        #reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
+        # reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
         regularization_losses = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES), name='l2_loss')
 
-        return hm_loss,wh_loss,regularization_losses
+        return hm_loss, wh_loss, regularization_losses
 
     def average_gradients(self, tower_grads):
         """Calculate the average gradient for each shared variable across all towers.
@@ -178,7 +178,8 @@ class trainner():
             for g, _ in grad_and_vars:
                 # Add 0 dimension to the gradients to represent the tower.
                 try:
-                    g = tf.clip_by_value(g, -5., 5.)
+                    if cfg.TRAIN.gradient_clip:
+                        g = tf.clip_by_value(g, -5., 5.)
                     expanded_g = tf.expand_dims(g, 0)
                 except:
                     print(_)
@@ -198,6 +199,7 @@ class trainner():
         return average_grads
 
     def build(self):
+
         with self._graph.as_default(), tf.device('/cpu:0'):
 
             # Create an optimizer that performs gradient descent.
@@ -208,9 +210,17 @@ class trainner():
 
             total_loss_to_show = 0.
             images_place_holder_list = []
-            hm_gt_place_holder_list = []
-            wh_gt_place_holder_list = []
-            weights_place_holder_list = []
+            s_hm_gt_place_holder_list = []
+            s_wh_gt_place_holder_list = []
+            s_weights_place_holder_list = []
+
+            m_hm_gt_place_holder_list = []
+            m_wh_gt_place_holder_list = []
+            m_weights_place_holder_list = []
+
+            l_hm_gt_place_holder_list = []
+            l_wh_gt_place_holder_list = []
+            l_weights_place_holder_list = []
 
             weights_initializer = slim.xavier_initializer()
             biases_initializer = tf.constant_initializer(0.)
@@ -224,28 +234,69 @@ class trainner():
                     with tf.device('/gpu:%d' % i):
                         with tf.name_scope('tower_%d' % (i)) as scope:
                             with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
+
+                                ###we set it as float16, but cast it into float32 in the model, to speedup
                                 if cfg.MODEL.deployee:
-                                    images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
+                                    images_ = tf.placeholder(tf.uint8,
+                                                             [1, cfg.DATA.hin, cfg.DATA.win, cfg.DATA.channel],
+                                                             name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.float32, [None, None,None, cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.uint8,
+                                                             [cfg.TRAIN.batch_size, cfg.DATA.hin, cfg.DATA.win,
+                                                              cfg.DATA.channel],
                                                              name="images")
 
-                                hm_ = tf.placeholder(tf.float32,
-                                                         [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
-                                                         name="heatmap_target")
-                                wh_=tf.placeholder(tf.float32,
-                                                         [cfg.TRAIN.batch_size, None,None, 4],
-                                                         name="wh_target")
-                                weight_ = tf.placeholder(tf.float32,
-                                                     [cfg.TRAIN.batch_size, None,None, 1],
-                                                     name="reg_target")
+                                hm_s = tf.placeholder(tf.uint8,
+                                                      [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
+                                                      name="heatmap_target")
+
+                                wh_s = tf.placeholder(tf.float32,
+                                                      [cfg.TRAIN.batch_size, None, None, 4],
+                                                      name="wh_target")
+                                weight_s = tf.placeholder(tf.float32,
+                                                          [cfg.TRAIN.batch_size, None, None, 1],
+                                                          name="reg_target")
+
+                                hm_m = tf.placeholder(tf.uint8,
+                                                      [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
+                                                      name="heatmap_target")
+
+                                wh_m = tf.placeholder(tf.float32,
+                                                      [cfg.TRAIN.batch_size, None, None, 4],
+                                                      name="wh_target")
+                                weight_m = tf.placeholder(tf.float32,
+                                                          [cfg.TRAIN.batch_size, None, None, 1],
+                                                          name="reg_target")
+
+                                hm_l = tf.placeholder(tf.uint8,
+                                                      [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
+                                                      name="heatmap_target")
+
+                                wh_l = tf.placeholder(tf.float32,
+                                                      [cfg.TRAIN.batch_size, None, None, 4],
+                                                      name="wh_target")
+                                weight_l = tf.placeholder(tf.float32,
+                                                          [cfg.TRAIN.batch_size, None, None, 1],
+                                                          name="reg_target")
 
                                 ###total anchor
 
                                 images_place_holder_list.append(images_)
-                                hm_gt_place_holder_list.append(hm_)
-                                wh_gt_place_holder_list.append(wh_)
-                                weights_place_holder_list.append(weight_)
+                                s_hm_gt_place_holder_list.append(hm_s)
+                                s_wh_gt_place_holder_list.append(wh_s)
+                                s_weights_place_holder_list.append(weight_s)
+
+                                s_hm_gt_place_holder_list.append(hm_s)
+                                s_wh_gt_place_holder_list.append(wh_s)
+                                s_weights_place_holder_list.append(weight_s)
+
+                                m_hm_gt_place_holder_list.append(hm_m)
+                                m_wh_gt_place_holder_list.append(wh_m)
+                                m_weights_place_holder_list.append(weight_m)
+
+                                l_hm_gt_place_holder_list.append(hm_l)
+                                l_wh_gt_place_holder_list.append(wh_l)
+                                l_weights_place_holder_list.append(weight_l)
 
                                 with slim.arg_scope([slim.conv2d, slim.conv2d_in_plane, \
                                                      slim.conv2d_transpose, slim.separable_conv2d,
@@ -255,7 +306,10 @@ class trainner():
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
                                     hm_loss, wh_loss, l2_loss = self.tower_loss(
-                                        scope, images_, hm_, wh_,weight_, training)
+                                        scope, images_,
+                                        [[hm_s, wh_s, weight_s],
+                                         [hm_m, wh_m, weight_m],
+                                         [hm_l, wh_l, weight_l]], training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
@@ -286,20 +340,24 @@ class trainner():
             # synchronization point across all towers.
             grads = self.average_gradients(tower_grads)
 
-
-
+            # Add a summary to track the learning rate.
+            # self.add_summary(tf.summary.scalar('learning_rate', lr))
+            # self.add_summary(tf.summary.scalar('total_loss', total_loss_to_show))
+            # self.add_summary(tf.summary.scalar('hm_loss', hm_loss))
+            # self.add_summary(tf.summary.scalar('wh_loss', wh_loss))
+            # self.add_summary(tf.summary.scalar('l2_loss', l2_loss))
 
             # Add histograms for gradients.
-            for grad, var in grads:
-                if grad is not None:
-                    self.add_summary(tf.summary.histogram(var.op.name + '/gradients', grad))
+            # for grad, var in grads:
+            #     if grad is not None:
+            #         self.add_summary(tf.summary.histogram(var.op.name + '/gradients', grad))
 
             # Apply the gradients to adjust the shared variables.
             apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
 
             # Add histograms for trainable variables.
-            for var in tf.trainable_variables():
-                self.add_summary(tf.summary.histogram(var.op.name, var))
+            # for var in tf.trainable_variables():
+            #     self.add_summary(tf.summary.histogram(var.op.name, var))
 
             if self.ema_weights:
                 # Track the moving averages of all trainable variables.
@@ -311,13 +369,17 @@ class trainner():
             else:
                 train_op = tf.group(apply_gradient_op, *bn_update_ops)
 
-
-
             ###set inputs and ouputs
             self.inputs = [images_place_holder_list,
-                           hm_gt_place_holder_list,
-                           wh_gt_place_holder_list,
-                           weights_place_holder_list,
+                           s_hm_gt_place_holder_list,
+                           s_wh_gt_place_holder_list,
+                           s_weights_place_holder_list,
+                           m_hm_gt_place_holder_list,
+                           m_wh_gt_place_holder_list,
+                           m_weights_place_holder_list,
+                           l_hm_gt_place_holder_list,
+                           l_wh_gt_place_holder_list,
+                           l_weights_place_holder_list,
                            training]
             self.outputs = [train_op,
                             total_loss_to_show,
@@ -331,16 +393,19 @@ class trainner():
                                 l2_loss,
                                 lr]
 
-
             tf_config = tf.ConfigProto(
                 allow_soft_placement=True,
                 log_device_placement=False)
             tf_config.gpu_options.allow_growth = True
+            tf_config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1
+
+            tf_config.intra_op_parallelism_threads = 18
             self.sess = tf.Session(config=tf_config)
 
             ##init all variables
             init = tf.global_variables_initializer()
             self.sess.run(init)
+            ######
 
 
     def save(self):

@@ -9,7 +9,7 @@ import traceback
 
 from lib.helper.logger import logger
 from tensorpack.dataflow import DataFromGenerator
-from tensorpack.dataflow import BatchData, MultiProcessPrefetchData
+from tensorpack.dataflow import BatchData, MultiProcessPrefetchData,RepeatedData
 
 
 from lib.dataset.centernet_data_sampler import get_affine_transform,affine_transform
@@ -131,88 +131,6 @@ class MutiScaleBatcher(BatchData):
 
             ### do crazy crop
 
-            if random.uniform(0,1)<cfg.DATA.cracy_crop and self.traing_flag:
-                if len(holder) == self.batch_size:
-                    crazy_holder=[]
-                    for i in range(0,len(holder),4):
-
-                        crazy_iamge=np.zeros(shape=(2*cfg.DATA.hin,2*cfg.DATA.win,3),dtype=holder[i][0].dtype)
-
-                        crazy_iamge[:cfg.DATA.hin,:cfg.DATA.win,:]=holder[i][0]
-                        crazy_iamge[:cfg.DATA.hin, cfg.DATA.win:, :] = holder[i+1][0]
-                        crazy_iamge[cfg.DATA.hin:, :cfg.DATA.win, :] = holder[i+2][0]
-                        crazy_iamge[cfg.DATA.hin:, cfg.DATA.win:, :] = holder[i+3][0]
-
-
-
-                        holder[i +1][1][:,[0, 2]]=holder[i +1][1][:,[0,2]]+cfg.DATA.win
-
-                        holder[i + 2][1][:,[1, 3]] = holder[i + 2][1][:,[1, 3]] + cfg.DATA.hin
-
-                        holder[i + 3][1][:,[0, 2]] = holder[i + 3][1][:,[0, 2]] + cfg.DATA.win
-                        holder[i + 3][1][:,[1, 3]] = holder[i + 3][1][:,[1, 3]] + cfg.DATA.hin
-
-
-
-                        tmp_bbox=np.concatenate((holder[i][1],
-                                                holder[i+1][1],
-                                                holder[i+2][1],
-                                                holder[i+3][1]),
-                                                axis=0)
-
-
-
-                        tmp_klass = np.concatenate((holder[i][2] ,
-                                                   holder[i + 1][2],
-                                                   holder[i + 2][2],
-                                                   holder[i + 3][2]),
-                                                    axis=0)
-
-                        ### do random crop 4 times:
-                        for j in range(4):
-
-                            curboxes=tmp_bbox.copy()
-                            cur_klasses=tmp_klass.copy()
-                            start_h=random.randint(0,cfg.DATA.hin)
-                            start_w = random.randint(0, cfg.DATA.win)
-
-                            cur_img_block=np.array(crazy_iamge[start_h:start_h+cfg.DATA.hin,start_w:start_w+cfg.DATA.win,:])
-
-                            for k in range(len(curboxes)):
-                                curboxes[k][0] = curboxes[k][0] - start_w
-                                curboxes[k][1] = curboxes[k][1] - start_h
-                                curboxes[k][2] = curboxes[k][2] - start_w
-                                curboxes[k][3] = curboxes[k][3] - start_h
-
-                            curboxes[:,[0, 2]] = np.clip(curboxes[:,[0, 2]], 0, cfg.DATA.win - 1)
-                            curboxes[:,[1, 3]] = np.clip(curboxes[:,[1, 3]], 0, cfg.DATA.hin - 1)
-                            ###cove the small faces
-
-
-
-
-                            boxes_clean=[]
-                            klsses_clean=[]
-                            for k in range(curboxes.shape[0]):
-                                box = curboxes[k]
-
-                                if not ((box[3] - box[1]) < cfg.DATA.cover_obj or (
-                                        box[2] - box[0]) < cfg.DATA.cover_obj):
-
-                                    boxes_clean.append(curboxes[k])
-                                    klsses_clean.append(cur_klasses[k])
-
-                            boxes_clean=np.array(boxes_clean)
-                            klsses_clean=np.array(klsses_clean)
-
-
-                            crazy_holder.append([cur_img_block,boxes_clean,klsses_clean])
-
-                    del holder
-
-                    holder=crazy_holder
-
-
             if len(holder) == self.batch_size:
                 target = self.produce_target(holder)
 
@@ -225,6 +143,19 @@ class MutiScaleBatcher(BatchData):
 
 
     def produce_target(self,holder):
+
+        def bbox_areas_filter(bboxes,klass, lower=32*32,upper=64*64):
+
+            x_min, y_min, x_max, y_max = bboxes[:, 0], bboxes[:, 1], bboxes[:, 2], bboxes[:, 3]
+
+            areas = (y_max - y_min + 1) * (x_max - x_min + 1)
+
+            index=np.logical_and(areas>=lower,areas<=upper)
+
+
+
+            return bboxes[index,...],klass[index,...]
+
         alig_data = []
 
         if self.scale_range is not None:
@@ -256,13 +187,26 @@ class MutiScaleBatcher(BatchData):
                     cv2.rectangle(image, (int(__box[0]), int(__box[1])),
                                   (int(__box[2]), int(__box[3])), (255, 0, 0), 4)
 
-            heatmap, wh_map,weight = self.target_producer.ttfnet_centernet_datasampler(image,boxes_, klass_)
+
+            ## make thre level
+
+            small_boxes,small_klass=bbox_areas_filter(boxes_,klass_,lower=0,upper=64*64)
+            medium_boxes,medium_klass=bbox_areas_filter(boxes_,klass_,lower=64*64,upper=128*128)
+            big_boxes,big_klass = bbox_areas_filter(boxes_, klass_,lower=128*128, upper=512*512)
+
+
+            heatmap_s, wh_map_s, weight_s = self.target_producer.ttfnet_centernet_datasampler(image,small_boxes, small_klass,down_ratio=8)
+            heatmap_m, wh_map_m, weight_m = self.target_producer.ttfnet_centernet_datasampler(image, medium_boxes, medium_klass,down_ratio=16)
+            heatmap_l, wh_map_l, weight_l = self.target_producer.ttfnet_centernet_datasampler(image, big_boxes, big_klass,down_ratio=32)
 
             if cfg.DATA.channel==1:
                 image=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
                 image=np.expand_dims(image,-1)
 
-            alig_data.append([image,heatmap, wh_map,weight])
+            alig_data.append([image,heatmap_s, wh_map_s,weight_s,
+                                    heatmap_m, wh_map_m, weight_m,
+                                    heatmap_l, wh_map_l, weight_l
+                                    ])
 
         return alig_data
 
@@ -525,7 +469,7 @@ class DataIter():
 
 
         ds = DataFromGenerator(self.generator)
-
+        ds = RepeatedData(ds, -1)
         if cfg.DATA.mutiscale and self.training_flag:
             ds = MutiScaleBatcher(ds, self.num_gpu * self.batch_size,
                                   scale_range=cfg.DATA.scales,

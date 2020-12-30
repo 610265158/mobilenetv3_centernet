@@ -9,7 +9,7 @@ from train_config import config as cfg
 
 from lib.core.model.loss.iouloss import *
 
-def loss(predicts,targets):
+def loss(predicts,targets,base_step=cfg.MODEL.global_stride):
     pred_hm, pred_wh=predicts
     pred_hm=tf.nn.sigmoid(pred_hm)
 
@@ -34,7 +34,7 @@ def loss(predicts,targets):
             mask = tf.reshape(weights_,shape=(-1, H, W))
             avg_factor = tf.reduce_sum(mask) + 1e-4
 
-            base_step = cfg.MODEL.global_stride
+
             shifts_x = tf.range(0, (W - 1) * base_step + 1, base_step,
                                     dtype=tf.int32)
             shifts_x=tf.cast(shifts_x,dtype=tf.float32)

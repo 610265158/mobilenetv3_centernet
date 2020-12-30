@@ -24,9 +24,9 @@ class FaceDetector:
             #self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
             self.output_op=tf.get_default_graph().get_tensor_by_name('tower_0/detections:0')
 
-            self.output_kps=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0')
+            # self.output_kps=tf.get_default_graph().get_tensor_by_name('tower_0/keypoints:0')
 
-            self.wh = tf.get_default_graph().get_tensor_by_name('tower_0/wh:0')
+            # self.wh = tf.get_default_graph().get_tensor_by_name('tower_0/wh:0')
 
     def __call__(self, image, score_threshold=0.5,input_shape=(cfg.DATA.hin,cfg.DATA.win),max_boxes=1000):
         """Detect faces.
@@ -60,12 +60,16 @@ class FaceDetector:
 
         image_fornet = np.expand_dims(image, 0)
 
-        outputs,kps,wh = self._sess.run(
-            [self.output_op,self.output_kps,self.wh], feed_dict={self.input_image: image_fornet}
+        outputs = self._sess.run(
+            [self.output_op], feed_dict={self.input_image: image_fornet}
         )
 
-        bboxes=outputs[0]
 
+        bboxes=outputs[0][0]
+
+
+
+        print(bboxes.shape)
         # print(kps.shape)
         # kps=kps[0][:,:,0]
         #

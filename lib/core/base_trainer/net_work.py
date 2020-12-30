@@ -121,7 +121,7 @@ class trainner():
     def add_summary(self,event):
         self.summaries.append(event)
 
-    def tower_loss(self,scope, images, kps_hm_, wh_,weights_, training):
+    def tower_loss(self,scope, images, targets, training):
         """Calculate the total loss on a single tower running the model.
 
         Args:
@@ -140,9 +140,9 @@ class trainner():
         centernet=Centernet()
 
         if cfg.TRAIN.lock_basenet_bn:
-            hm_loss,wh_loss=centernet.forward(images,kps_hm_, wh_,weights_, False)
+            hm_loss,wh_loss=centernet.forward(images,targets, False)
         else:
-            hm_loss,wh_loss = centernet.forward(images, kps_hm_, wh_,weights_, training)
+            hm_loss,wh_loss = centernet.forward(images, targets, training)
 
         #reg_loss,cla_loss=ssd_loss( reg, cla,boxes,labels)
         regularization_losses = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES), name='l2_loss')
@@ -203,10 +203,17 @@ class trainner():
 
             total_loss_to_show = 0.
             images_place_holder_list = []
-            hm_gt_place_holder_list = []
-            wh_gt_place_holder_list = []
-            weights_place_holder_list = []
+            s_hm_gt_place_holder_list = []
+            s_wh_gt_place_holder_list = []
+            s_weights_place_holder_list = []
 
+            m_hm_gt_place_holder_list = []
+            m_wh_gt_place_holder_list = []
+            m_weights_place_holder_list = []
+
+            l_hm_gt_place_holder_list = []
+            l_wh_gt_place_holder_list = []
+            l_weights_place_holder_list = []
 
 
             weights_initializer = slim.xavier_initializer()
@@ -231,24 +238,61 @@ class trainner():
                                     images_ = tf.placeholder(tf.uint8, [cfg.TRAIN.batch_size,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
-                                hm_ = tf.placeholder(tf.uint8,
+                                hm_s = tf.placeholder(tf.uint8,
                                                          [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
                                                          name="heatmap_target")
 
 
-                                wh_=tf.placeholder(tf.float32,
+                                wh_s=tf.placeholder(tf.float32,
                                                          [cfg.TRAIN.batch_size, None,None, 4],
                                                          name="wh_target")
-                                weight_ = tf.placeholder(tf.float32,
+                                weight_s = tf.placeholder(tf.float32,
                                                      [cfg.TRAIN.batch_size, None,None, 1],
                                                      name="reg_target")
 
+                                hm_m = tf.placeholder(tf.uint8,
+                                                      [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
+                                                      name="heatmap_target")
+
+                                wh_m = tf.placeholder(tf.float32,
+                                                      [cfg.TRAIN.batch_size, None, None, 4],
+                                                      name="wh_target")
+                                weight_m = tf.placeholder(tf.float32,
+                                                          [cfg.TRAIN.batch_size, None, None, 1],
+                                                          name="reg_target")
+
+                                hm_l = tf.placeholder(tf.uint8,
+                                                      [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
+                                                      name="heatmap_target")
+
+                                wh_l = tf.placeholder(tf.float32,
+                                                      [cfg.TRAIN.batch_size, None, None, 4],
+                                                      name="wh_target")
+                                weight_l = tf.placeholder(tf.float32,
+                                                          [cfg.TRAIN.batch_size, None, None, 1],
+                                                          name="reg_target")
+
                                 ###total anchor
 
+
+
+
                                 images_place_holder_list.append(images_)
-                                hm_gt_place_holder_list.append(hm_)
-                                wh_gt_place_holder_list.append(wh_)
-                                weights_place_holder_list.append(weight_)
+                                s_hm_gt_place_holder_list.append(hm_s)
+                                s_wh_gt_place_holder_list.append(wh_s)
+                                s_weights_place_holder_list.append(weight_s)
+
+                                s_hm_gt_place_holder_list.append(hm_s)
+                                s_wh_gt_place_holder_list.append(wh_s)
+                                s_weights_place_holder_list.append(weight_s)
+
+                                m_hm_gt_place_holder_list.append(hm_m)
+                                m_wh_gt_place_holder_list.append(wh_m)
+                                m_weights_place_holder_list.append(weight_m)
+
+                                l_hm_gt_place_holder_list.append(hm_l)
+                                l_wh_gt_place_holder_list.append(wh_l)
+                                l_weights_place_holder_list.append(weight_l)
 
                                 with slim.arg_scope([slim.conv2d, slim.conv2d_in_plane, \
                                                      slim.conv2d_transpose, slim.separable_conv2d,
@@ -258,7 +302,10 @@ class trainner():
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
                                     hm_loss, wh_loss, l2_loss = self.tower_loss(
-                                        scope, images_, hm_, wh_,weight_, training)
+                                                                                scope, images_,
+                                                                                [[hm_s, wh_s,weight_s],
+                                                                                [hm_m, wh_m,weight_m],
+                                                                                [hm_l, wh_l,weight_l]], training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
@@ -322,9 +369,15 @@ class trainner():
 
             ###set inputs and ouputs
             self.inputs = [images_place_holder_list,
-                           hm_gt_place_holder_list,
-                           wh_gt_place_holder_list,
-                           weights_place_holder_list,
+                           s_hm_gt_place_holder_list,
+                           s_wh_gt_place_holder_list,
+                           s_weights_place_holder_list,
+                           m_hm_gt_place_holder_list,
+                           m_wh_gt_place_holder_list,
+                           m_weights_place_holder_list,
+                           l_hm_gt_place_holder_list,
+                           l_wh_gt_place_holder_list,
+                           l_weights_place_holder_list,
                            training]
             self.outputs = [train_op,
                             total_loss_to_show,
@@ -370,7 +423,6 @@ class trainner():
             logger.info('A tmp model  saved as %s \n' % tmp_model_name)
             self.saver.save(self.sess, save_path=tmp_model_name)
 
-
             # Build the summary operation from the last tower summaries.
             # self.summary_op = tf.summary.merge(self.summaries)
 
@@ -411,15 +463,18 @@ class trainner():
 
             ########show_flag check the data
             if cfg.TRAIN.vis:
-                example_image,example_hm, example_wh,example_weights= next(self.train_ds)
+                example_image,example_hm_s, example_wh_s,example_weights_s, \
+                example_hm_m, example_wh_m, example_weights_m, \
+                example_hm_l, example_wh_l, example_weights_l\
+                    = next(self.train_ds)
 
-                print(example_hm.shape)
-                for i in range(example_hm.shape[0]):
+
+                for i in range(example_hm_m.shape[0]):
 
 
                     img=example_image[i]
-                    hm=example_hm[i]
-                    wh=example_wh[i]
+                    hm=example_hm_s[i]
+                    wh=example_wh_s[i]
 
                     if cfg.DATA.use_int8_data:
                         hm = hm[:,:,0].astype(np.uint8)
@@ -428,12 +483,48 @@ class trainner():
                         hm = hm[:, :, 0].astype(np.float32)
                         wh = wh[:, :, 0].astype(np.float32)
 
-                    cv2.namedWindow('hm', 0)
-                    cv2.imshow('hm', hm)
-                    cv2.namedWindow('wh', 0)
-                    cv2.imshow('wh', wh+1)
+                    cv2.namedWindow('s_hm', 0)
+                    cv2.imshow('s_hm', hm)
+                    cv2.namedWindow('s_wh', 0)
+                    cv2.imshow('s_wh', wh+1)
                     cv2.namedWindow('img', 0)
                     cv2.imshow('img', img)
+
+
+                    hm = example_hm_m[i]
+                    wh = example_wh_m[i]
+
+                    if cfg.DATA.use_int8_data:
+                        hm = hm[:, :, 0].astype(np.uint8)
+                        wh = wh[:, :, 0]
+                    else:
+                        hm = hm[:, :, 0].astype(np.float32)
+                        wh = wh[:, :, 0].astype(np.float32)
+
+                    cv2.namedWindow('m_hm', 0)
+                    cv2.imshow('m_hm', hm)
+                    cv2.namedWindow('m_wh', 0)
+                    cv2.imshow('m_wh', wh + 1)
+
+
+                    hm = example_hm_l[i]
+                    wh = example_wh_l[i]
+
+                    if cfg.DATA.use_int8_data:
+                        hm = hm[:, :, 0].astype(np.uint8)
+                        wh = wh[:, :, 0]
+                    else:
+                        hm = hm[:, :, 0].astype(np.float32)
+                        wh = wh[:, :, 0].astype(np.float32)
+
+                    cv2.namedWindow('l_hm', 0)
+                    cv2.imshow('l_hm', hm)
+                    cv2.namedWindow('l_wh', 0)
+                    cv2.imshow('l_wh', wh + 1)
+
+
+
+
                     cv2.waitKey(0)
 
             else:
@@ -441,6 +532,8 @@ class trainner():
                 start_time = time.time()
 
                 examples = next(self.train_ds)
+
+
                 for n in range(cfg.TRAIN.num_gpu):
 
 
@@ -449,7 +542,21 @@ class trainner():
                     self.train_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                     self.train_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
 
-                self.train_dict[self.inputs[4]] = True
+                    self.train_dict[self.inputs[4][n]] = examples[4][
+                                                            n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[5][n]] = examples[5][
+                                                            n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[6][n]] = examples[6][
+                                                            n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+
+                    self.train_dict[self.inputs[7][n]] = examples[7][
+                                                            n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[8][n]] = examples[8][
+                                                            n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                    self.train_dict[self.inputs[9][n]] = examples[9][
+                                                            n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+
+                self.train_dict[self.inputs[10]] = True
 
                 fetch_duration = time.time() - start_time
 
@@ -505,8 +612,15 @@ class trainner():
                 feed_dict[self.inputs[1][n]] = examples[1][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[2][n]] = examples[2][n*cfg.TRAIN.batch_size:(n+1)*cfg.TRAIN.batch_size]
                 feed_dict[self.inputs[3][n]] = examples[3][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                feed_dict[self.inputs[4][n]] = examples[4][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                feed_dict[self.inputs[5][n]] = examples[5][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                feed_dict[self.inputs[6][n]] = examples[6][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
 
-            feed_dict[self.inputs[4]] = False
+                feed_dict[self.inputs[7][n]] = examples[7][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                feed_dict[self.inputs[8][n]] = examples[8][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+                feed_dict[self.inputs[9][n]] = examples[9][n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size]
+
+                feed_dict[self.inputs[10]] = False
 
             total_loss_value, hm_loss_value,wh_loss_value, l2_loss_value, lr_value = \
                 self.sess.run([*self.val_outputs],
