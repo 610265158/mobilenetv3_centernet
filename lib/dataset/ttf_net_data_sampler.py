@@ -124,9 +124,7 @@ class CenternetDatasampler:
         if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0:  # TODO debug
             np.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
         return heatmap
-    def ttfnet_centernet_datasampler(self,image, gt_boxes, gt_labels, num_classes=cfg.DATA.num_class,
-                                     max_objs=cfg.DATA.max_objs,
-                                     down_ratio=None):
+    def ttfnet_centernet_datasampler(self,image, gt_boxes, gt_labels, num_classes=cfg.DATA.num_class, max_objs=cfg.DATA.max_objs):
 
         """
 
@@ -145,13 +143,7 @@ class CenternetDatasampler:
 
         img_h,img_w,_c=image.shape
 
-        if down_ratio is None:
-            down_ratio=self.down_ratio
-        else:
-            down_ratio=down_ratio
-
-
-        output_h, output_w = img_h//down_ratio,img_w//down_ratio
+        output_h, output_w = img_h//self.down_ratio,img_w//self.down_ratio
 
 
         heatmap_channel = num_classes
@@ -179,7 +171,7 @@ class CenternetDatasampler:
             gt_boxes = gt_boxes[boxes_ind]
             gt_labels = gt_labels[boxes_ind]
 
-            feat_gt_boxes = gt_boxes / down_ratio
+            feat_gt_boxes = gt_boxes / self.down_ratio
             feat_gt_boxes[:, [0, 2]] = np.clip(feat_gt_boxes[:, [0, 2]], a_min=0,
                                                    a_max=output_w - 1)
             feat_gt_boxes[:, [1, 3]] = np.clip(feat_gt_boxes[:, [1, 3]], a_min=0,
@@ -191,7 +183,7 @@ class CenternetDatasampler:
             # no peak will fall between pixels
             ct_ints = (np.stack([(gt_boxes[:, 0] + gt_boxes[:, 2]) / 2,
                                     (gt_boxes[:, 1] + gt_boxes[:, 3]) / 2],
-                                   axis=1) / down_ratio).astype(np.int)
+                                   axis=1) / self.down_ratio).astype(np.int)
 
 
             h_radiuses_alpha = (feat_hs / 2. * self.alpha).astype(np.int)
@@ -205,7 +197,7 @@ class CenternetDatasampler:
                 # calculate positive (center) regions
                 r1 = (1 - self.beta) / 2
                 ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s = calc_region(gt_boxes.transpose(0, 1), r1)
-                ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s = [np.round(x.float() / down_ratio).int()
+                ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s = [np.round(x.float() / self.down_ratio).int()
                                                       for x in [ctr_x1s, ctr_y1s, ctr_x2s, ctr_y2s]]
                 ctr_x1s, ctr_x2s = [np.clamp(x, max=output_w - 1) for x in [ctr_x1s, ctr_x2s]]
                 ctr_y1s, ctr_y2s = [np.clamp(y, max=output_h - 1) for y in [ctr_y1s, ctr_y2s]]
@@ -215,15 +207,12 @@ class CenternetDatasampler:
         for k in range(boxes_ind.shape[0]):
             cls_id = gt_labels[k]
 
-
             fake_heatmap = fake_heatmap*0
 
             self.draw_truncate_gaussian(fake_heatmap, ct_ints[k],
                                         h_radiuses_alpha[k], w_radiuses_alpha[k])
 
             heatmap[cls_id] = np.maximum(heatmap[cls_id], fake_heatmap)
-
-
 
 
             if self.wh_gaussian:

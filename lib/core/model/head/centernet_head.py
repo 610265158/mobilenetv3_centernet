@@ -95,5 +95,6 @@ class CenternetHead():
         c2 = self.revers_conv(c2, dims[2]//2,k_size=5,scope='c2_reverse')
         p2 = tf.concat([c2,c3_upsample],axis=3)
 
+        
         return p2
 

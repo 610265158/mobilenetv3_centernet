@@ -14,8 +14,6 @@ from lib.helper.logger import logger
 from lib.core.model.head.centernet_head import CenternetHead
 
 from lib.core.model.fpn.seperateconv_fpn import create_fpn_net
-
-import numpy as np
 class Centernet():
 
     def __init__(self, ):
@@ -64,6 +62,9 @@ class Centernet():
 
         inputs = tf.cast(inputs, tf.float32)
 
+
+
+
         targets[0] = tf.cast(targets[0], tf.float32) / cfg.DATA.use_int8_enlarge
 
         return inputs, targets
@@ -107,14 +108,11 @@ class Centernet():
 
             x_range, y_range = tf.meshgrid(shifts_x, shifts_y)
 
-            base_loc = tf.stack((x_range, y_range,x_range, y_range), axis=2)  # (h, w，4)
+            base_loc = tf.stack((x_range, y_range), axis=2)  # (2, h, w)
 
             base_loc = tf.expand_dims(base_loc, axis=0)
 
-
-            wh=wh*np.array([1,1,-1,-1])
             pred_boxes = base_loc-wh
-
             # pred_boxes = tf.concat((base_loc[:, :, :, 0:1] - wh[:, :, :, 0:1],
             #                         base_loc[:, :, :, 1:2] - wh[:, :, :, 1:2],
             #                         base_loc[:, :, :, 0:1] + wh[:, :, :, 2:3],
@@ -130,7 +128,7 @@ class Centernet():
             pred_boxes=tf.reshape(pred_boxes,shape=[batch,-1,4])
             pred_boxes = tf.batch_gather(pred_boxes, topk_inds)
 
-            label_map=tf.reshape(label_map,shape=[batch,-1])
+            label_map=tf.reshape(score_map,shape=[batch,-1])
             label_map = tf.batch_gather(label_map, topk_inds)
 
             topk_scores=tf.expand_dims(topk_scores,-1)

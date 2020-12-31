@@ -48,8 +48,8 @@ config.DATA.num_category=80                                  ###face 1  voc 20 c
 config.DATA.num_class = config.DATA.num_category
 
 
-config.DATA.hin = 416  # input size
-config.DATA.win = 416
+config.DATA.hin = 512  # input size
+config.DATA.win = 512
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
 config.DATA.cover_obj=8                          ###cover the small objs
