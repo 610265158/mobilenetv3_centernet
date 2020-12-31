@@ -537,7 +537,7 @@ class DataIter():
                                   is_training=self.training_flag)
         if not self.training_flag:
             self.process_num=1
-        ds = PrefetchDataZMQ(ds, self.process_num,hms=self.prefetch_size)
+        ds = PrefetchDataZMQ(ds, self.process_num,hwm=self.prefetch_size)
         ds.reset_state()
         ds = ds.get_data()
         return ds
