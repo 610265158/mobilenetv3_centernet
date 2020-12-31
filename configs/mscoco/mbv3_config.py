@@ -9,8 +9,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"          ##if u use muti gpu set them v
 config.TRAIN = edict()
 
 #### below are params for dataiter
-config.TRAIN.process_num = 4                      ### process_num for data provider
-config.TRAIN.prefetch_size = 50                  ### prefect Q size for data provider
+config.TRAIN.process_num = 2                      ### process_num for data provider
+config.TRAIN.prefetch_size = 10                  ### prefect Q size for data provider
 
 config.TRAIN.num_gpu = 1                         ##match with   os.environ["CUDA_VISIBLE_DEVICES"]
 config.TRAIN.batch_size = 16                    ###A big batch size may achieve a better result, but the memory is a problem
@@ -48,8 +48,8 @@ config.DATA.num_category=80                                  ###face 1  voc 20 c
 config.DATA.num_class = config.DATA.num_category
 
 
-config.DATA.hin = 512  # input size
-config.DATA.win = 512
+config.DATA.hin = 416  # input size
+config.DATA.win = 416
 config.DATA.channel = 3
 config.DATA.max_size=[config.DATA.hin,config.DATA.win]  ##h,w
 config.DATA.cover_obj=8                          ###cover the small objs
@@ -59,9 +59,9 @@ config.DATA.scales=(320,640)
 config.DATA.use_int8_data=True
 config.DATA.use_int8_enlarge=255.           ### use uint8 for heatmap generate for less memory acc, to speed up
 config.DATA.max_objs=128
-config.DATA.cracy_crop=0.3
-config.DATA.alpha=0.6
-config.DATA.beta=0.6
+config.DATA.cracy_crop=0.0
+config.DATA.alpha=0.54
+config.DATA.beta=0.54
 ##mobilenetv3 as basemodel
 config.MODEL = edict()
 config.MODEL.continue_train=False          ### revover from a trained model
@@ -75,7 +75,7 @@ config.MODEL.min_overlap=0.7
 config.MODEL.max_box= 100
 
 config.MODEL.global_stride=4
-config.MODEL.head_dims=[256,192,128]
+config.MODEL.head_dims=[128,128,128]
 config.MODEL.prehead_dims=[128,48]   ##no pre head
 
 

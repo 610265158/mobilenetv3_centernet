@@ -198,6 +198,7 @@ class trainner():
             average_grads.append(grad_and_var)
         return average_grads
 
+
     def build(self):
 
         with self._graph.as_default(), tf.device('/cpu:0'):
@@ -210,17 +211,11 @@ class trainner():
 
             total_loss_to_show = 0.
             images_place_holder_list = []
-            s_hm_gt_place_holder_list = []
-            s_wh_gt_place_holder_list = []
-            s_weights_place_holder_list = []
+            hm_gt_place_holder_list = []
+            wh_gt_place_holder_list = []
+            weights_place_holder_list = []
 
-            m_hm_gt_place_holder_list = []
-            m_wh_gt_place_holder_list = []
-            m_weights_place_holder_list = []
 
-            l_hm_gt_place_holder_list = []
-            l_wh_gt_place_holder_list = []
-            l_weights_place_holder_list = []
 
             weights_initializer = slim.xavier_initializer()
             biases_initializer = tf.constant_initializer(0.)
@@ -235,68 +230,38 @@ class trainner():
                         with tf.name_scope('tower_%d' % (i)) as scope:
                             with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
 
+
+
                                 ###we set it as float16, but cast it into float32 in the model, to speedup
                                 if cfg.MODEL.deployee:
-                                    images_ = tf.placeholder(tf.uint8,
-                                                             [1, cfg.DATA.hin, cfg.DATA.win, cfg.DATA.channel],
-                                                             name="images")
+                                    images_ = tf.placeholder(tf.float32, [1, cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel], name="images")
                                 else:
-                                    images_ = tf.placeholder(tf.uint8,
-                                                             [cfg.TRAIN.batch_size, cfg.DATA.hin, cfg.DATA.win,
-                                                              cfg.DATA.channel],
+                                    images_ = tf.placeholder(tf.float32, [cfg.TRAIN.batch_size,  cfg.DATA.hin,cfg.DATA.win, cfg.DATA.channel],
                                                              name="images")
 
-                                hm_s = tf.placeholder(tf.uint8,
-                                                      [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
-                                                      name="heatmap_target")
+                                hm = tf.placeholder(tf.float32,
+                                                         [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
+                                                         name="heatmap_target")
 
-                                wh_s = tf.placeholder(tf.float32,
-                                                      [cfg.TRAIN.batch_size, None, None, 4],
-                                                      name="wh_target")
-                                weight_s = tf.placeholder(tf.float32,
-                                                          [cfg.TRAIN.batch_size, None, None, 1],
-                                                          name="reg_target")
 
-                                hm_m = tf.placeholder(tf.uint8,
-                                                      [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
-                                                      name="heatmap_target")
+                                wh=tf.placeholder(tf.float32,
+                                                         [cfg.TRAIN.batch_size, None,None, 4],
+                                                         name="wh_target")
+                                weight = tf.placeholder(tf.float32,
+                                                     [cfg.TRAIN.batch_size, None,None, 1],
+                                                     name="reg_target")
 
-                                wh_m = tf.placeholder(tf.float32,
-                                                      [cfg.TRAIN.batch_size, None, None, 4],
-                                                      name="wh_target")
-                                weight_m = tf.placeholder(tf.float32,
-                                                          [cfg.TRAIN.batch_size, None, None, 1],
-                                                          name="reg_target")
-
-                                hm_l = tf.placeholder(tf.uint8,
-                                                      [cfg.TRAIN.batch_size, None, None, cfg.DATA.num_class],
-                                                      name="heatmap_target")
-
-                                wh_l = tf.placeholder(tf.float32,
-                                                      [cfg.TRAIN.batch_size, None, None, 4],
-                                                      name="wh_target")
-                                weight_l = tf.placeholder(tf.float32,
-                                                          [cfg.TRAIN.batch_size, None, None, 1],
-                                                          name="reg_target")
 
                                 ###total anchor
 
+
+
+
                                 images_place_holder_list.append(images_)
-                                s_hm_gt_place_holder_list.append(hm_s)
-                                s_wh_gt_place_holder_list.append(wh_s)
-                                s_weights_place_holder_list.append(weight_s)
+                                hm_gt_place_holder_list.append(hm)
+                                wh_gt_place_holder_list.append(wh)
+                                weights_place_holder_list.append(weight)
 
-                                s_hm_gt_place_holder_list.append(hm_s)
-                                s_wh_gt_place_holder_list.append(wh_s)
-                                s_weights_place_holder_list.append(weight_s)
-
-                                m_hm_gt_place_holder_list.append(hm_m)
-                                m_wh_gt_place_holder_list.append(wh_m)
-                                m_weights_place_holder_list.append(weight_m)
-
-                                l_hm_gt_place_holder_list.append(hm_l)
-                                l_wh_gt_place_holder_list.append(wh_l)
-                                l_weights_place_holder_list.append(weight_l)
 
                                 with slim.arg_scope([slim.conv2d, slim.conv2d_in_plane, \
                                                      slim.conv2d_transpose, slim.separable_conv2d,
@@ -306,10 +271,8 @@ class trainner():
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
                                     hm_loss, wh_loss, l2_loss = self.tower_loss(
-                                        scope, images_,
-                                        [[hm_s, wh_s, weight_s],
-                                         [hm_m, wh_m, weight_m],
-                                         [hm_l, wh_l, weight_l]], training)
+                                                                                scope, images_,
+                                                                                [hm, wh,weight], training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
@@ -369,17 +332,14 @@ class trainner():
             else:
                 train_op = tf.group(apply_gradient_op, *bn_update_ops)
 
+
+
             ###set inputs and ouputs
             self.inputs = [images_place_holder_list,
-                           s_hm_gt_place_holder_list,
-                           s_wh_gt_place_holder_list,
-                           s_weights_place_holder_list,
-                           m_hm_gt_place_holder_list,
-                           m_wh_gt_place_holder_list,
-                           m_weights_place_holder_list,
-                           l_hm_gt_place_holder_list,
-                           l_wh_gt_place_holder_list,
-                           l_weights_place_holder_list,
+                           hm_gt_place_holder_list,
+                           wh_gt_place_holder_list,
+                           weights_place_holder_list,
+
                            training]
             self.outputs = [train_op,
                             total_loss_to_show,
@@ -392,6 +352,7 @@ class trainner():
                                 wh_loss,
                                 l2_loss,
                                 lr]
+
 
             tf_config = tf.ConfigProto(
                 allow_soft_placement=True,

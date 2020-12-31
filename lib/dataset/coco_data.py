@@ -210,7 +210,7 @@ class BoxInfo:
         self.anno_path = anno_path
         self.coco = COCO(self.anno_path)
         self.get_image_annos()
-        self.image_list = os.listdir(self.image_base_dir)
+        # self.image_list = os.listdir(self.image_base_dir)
 
     def get_image_annos(self):
         """Read JSON file, and get and check the image list.
@@ -235,9 +235,9 @@ class BoxInfo:
             images_info = self.coco.loadImgs([images_ids[idx]])
             image_path = os.path.join(self.image_base_dir, images_info[0]['file_name'])
             # filter that some images might not in the list
-            if not os.path.exists(image_path):
-                print("[skip] json annotation found, but cannot found image: {}".format(image_path))
-                continue
+            # if not os.path.exists(image_path):
+            #     print("[skip] json annotation found, but cannot found image: {}".format(image_path))
+            #     continue
 
             annos_ids = self.coco.getAnnIds(imgIds=[images_ids[idx]])
             annos_info = self.coco.loadAnns(annos_ids)

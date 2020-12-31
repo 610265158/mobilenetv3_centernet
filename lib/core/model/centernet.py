@@ -34,37 +34,21 @@ class Centernet():
     def forward(self, inputs, targets, training_flag):
 
         ## process the label
-        if cfg.DATA.use_int8_data:
+        if cfg.DATA.use_int8_data :
             inputs, targets = self.process_label(inputs, targets)
 
         ### extract feature maps
         origin_fms = self.backbone(inputs, training_flag)
 
-        fpn_fms=create_fpn_net(origin_fms)
+        predictions = self.head(origin_fms, training_flag)
 
-        predictions = self.head(fpn_fms, training_flag)
+        ### calculate loss
+        hm_loss, wh_loss = loss(predicts=predictions, targets=targets,base_step=cfg.MODEL.global_stride)
 
-        total_hm_loss=0
-        total_wh_loss=0
-        for i in range(3):
+        self.postprocess(*predictions,self.top_k_results_output,cfg.MODEL.global_stride)
 
-            ### calculate loss
-            hm_loss, wh_loss = loss(predicts=predictions[i], targets=targets[i],base_step=2**(3+i))
-            total_hm_loss+=hm_loss
-            total_wh_loss+=wh_loss
 
-        detections=[]
-
-        for i in range(3):
-            cur_res=self.postprocess(predictions[i][0], predictions[i][1],
-                                     self.top_k_results_output,2**(3+i))
-
-            detections.append(cur_res)
-
-        result=tf.concat(detections,axis=1)
-
-        result = tf.identity(result, name='detections')
-        return total_hm_loss/3., total_wh_loss/3.
+        return hm_loss, wh_loss
 
     def preprocess(self, image):
         with tf.name_scope('image_preprocess'):
@@ -79,9 +63,9 @@ class Centernet():
         inputs = tf.cast(inputs, tf.float32)
 
 
-        for i in range(3):
 
-            targets[i][0] = tf.cast(targets[i][0], tf.float32) / cfg.DATA.use_int8_enlarge
+
+        targets[0] = tf.cast(targets[0], tf.float32) / cfg.DATA.use_int8_enlarge
 
         return inputs, targets
 
@@ -147,13 +131,12 @@ class Centernet():
 
             # [b,k,6]
             detections = tf.concat([bboxes, scores, clses], axis=-1)
-            # detections = tf.identity(detections, name='detections')
+            detections = tf.identity(detections, name='detections')
 
             return detections
 
-        res=decode(keypoints, wh,stride, max_size)
+        decode(keypoints, wh,stride, max_size)
 
-        return res
 
 
 

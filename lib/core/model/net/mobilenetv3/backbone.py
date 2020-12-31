@@ -60,8 +60,8 @@ def mobilenetv3_large_minimalistic_feature_extractor(image,is_training=True):
                                   padding='SAME',
                                   scope='extern1')
 
-        print(extern_conv)
-        mobilebet_fms = [#endpoints['layer_5/expansion_output'],
+
+        mobilebet_fms = [endpoints['layer_5/expansion_output'],
                          endpoints['layer_7/expansion_output'],
                          endpoints['layer_13/output'],
                          extern_conv]

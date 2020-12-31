@@ -9,7 +9,7 @@ import traceback
 
 from lib.helper.logger import logger
 from tensorpack.dataflow import DataFromGenerator
-from tensorpack.dataflow import BatchData, MultiProcessPrefetchData,RepeatedData
+from tensorpack.dataflow import BatchData, MultiProcessPrefetchData,RepeatedData,PrefetchDataZMQ
 
 
 from lib.dataset.centernet_data_sampler import get_affine_transform,affine_transform
@@ -188,25 +188,16 @@ class MutiScaleBatcher(BatchData):
                                   (int(__box[2]), int(__box[3])), (255, 0, 0), 4)
 
 
-            ## make thre level
-
-            small_boxes,small_klass=bbox_areas_filter(boxes_,klass_,lower=0,upper=64*64)
-            medium_boxes,medium_klass=bbox_areas_filter(boxes_,klass_,lower=64*64,upper=128*128)
-            big_boxes,big_klass = bbox_areas_filter(boxes_, klass_,lower=128*128, upper=512*512)
-
-
-            heatmap_s, wh_map_s, weight_s = self.target_producer.ttfnet_centernet_datasampler(image,small_boxes, small_klass,down_ratio=8)
-            heatmap_m, wh_map_m, weight_m = self.target_producer.ttfnet_centernet_datasampler(image, medium_boxes, medium_klass,down_ratio=16)
-            heatmap_l, wh_map_l, weight_l = self.target_producer.ttfnet_centernet_datasampler(image, big_boxes, big_klass,down_ratio=32)
+            heatmap, wh_map, weight = self.target_producer.ttfnet_centernet_datasampler(image,
+                                                                                              boxes_,
+                                                                                              klass_,
+                                                                                              down_ratio=cfg.MODEL.global_stride)
 
             if cfg.DATA.channel==1:
                 image=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
                 image=np.expand_dims(image,-1)
 
-            alig_data.append([image,heatmap_s, wh_map_s,weight_s,
-                                    heatmap_m, wh_map_m, weight_m,
-                                    heatmap_l, wh_map_l, weight_l
-                                    ])
+            alig_data.append([image,heatmap, wh_map,weight])
 
         return alig_data
 
@@ -481,7 +472,7 @@ class DataIter():
                                   is_training=self.training_flag)
         if not self.training_flag:
             self.process_num=1
-        ds = MultiProcessPrefetchData(ds, self.prefetch_size, self.process_num)
+            ds = PrefetchDataZMQ(ds, self.process_num,hwm=self.prefetch_size)
         ds.reset_state()
         ds = ds.get_data()
         return ds

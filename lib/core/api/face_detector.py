@@ -104,11 +104,8 @@ class FaceDetector:
                                dy , 0.,0.], dtype='float32')
         bboxes = (bboxes - boxes_bias)*boxes_scaler
 
-
-
-        # self.stats_graph(self._sess.graph)
+        self.stats_graph(self._sess.graph)
         return bboxes
-
 
     def preprocess(self, image, target_height, target_width, label=None):
 
