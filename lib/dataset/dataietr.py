@@ -392,10 +392,6 @@ class DsfdDataIter():
 
             if is_training:
 
-
-
-
-
                 ###random crop and flip
                 height, width = img.shape[0], img.shape[1]
                 c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
@@ -410,7 +406,7 @@ class DsfdDataIter():
                 flipped = False
                 if 1:
                     if 1:
-                        s = s * np.random.choice(np.arange(0.6, 1.4, 0.1))
+                        s = s * np.random.choice(np.arange(0.5, 1.5, 0.05))
                         w_border = self._get_border(128, img.shape[1])
                         h_border = self._get_border(128, img.shape[0])
                         c[0] = np.random.randint(low=w_border, high=img.shape[1] - w_border)
