@@ -9,7 +9,7 @@ import traceback
 
 from lib.helper.logger import logger
 from tensorpack.dataflow import DataFromGenerator
-from tensorpack.dataflow import BatchData, MultiProcessPrefetchData,RepeatedData
+from tensorpack.dataflow import BatchData, PrefetchDataZMQ,RepeatedData
 
 
 from lib.dataset.centernet_data_sampler import get_affine_transform,affine_transform
@@ -537,7 +537,7 @@ class DataIter():
                                   is_training=self.training_flag)
         if not self.training_flag:
             self.process_num=1
-        ds = MultiProcessPrefetchData(ds, self.prefetch_size, self.process_num)
+        ds = PrefetchDataZMQ(ds, self.process_num, hwm=self.prefetch_size)
         ds.reset_state()
         ds = ds.get_data()
         return ds
