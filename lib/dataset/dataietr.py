@@ -446,6 +446,10 @@ class DsfdDataIter():
 
                 boxes_refine = np.array(boxes_refine)
                 image = inp.astype(np.uint8)
+
+                # angle=random.choice([0,90,180,270])
+                # image,boxes_refine=Rotate_with_box(image,angle,boxes_refine)
+
                 boxes = np.concatenate([boxes_refine, klass_], axis=1)
 
                 ####random crop and flip
