@@ -60,7 +60,7 @@ class CenternetHead():
                                        activation_fn=None,
                                        padding='SAME',
                                        scope='branch_y_upsample_resize')
-            final = x+y
+            final = x*y
             final = tf.keras.layers.UpSampling2D(data_format='channels_last', interpolation='bilinear',
                                                           size=(factor, factor))(final)
 
@@ -96,15 +96,15 @@ class CenternetHead():
 
         c5_upsample = self._complex_upsample(c5, output_dim= dims[0]//2,factor=2, scope='c5_upsample')
         c4 = self.revers_conv(c4,  dims[0]//2, k_size=5, scope='c4_reverse')
-        p4=tf.nn.relu(tf.concat([c4,c5_upsample],axis=3))
+        p4=tf.concat([c4,c5_upsample],axis=3)
 
         c4_upsample = self._complex_upsample(p4, output_dim= dims[1]//2, factor=2,scope='c4_upsample')
         c3 = self.revers_conv(c3,  dims[1]//2, k_size=5, scope='c3_reverse')
-        p3=tf.nn.relu(tf.concat([c3,c4_upsample],axis=3))
+        p3=tf.concat([c3,c4_upsample],axis=3)
 
         c3_upsample = self._complex_upsample(p3, output_dim= dims[2]//2,factor=2, scope='c3_upsample')
         c2 = self.revers_conv(c2, dims[2]//2,k_size=5,scope='c2_reverse')
-        p2=tf.nn.relu(tf.concat([c2,c3_upsample],axis=3))
+        p2=tf.concat([c2,c3_upsample],axis=3)
 
         final = se(p2, dims[2])
 
