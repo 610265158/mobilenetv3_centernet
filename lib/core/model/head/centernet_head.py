@@ -49,18 +49,16 @@ class CenternetHead():
 
 
             x = slim.separable_conv2d(fm,
-                                       output_dim,
+                                       output_dim//2,
                                        [3, 3],
-                                       activation_fn=None,
                                        padding='SAME',
                                        scope='branch_x_upsample_resize')
             y = slim.separable_conv2d(fm,
-                                       output_dim,
+                                       output_dim//2,
                                        [5, 5],
-                                       activation_fn=None,
                                        padding='SAME',
                                        scope='branch_y_upsample_resize')
-            final = x*y
+            final = tf.concat([x,y],axis=3)
             final = tf.keras.layers.UpSampling2D(data_format='channels_last', interpolation='bilinear',
                                                           size=(factor, factor))(final)
 
@@ -68,20 +66,12 @@ class CenternetHead():
 
     def revers_conv(self,fm,output_dim,k_size,refraction=4,scope='boring'):
 
-        input_channel = fm.shape[3].value
 
-        mid_channels=input_channel//refraction
         with tf.variable_scope(scope):
-            fm_bypass = slim.conv2d(fm,
-                             mid_channels,
-                             [1, 1],
-                             padding='SAME',
-                             scope='1x1')
 
-            fm_bypass = slim.separable_conv2d(fm_bypass,
+            fm_bypass = slim.separable_conv2d(fm,
                                               output_dim,
                                               [k_size, k_size],
-                                              activation_fn=None,
                                               padding='SAME',
                                               scope='3x3')
 
