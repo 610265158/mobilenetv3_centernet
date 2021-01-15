@@ -1,5 +1,10 @@
 # mobilenetv3_centernet
 
+
+
+
+# there is a [pytorch version](https://github.com/610265158/mobile_centernet), trained with mobilenetv2, it is more simple.
+
 ## introduction
 
 This is a tensorflow implement mobilenetv3-centernet framework,
